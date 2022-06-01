@@ -1,5 +1,5 @@
 # gan model, PathChar_GAN,RPathChar_GAN,RGAN, CotGAN,NsdeGAN 
-gan_algo: PathChar_GAN
+gan_algo: RCGAN
 train: True
 pretrained: False
 #generator: PathChar
