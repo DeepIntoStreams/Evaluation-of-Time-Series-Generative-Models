@@ -1,7 +1,7 @@
-Codebase for evaluation of time series generation 
+Code base for evaluation of time series generation 
 ========================================
 
-This repository is the codebase for evaluation of time series generation 
+This repository is the code base for evaluation of time series generation 
 
 ## Environment Setup
 The code has been tested successfully using Python 3.8; thus we suggest using this version or a later version of Python. A typical process for installing the package dependencies involves creating a new Python virtual environment.
