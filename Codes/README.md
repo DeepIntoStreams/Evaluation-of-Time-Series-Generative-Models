@@ -14,13 +14,13 @@ Note that this pipeline relis on **wandb** for logging experiemnts, user needs t
 
 ## Description 
 
- We aim to create an pipeline with easy configuration interface for controlling on various GAN baseline models, datasets and evaluation metrics. The pipeline is still under development and may change based on the objective of the paper, also it would great to have progressive adjustments during our work.
-Here I provid a top down description of the pipeline for the latest version. On the top level, one should able to run experiments with
+ We aim to create an pipeline with easy configuration interface for controlling on various GAN baseline models, datasets and evaluation metrics. The pipeline is still under development and may change based on the objective of the paper, also it would great to have progressive adjustments and improvements during our work.
+Here I provide a top down descriptions of the pipeline for the latest version. On the top level, one should able to run experiments with
  
  ```console
  python run.py
  ```
- The [run.py](run.py) will retrieve configuration from [config/train_gan.py](config/train_gan.yaml) and complete the model training on the specified dataset and evaluation. The config yaml file essentially specify the model, dataset and related hyperparameters for the experiment. (I should add a functionality to specify the evaluation metrics later, however this may require more thinking since the evaluation have dependency on the model type and dataset.)
+ The [run.py](run.py) will retrieve configuration from [config/train_gan.yaml](config/train_gan.yaml) and complete the model training on the specified dataset and evaluation. The config yaml file essentially specify the model, dataset and related hyperparameters for the experiment. (I should add a functionality to specify the evaluation metrics later, however this may require more thinking since the evaluation have dependency on the model type and dataset.)
 NOTE: user need to replace the wandb api key and wandb init message inside the run.py to run the experiment in their own wandb account.
 
 There are three subdirectories inside the [src/](src/) folder corresponding to models, datasets and evaluations:
