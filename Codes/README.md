@@ -1,6 +1,7 @@
 Codebase for evaluation of time series generation 
 
 ========================================
+
 This repository is the codebase for evaluation of time series generation 
 
 ## Environment Setup
@@ -12,7 +13,7 @@ pip install .
 ```
 Note that this pipeline relis on **wandb** for logging experiemnts, user needs to create a personal wandb account. 
 
-## Descripiton 
+## Description 
 
  We aim to create an pipeline with easy configuration interface for controlling on various GAN baseline models, datasets and evaluation metrics. The pipeline is still under development and may change based on the objective of the paper, also it would great to have progressive adjustments during our work.
 Here I provid a top down description of the pipeline for the latest version. On the top level, one should able to run experiments with
