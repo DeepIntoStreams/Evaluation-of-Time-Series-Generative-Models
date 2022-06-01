@@ -1,0 +1,44 @@
+# gan model, PathChar_GAN,RPathChar_GAN,RGAN, CotGAN,NsdeGAN 
+gan_algo: PathChar_GAN
+train: True
+pretrained: False
+#generator: PathChar
+generator: LSTM
+#discrimator:
+discriminator: LSTM
+#dataset, ROUGH, MNIST, STOCK, BerkeleyMHAD, Air_Quality
+dataset: ROUGH
+# BerkeleyMHAD datatype: angles, keypoints
+data_type: angles
+num_classes: 3
+conditional: False
+
+device: cuda
+seed: 0
+gpu_id : "1"
+# n_lags, length of the time series, STOCKs:20
+n_lags: 50
+#hyperparameters:
+lr_G: 0.002
+lr_D: 0.003
+D_steps_per_G_step: 3
+batch_size: 256
+steps: 2000
+#generator hyperparameter:
+G_input_dim: 5
+G_hidden_dim: 64 
+G_num_layers: 2
+#discriminator hyperparameter:
+D_hidden_dim: 64
+D_num_layers: 3
+D_out_dim: 5
+# config for PathChar_GAN
+M_hidden_dim: 10
+M_num_samples: 10
+lr_M: 0.002
+Lambda: 0
+add_time: True
+include_D: False
+
+comment: 
+
