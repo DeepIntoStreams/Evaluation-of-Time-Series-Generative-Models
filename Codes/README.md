@@ -40,3 +40,7 @@ After the model training and evaluation, the related model and plots will be sto
 1. **Better design of pipeline for evaluation metrics**. Since this work is mainly base on the dicussion on the evaluation metrics of the GAN model, we may provide a flexible pipeline which allows one to evaluate on the pretrained GAN models, this would speed up the empirical study of the variation of the evaluations method and may interest other users.
 
 2. **Handle both conditional and unconditional GAN.** Current pipeline provide a naive way provide the funtionality for training and testing conditional GAN, where the condition is simply concatenate with the input noise. This is quite ad-hoc approach and may cause bug for more advanced model training/testing, we may think of a better designing to allow the pipeline to handle wide ranges of time series GAN in a flexible way.        
+
+## Note for code collaboration
+
+To avoid the inconvienience may caused during the code development, I strongly suggest that each individual should create a separate branch for the code development and create pull request with notification to keep everyone updated when merging to the main.   
