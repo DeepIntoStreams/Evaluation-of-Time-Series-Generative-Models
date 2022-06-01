@@ -25,7 +25,7 @@ Here I provide a top down descriptions of the pipeline for the latest version. O
 **NOTE**: user need to replace the wandb api key and wandb init message inside the run.py to run the experiment in their own wandb account.
 
 There are three subdirectories inside the [src/](src/) folder corresponding to models, datasets and evaluations:
-1. [src/baselines/](src/baselines/) contains baseline GAN models in separate py files and a master file [src/baselines/models.py](src/baselines/models.py) for retrieving models based on the config. (**TODO** complete the code and testing for TIME gan and COT-GAN.)
+1. [src/baselines/](src/baselines/) contains baseline GAN models in separate py files and a master file [src/baselines/models.py](src/baselines/models.py) for retrieving models based on the config. (**TODO** complete the code and testing for TIME-GAN and COT-GAN.)
 
 2. [src/datasets/](src/datasets/) contains the data generation in separate py files and a master file [src/datasets/dataloader.py](src/datasets/dataloader.py) to create the pytroch dataloder based on the config. The intermediate processed data in tensor format will be store in [data/](data/) to avoid repeatedly downloading and data processing. 
 
