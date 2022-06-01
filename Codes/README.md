@@ -1,5 +1,4 @@
 Codebase for evaluation of time series generation 
-
 ========================================
 
 This repository is the codebase for evaluation of time series generation 
