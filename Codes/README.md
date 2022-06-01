@@ -20,8 +20,9 @@ Here I provide a top down descriptions of the pipeline for the latest version. O
  ```console
  python run.py
  ```
- The [run.py](run.py) will retrieve configuration from [config/train_gan.yaml](config/train_gan.yaml) and complete the model training on the specified dataset and evaluation. The config yaml file essentially specify the model, dataset and related hyperparameters for the experiment. (I should add a functionality to specify the evaluation metrics later, however this may require more thinking since the evaluation have dependency on the model type and dataset.)
-NOTE: user need to replace the wandb api key and wandb init message inside the run.py to run the experiment in their own wandb account.
+ The [run.py](run.py) will retrieve configuration from [configs/train_gan.yaml](configs/train_gan.yaml) and complete the model training on the specified dataset and evaluation. The config yaml file essentially specify the model, dataset and related hyperparameters for the experiment. (In the furture, I should add a functionality to specify the evaluation metrics later, however this may require more thinking since the evaluation have dependency on the model type and dataset.)
+
+**NOTE**: user need to replace the wandb api key and wandb init message inside the run.py to run the experiment in their own wandb account.
 
 There are three subdirectories inside the [src/](src/) folder corresponding to models, datasets and evaluations:
 1. [src/baselines/](src/baselines/) contains baseline GAN models in separate py files and a master file [src/baselines/models.py](src/baselines/models.py) for retrieving models based on the config.
@@ -32,5 +33,5 @@ There are three subdirectories inside the [src/](src/) folder corresponding to m
 
 I hope this description this clear enough for the users to add individual model, dataset and evaluation method in a similar way for the future code development.  
 
-After the model training and evaluation, the related model and plots will be store in the [numerical_experiments](numerical_experiemtns) folder, these files will also uploaded the wandb online folder for each run. The output files of repeated the experiments on the same dataset and model will be replaced in [numerical_experiments](numerical_experiemtns) folder, but the output will be uploaded separately on wandb for each run. 
+After the model training and evaluation, the related model and plots will be store in the [numerical_results](numerical_results) folder, these files will also uploaded the wandb online folder for each run. The output files of repeated the experiments on the same dataset and model maybe be replaced in [numerical_results](numerical_results) folder, but the output will be uploaded separately on wandb for each run. 
 
