@@ -6,4 +6,9 @@ permalink: /about/
 
 ### Contact me
 
-* [Hang Lou](hang.lou.19@ucl.ac.uk)
+
+* [Hao Ni]()
+* [Hang Lou]()
+* [Baoren Xiao]()
+* [Jiajie Tao]()
+

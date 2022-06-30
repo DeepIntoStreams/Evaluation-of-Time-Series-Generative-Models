@@ -3,247 +3,198 @@ layout: default
 ---
 
 <div class="row">
-  {% capture x %}
+ {% capture x %}
+  * [Hao Ni]()
   * [Hang Lou]()
-  {% endcapture %}{{ x | markdownify }}
-</div>
+  * [Baoren Xiao]()
+  * [Jiajie Tao]()
+ {% endcapture %}{{ x | markdownify }}
+ </div>
 
 <div class="row">
   <span class="selector">
     <span>Select Categories: </span>
     <select id="tagselection" class="selectpicker" multiple data-live-search="true">
       <option>68T99</option>
-      <option>I.2.0</option>
-      <option>astro-ph.CO</option>
-      <option>astro-ph.GA</option>
-      <option>astro-ph.IM</option>
-      <option>cond-mat.dis-nn</option>
-      <option>cond-mat.mtrl-sci</option>
-      <option>cond-mat.stat-mech</option>
-      <option>cs.AI</option>
-      <option>cs.CE</option>
-      <option>cs.CL</option>
-      <option>cs.CR</option>
-      <option>cs.CV</option>
-      <option>cs.GR</option>
-      <option>cs.IT</option>
-      <option>cs.LG</option>
-      <option>cs.NA</option>
-      <option>cs.NE</option>
-      <option>cs.SD</option>
-      <option>eess.AS</option>
-      <option>eess.IV</option>
-      <option>eess.SP</option>
-      <option>math.AP</option>
-      <option>math.IT</option>
-      <option>math.NA</option>
-      <option>math.OC</option>
-      <option>math.PR</option>
-      <option>math.ST</option>
-      <option>physics.bio-ph</option>
-      <option>physics.chem-ph</option>
-      <option>physics.comp-ph</option>
-      <option>physics.data-an</option>
-      <option>physics.med-ph</option>
-      <option>q-bio.BM</option>
-      <option>q-bio.NC</option>
-      <option>q-bio.QM</option>
-      <option>stat.CO</option>
-      <option>stat.ML</option>
-      <option>stat.TH</option>
+<option>I.2.0</option>
+<option>astro-ph.CO</option>
+<option>astro-ph.GA</option>
+<option>astro-ph.IM</option>
+<option>cond-mat.dis-nn</option>
+<option>cond-mat.mtrl-sci</option>
+<option>cond-mat.stat-mech</option>
+<option>cs.AI</option>
+<option>cs.CE</option>
+<option>cs.CL</option>
+<option>cs.CR</option>
+<option>cs.CV</option>
+<option>cs.GR</option>
+<option>cs.IT</option>
+<option>cs.LG</option>
+<option>cs.NA</option>
+<option>cs.NE</option>
+<option>cs.SD</option>
+<option>eess.AS</option>
+<option>eess.IV</option>
+<option>eess.SP</option>
+<option>math.AP</option>
+<option>math.IT</option>
+<option>math.NA</option>
+<option>math.OC</option>
+<option>math.PR</option>
+<option>math.ST</option>
+<option>physics.bio-ph</option>
+<option>physics.chem-ph</option>
+<option>physics.comp-ph</option>
+<option>physics.data-an</option>
+<option>physics.med-ph</option>
+<option>q-bio.BM</option>
+<option>q-bio.NC</option>
+<option>q-bio.QM</option>
+<option>stat.CO</option>
+<option>stat.ML</option>
+<option>stat.TH</option>
     </select>
   </span>
   <span class="selector">
     <span>Select Authors: </span>
     <select id="authorselection" class="selectpicker" multiple data-live-search="true">
       <option>Baoren Xiao</option>
-      <option>Hao Ni</option>
-      <option>Lukasz Szpruch</option>
-      <option>Magnus Wiese</option>
-      <option>Marc Sabate-Vidales</option>
-      <option>Shujian Liao</option>
+<option>Hao Ni</option>
     </select>
   </span>
   <div class="selector">
     <span>Select Year: </span>
     <select id="yearselection" class="selectpicker" multiple data-live-search="true">
       <option>2015</option>
-      <option>2019</option>
-      <option>2020</option>
-      <option>2021</option>
-      <option>2022</option>
+<option>2019</option>
+<option>2020</option>
+<option>2021</option>
+<option>2022</option>
     </select>
   </div>
 </div>
 
 {% assign id = 0 %}
-<hr />
-
-
-<!--Post--------------------------------------------------------------------------------------------------------------------------------------------->
-{% assign id = id | plus:1 %}
-<div class="entry">
-  <div class="row">
-    <div class="column1">
-      {% capture x %}
-      ## Sig-Wasserstein GANS for Time Series Generation
-      {% endcapture %}{{ x | markdownify }}
-
-      <div id="block_container">
-        <div id="bloc2">
-          <span class="dates"> Nov 1, 2022 </span>
-          <span class="authors"> Hao Ni, Lukasz Szpruch, Marc Sabate-Vidales, Baoren Xiao, Magnus Wiese, Shujian
-            Liao</span>
-        </div>
-      </div>
-
-    </div>
-    <div class="column2">
-      <div id="block_container">
-        <div id="bloc2">
-          <a href="https://arxiv.org/abs/2111.01207" target="_blank" class="btn btn-info" role="button"> Paper
-          </a>
-        </div>
-        <div id="bloc3">
-
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="row">
-    <div class="column1">
-    </div>
-    <div class="column2">
-      <div class="tags">
-        cs.LG
-      </div>
-
-    </div>
-  </div>
-
-  <div class="collapse" id="collapse{{ id }}">
-    {% capture x %}
-
-    {% endcapture %}{{ x | markdownify }}
-  </div>
-</div>
-<!--EndPost--------------------------------------------------------------------------------------------------------------------------------------------->
+ <hr/>
+ 
 
 <!--Post--------------------------------------------------------------------------------------------------------------------------------------------->
 {% assign id = id | plus:1 %}
 <div class="entry">
-  <div class="row">
-    <div class="column1">
-      {% capture x %}
-      ## Sig-Wasserstein GANS for Time Series Generation
-      {% endcapture %}{{ x | markdownify }}
+	<div class="row">
+	  <div class="column1" >
+{% capture x %}
+## Sig-Wasserstein GANs for Time Series Generation
+{% endcapture %}{{ x | markdownify }}
 
-      <div id="block_container">
-        <div id="bloc2">
-          <span class="dates"> Nov 1, 2022 </span>
-          <span class="authors"> Hao Ni, Lukasz Szpruch, Marc Sabate-Vidales, Baoren Xiao, Magnus Wiese, Shujian
-            Liao</span>
-        </div>
-      </div>
+<div id="block_container">
+		<div id="bloc2">
+         <span class="dates"> Nov 1, 2021 </span>    
+         <span class="authors"> Hao Ni,  Lukasz Szpruch, Marc Sabate-Vidales, Baoren Xiao, Magnus Wiese, Shujian Liao </span>
+		</div>  
+</div>
 
-    </div>
-    <div class="column2">
-      <div id="block_container">
-        <div id="bloc2">
-          <a href="https://arxiv.org/abs/2111.01207" target="_blank" class="btn btn-info" role="button"> Paper
-          </a>
-        </div>
-        <div id="bloc3">
+	  </div>
+	  <div class="column2" >
+	    <div id="block_container">
+		<div id="bloc2">
+		<a href="https://arxiv.org/abs/2111.01207" target="_blank" class="btn btn-info" role="button"> Paper </a>
+		</div>  
+		<div id="bloc3">
+		    
+		</div>  
+	     </div>
+	  </div>
+	</div>
+	<div class="row">
+	  <div class="column1" >
+	  </div>
+	  <div class="column2">
+		  <div class="tags">
+			  cs.LG
+		  </div>
+		  
+	  </div>
+	</div>
 
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="row">
-    <div class="column1">
-    </div>
-    <div class="column2">
-      <div class="tags">
-        cs.LG
-      </div>
-
-    </div>
-  </div>
-
-  <div class="collapse" id="collapse{{ id }}">
-    {% capture x %}
-
-    {% endcapture %}{{ x | markdownify }}
-  </div>
+<div class="collapse" id="collapse{{ id }}">
+{% capture x %}
+ 
+{% endcapture %}{{ x | markdownify }}
+</div>
 </div>
 <!--EndPost--------------------------------------------------------------------------------------------------------------------------------------------->
 
-<!--<script src="https://utteranc.es/client.js" repo="ScoreBasedGenerativeModeling/scorebasedgenerativemodeling.github.io"
-  issue-term="pathname" theme="github-light" crossorigin="anonymous" async>
-  </script> -->
+<script src="https://utteranc.es/client.js"
+        repo="hello0630/Evaluation-of-Time-Series-Generative-Models.github.io"
+        issue-term="pathname"
+        theme="github-light"
+        crossorigin="anonymous"
+        async>
+</script>
 
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-  integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"
-  integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns" crossorigin="anonymous"></script>
-<!--<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script> -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/js/bootstrap-select.min.js"></script>>>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns" crossorigin="anonymous"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/js/bootstrap-select.min.js"></script>
 
 </div>
 
 <script>
 
-  $('#yearselection').change(function (e) {
-    var items = document.getElementsByClassName('entry');
-    var tags_selected = $(this).val();
-    for (let i = 0; i < items.length; i++) {
-      var tag_items = items[i].getElementsByClassName("dates")[0];
-      var year_tag = tag_items.textContent.trim().split(',')[1];
-      console.log(year_tag);
-      const found = tags_selected.some(r => year_tag.includes(r));
-      if (found || tags_selected.length === 0) {
-        items[i].style.display = 'unset';
-      }
-      else {
-        items[i].style.display = 'none';
-      }
-    }
-  })
+$('#yearselection').change(function (e) {
+   	var items = document.getElementsByClassName('entry');
+	var tags_selected = $(this).val();
+   	for (let i = 0; i < items.length; i++) {
+	     var tag_items = items[i].getElementsByClassName("dates")[0];
+	     var year_tag = tag_items.textContent.trim().split(',')[1]; 
+       console.log(year_tag);
+      	const found = tags_selected.some(r=> year_tag.includes(r));
+	      if (found || tags_selected.length === 0) {
+		items[i].style.display  = 'unset';
+	      }
+		else {
+		items[i].style.display  = 'none';
+		}
+	    }
+})
 
 
-  $('#authorselection').change(function (e) {
-    var items = document.getElementsByClassName('entry');
-    var tags_selected = $(this).val();
-    for (let i = 0; i < items.length; i++) {
-      var tag_items = items[i].getElementsByClassName("authors")[0];
-      var item_tags = tag_items.textContent.trim().split(',');
-      item_tags = item_tags.map(v => v.replace("\n", '').replace("\t", '').trim());
-      const found = item_tags.some(r => tags_selected.includes(r));
-      if (found || tags_selected.length === 0) {
-        items[i].style.display = 'unset';
-      }
-      else {
-        items[i].style.display = 'none';
-      }
-    }
-  })
-
-  $('#tagselection').change(function (e) {
-    var items = document.getElementsByClassName('entry');
-    var tags_selected = $(this).val();
-    for (let i = 0; i < items.length; i++) {
-      var tag_items = items[i].getElementsByClassName("tags")[0];
-      var item_tags = tag_items.textContent.trim().split(',');
-      item_tags = item_tags.map(v => v.replace("\n", '').replace("\t", '').trim());
-      console.log("item tags");
-      console.log(item_tags);
-      const found = item_tags.some(r => tags_selected.includes(r));
-      if (found || tags_selected.length === 0) {
-        items[i].style.display = 'unset';
-      }
-      else {
-        items[i].style.display = 'none';
-      }
-    }
-  })
+$('#authorselection').change(function (e) {
+   	var items = document.getElementsByClassName('entry');
+	var tags_selected = $(this).val();
+   	for (let i = 0; i < items.length; i++) {
+	     var tag_items = items[i].getElementsByClassName("authors")[0];
+	     var item_tags = tag_items.textContent.trim().split(','); 
+	     item_tags =  item_tags.map(v => v.replace("\n", '').replace("\t", '').trim());
+      	      const found = item_tags.some(r=> tags_selected.includes(r));
+	      if (found || tags_selected.length === 0) {
+		items[i].style.display  = 'unset';
+	      }
+		else {
+		items[i].style.display  = 'none';
+		}
+	    }
+})
+	
+$('#tagselection').change(function (e) {
+   	var items = document.getElementsByClassName('entry');
+	var tags_selected = $(this).val();
+   	for (let i = 0; i < items.length; i++) {
+	     var tag_items = items[i].getElementsByClassName("tags")[0];
+	     var item_tags = tag_items.textContent.trim().split(','); 
+	     item_tags =  item_tags.map(v => v.replace("\n", '').replace("\t", '').trim());
+	      console.log("item tags");
+	      console.log(item_tags);
+      	      const found = item_tags.some(r=> tags_selected.includes(r));
+	      if (found || tags_selected.length === 0) {
+		items[i].style.display  = 'unset';
+	      }
+		else {
+		items[i].style.display  = 'none';
+		}
+	    }
+})
 </script>
+
