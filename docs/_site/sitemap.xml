@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url>
+<loc>http://localhost:4000/about/</loc>
+</url>
+<url>
+<loc>http://localhost:4000/tag/application/</loc>
+</url>
+<url>
+<loc>http://localhost:4000/tag/classics/</loc>
+</url>
+<url>
+<loc>http://localhost:4000/</loc>
+</url>
+<url>
+<loc>http://localhost:4000/tag/methodology/</loc>
+</url>
+<url>
+<loc>http://localhost:4000/tag/optimaltransport/</loc>
+</url>
+<url>
+<loc>http://localhost:4000/tag/performance/</loc>
+</url>
+<url>
+<loc>http://localhost:4000/tag/theory/</loc>
+</url>
+</urlset>
