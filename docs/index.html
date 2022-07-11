@@ -13,47 +13,12 @@ layout: default
 
 <div class="row">
   <span class="selector">
-    <span>Select Categories: </span>
-    <select id="tagselection" class="selectpicker" multiple data-live-search="true">
-      <option>68T99</option>
-<option>I.2.0</option>
-<option>astro-ph.CO</option>
-<option>astro-ph.GA</option>
-<option>astro-ph.IM</option>
-<option>cond-mat.dis-nn</option>
-<option>cond-mat.mtrl-sci</option>
-<option>cond-mat.stat-mech</option>
-<option>cs.AI</option>
-<option>cs.CE</option>
-<option>cs.CL</option>
-<option>cs.CR</option>
-<option>cs.CV</option>
-<option>cs.GR</option>
-<option>cs.IT</option>
-<option>cs.LG</option>
-<option>cs.NA</option>
-<option>cs.NE</option>
-<option>cs.SD</option>
-<option>eess.AS</option>
-<option>eess.IV</option>
-<option>eess.SP</option>
-<option>math.AP</option>
-<option>math.IT</option>
-<option>math.NA</option>
-<option>math.OC</option>
-<option>math.PR</option>
-<option>math.ST</option>
-<option>physics.bio-ph</option>
-<option>physics.chem-ph</option>
-<option>physics.comp-ph</option>
-<option>physics.data-an</option>
-<option>physics.med-ph</option>
-<option>q-bio.BM</option>
-<option>q-bio.NC</option>
-<option>q-bio.QM</option>
-<option>stat.CO</option>
-<option>stat.ML</option>
-<option>stat.TH</option>
+    <span>Select Purpose: </span>
+    <select id="purposeselection" class="selectpicker" multiple data-live-search="true">
+      <option>Methodology</option>
+<option>Application</option>
+<option>Sanity check</option>
+<option>Model assessment</option>
     </select>
   </span>
   <span class="selector">
@@ -84,13 +49,13 @@ layout: default
 	<div class="row">
 	  <div class="column1" >
 {% capture x %}
-## PSA-GAN: PROGRESSIVE SELF ATTENTION GANS FOR SYNTHETIC TIME SERIES
+## PSA-GAN: Progressive Self Attention Gans For Synthetic Time Series
 {% endcapture %}{{ x | markdownify }}
 
 <div id="block_container">
 		<div id="bloc2">
-         <span class="dates"> 2022</span>    
-         <span class="authors"> Paul Jeha </span>
+         <span class="dates"> 28,03,2022</span>    
+         <span class="authors"> Jeha Paul, Bohlke-Schneider Michael, Mercado Pedro, Kapoor Shubham, Singh Nirwan Rajbir, Flunkert Valentin, Gasthaus Jan, Januschowski Tim </span>
 		</div>  
 </div>
 
@@ -98,22 +63,24 @@ layout: default
 	  <div class="column2" >
 	    <div id="block_container">
 		<div id="bloc2">
-		<a href="https://openreview.net/pdf?id=Ix_mh42xq5w" target="_blank" class="btn btn-info" role="button"> Paper </a>
+		<a href="https://doi.org/10.48550/arXiv.2108.00981" target="_blank" class="btn btn-info" role="button"> Paper </a>
 		</div>  
-		<div id="bloc3">
-		    
+		<div id="bloc3">		    
+		<p>
+		<a href="" target="_blank" class="btn btn-info" role="button"> Code </a>
+		</p>    
 		</div>  
-	     </div>
+	    </div>
 	  </div>
-	</div>
+	  </div>
 	<div class="row">
 	  <div class="column1" >
 	  </div>
 	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
+        	   <div class="purpose">
+		          Methodology   
+		   </div> 
+
 	  </div>
 	</div>
 
@@ -132,14 +99,13 @@ layout: default
 	<div class="row">
 	  <div class="column1" >
 {% capture x %}
-## Time-series Generative Adversarial Networks
+## Time-Series Generative Adversarial Networks
 {% endcapture %}{{ x | markdownify }}
 
 <div id="block_container">
 		<div id="bloc2">
-         <span class="dates"> 2019</span>    
-         <span class="authors"> Jinsung Yoon
-Daniel Jarrett </span>
+         <span class="dates"> 08,12,2019</span>    
+         <span class="authors"> Jinsung Yoon, Daniel Jarrett, Mihaela van der Schaar </span>
 		</div>  
 </div>
 
@@ -149,20 +115,22 @@ Daniel Jarrett </span>
 		<div id="bloc2">
 		<a href="https://proceedings.neurips.cc/paper/2019/file/c9efe5f26cd17ba6216bbe2a7d26d490-Paper.pdf" target="_blank" class="btn btn-info" role="button"> Paper </a>
 		</div>  
-		<div id="bloc3">
-		    
+		<div id="bloc3">		    
+		<p>
+		<a href="https://bitbucket.org/mvdschaar/mlforhealthlabpub/src/master/alg/timegan/" target="_blank" class="btn btn-info" role="button"> Code </a>
+		</p>    
 		</div>  
-	     </div>
+	    </div>
 	  </div>
-	</div>
+	  </div>
 	<div class="row">
 	  <div class="column1" >
 	  </div>
 	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
+        	   <div class="purpose">
+		          Methodology   
+		   </div> 
+
 	  </div>
 	</div>
 
@@ -181,13 +149,13 @@ Daniel Jarrett </span>
 	<div class="row">
 	  <div class="column1" >
 {% capture x %}
-## SIG-WASSERSTEIN GANS FOR TIME SERIES GENERATION
+## Sig-Wasserstein GANs For Time Series Generation
 {% endcapture %}{{ x | markdownify }}
 
 <div id="block_container">
 		<div id="bloc2">
-         <span class="dates"> 2021</span>    
-         <span class="authors"> Hao Ni </span>
+         <span class="dates"> 01,11,2021</span>    
+         <span class="authors"> Hao Ni, Lukasz Szpruch, Marc Sabate-Vidales, Baoren Xiao, Magnus Wiese, Shujian Liao </span>
 		</div>  
 </div>
 
@@ -197,20 +165,22 @@ Daniel Jarrett </span>
 		<div id="bloc2">
 		<a href="https://arxiv.org/pdf/2111.01207.pdf" target="_blank" class="btn btn-info" role="button"> Paper </a>
 		</div>  
-		<div id="bloc3">
-		    
+		<div id="bloc3">		    
+		<p>
+		<a href="" target="_blank" class="btn btn-info" role="button"> Code </a>
+		</p>    
 		</div>  
-	     </div>
+	    </div>
 	  </div>
-	</div>
+	  </div>
 	<div class="row">
 	  <div class="column1" >
 	  </div>
 	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
+        	   <div class="purpose">
+		          Methodology   
+		   </div> 
+
 	  </div>
 	</div>
 
@@ -229,13 +199,13 @@ Daniel Jarrett </span>
 	<div class="row">
 	  <div class="column1" >
 {% capture x %}
-## Modeling financial time-series with generative adversarial networks
+## Modeling Financial Time-Series With Generative Adversarial Networks
 {% endcapture %}{{ x | markdownify }}
 
 <div id="block_container">
 		<div id="bloc2">
-         <span class="dates"> 2019</span>    
-         <span class="authors"> Shuntaro Takahashi, Yu Chen </span>
+         <span class="dates"> 01,08,2019</span>    
+         <span class="authors"> Shuntaro Takahashi, Yu Chen, Kumiko Tanaka-Ishii </span>
 		</div>  
 </div>
 
@@ -243,22 +213,24 @@ Daniel Jarrett </span>
 	  <div class="column2" >
 	    <div id="block_container">
 		<div id="bloc2">
-		<a href="https://www.sciencedirect.com/science/article/pii/S0378437119307277" target="_blank" class="btn btn-info" role="button"> Paper </a>
+		<a href="https://doi.org/10.1016/j.physa.2019.121261" target="_blank" class="btn btn-info" role="button"> Paper </a>
 		</div>  
-		<div id="bloc3">
-		    
+		<div id="bloc3">		    
+		<p>
+		<a href="" target="_blank" class="btn btn-info" role="button"> Code </a>
+		</p>    
 		</div>  
-	     </div>
+	    </div>
 	  </div>
-	</div>
+	  </div>
 	<div class="row">
 	  <div class="column1" >
 	  </div>
 	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
+        	   <div class="purpose">
+		          Application   
+		   </div> 
+
 	  </div>
 	</div>
 
@@ -282,8 +254,8 @@ Daniel Jarrett </span>
 
 <div id="block_container">
 		<div id="bloc2">
-         <span class="dates"> 2021</span>    
-         <span class="authors"> Hengzhi Pei </span>
+         <span class="dates"> 16,11,2021</span>    
+         <span class="authors"> Hengzhi Pei, Kan Ren, Yuqing Yang, Chang Liu, Tao Qin, Dongsheng Li </span>
 		</div>  
 </div>
 
@@ -291,22 +263,24 @@ Daniel Jarrett </span>
 	  <div class="column2" >
 	    <div id="block_container">
 		<div id="bloc2">
-		<a href="https://arxiv.org/pdf/2111.08386.pdf" target="_blank" class="btn btn-info" role="button"> Paper </a>
+		<a href="https://doi.org/10.48550/arXiv.2111.08386" target="_blank" class="btn btn-info" role="button"> Paper </a>
 		</div>  
-		<div id="bloc3">
-		    
+		<div id="bloc3">		    
+		<p>
+		<a href="https://seqml.github.io/rtsgan" target="_blank" class="btn btn-info" role="button"> Code </a>
+		</p>    
 		</div>  
-	     </div>
+	    </div>
 	  </div>
-	</div>
+	  </div>
 	<div class="row">
 	  <div class="column1" >
 	  </div>
 	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
+        	   <div class="purpose">
+		          Application   
+		   </div> 
+
 	  </div>
 	</div>
 
@@ -325,13 +299,13 @@ Daniel Jarrett </span>
 	<div class="row">
 	  <div class="column1" >
 {% capture x %}
-## Time-series Generation by Contrastive Imitation
+## Time-Series Generation By Contrastive Imitation
 {% endcapture %}{{ x | markdownify }}
 
 <div id="block_container">
 		<div id="bloc2">
-         <span class="dates"> 2021</span>    
-         <span class="authors"> Daniel Jarrett </span>
+         <span class="dates"> 06,12,2021</span>    
+         <span class="authors"> Daniel Jarrett, Ioana Bica, Mihaela van der Schaar </span>
 		</div>  
 </div>
 
@@ -341,20 +315,22 @@ Daniel Jarrett </span>
 		<div id="bloc2">
 		<a href="https://openreview.net/pdf?id=RHZs3GqLBwg" target="_blank" class="btn btn-info" role="button"> Paper </a>
 		</div>  
-		<div id="bloc3">
-		    
+		<div id="bloc3">		    
+		<p>
+		<a href="" target="_blank" class="btn btn-info" role="button"> Code </a>
+		</p>    
 		</div>  
-	     </div>
+	    </div>
 	  </div>
-	</div>
+	  </div>
 	<div class="row">
 	  <div class="column1" >
 	  </div>
 	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
+        	   <div class="purpose">
+		          Methodology   
+		   </div> 
+
 	  </div>
 	</div>
 
@@ -373,15 +349,13 @@ Daniel Jarrett </span>
 	<div class="row">
 	  <div class="column1" >
 {% capture x %}
-## Hierarchical Deep Generative Models for Multi-Rate Multivariate Time Series
+## Hierarchical Deep Generative Models For Multi-Rate Multivariate Time Series
 {% endcapture %}{{ x | markdownify }}
 
 <div id="block_container">
 		<div id="bloc2">
-         <span class="dates"> 2018</span>    
-         <span class="authors"> Zhengping Che
-Sanjay Purushotham 
-Guangyu Li </span>
+         <span class="dates"> 10,07,2018</span>    
+         <span class="authors"> Zhengping Che, Sanjay Purushotham, Guangyu Li, Bo Jiang, Yan Liu </span>
 		</div>  
 </div>
 
@@ -391,20 +365,22 @@ Guangyu Li </span>
 		<div id="bloc2">
 		<a href="http://proceedings.mlr.press/v80/che18a/che18a.pdf" target="_blank" class="btn btn-info" role="button"> Paper </a>
 		</div>  
-		<div id="bloc3">
-		    
+		<div id="bloc3">		    
+		<p>
+		<a href="" target="_blank" class="btn btn-info" role="button"> Code </a>
+		</p>    
 		</div>  
-	     </div>
+	    </div>
 	  </div>
-	</div>
+	  </div>
 	<div class="row">
 	  <div class="column1" >
 	  </div>
 	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
+        	   <div class="purpose">
+		          Methodology   
+		   </div> 
+
 	  </div>
 	</div>
 
@@ -423,13 +399,13 @@ Guangyu Li </span>
 	<div class="row">
 	  <div class="column1" >
 {% capture x %}
-## Bidirectional Recurrent Neural Networks as Generative Models
+## Bidirectional Recurrent Neural Networks As Generative Models
 {% endcapture %}{{ x | markdownify }}
 
 <div id="block_container">
 		<div id="bloc2">
-         <span class="dates"> 2015</span>    
-         <span class="authors"> Mathias Berglund </span>
+         <span class="dates"> 02,11,2015</span>    
+         <span class="authors"> Mathias Berglund, Tapani Raiko, Mikko Honkala, Leo Kärkkäinen, Akos Vetek, Juha Karhunen </span>
 		</div>  
 </div>
 
@@ -437,22 +413,24 @@ Guangyu Li </span>
 	  <div class="column2" >
 	    <div id="block_container">
 		<div id="bloc2">
-		<a href="https://proceedings.neurips.cc/paper/2015/file/c75b6f114c23a4d7ea11331e7c00e73c-Paper.pdf" target="_blank" class="btn btn-info" role="button"> Paper </a>
+		<a href="https://doi.org/10.48550/arXiv.1504.01575" target="_blank" class="btn btn-info" role="button"> Paper </a>
 		</div>  
-		<div id="bloc3">
-		    
+		<div id="bloc3">		    
+		<p>
+		<a href="" target="_blank" class="btn btn-info" role="button"> Code </a>
+		</p>    
 		</div>  
-	     </div>
+	    </div>
 	  </div>
-	</div>
+	  </div>
 	<div class="row">
 	  <div class="column1" >
 	  </div>
 	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
+        	   <div class="purpose">
+		          Methodology   
+		   </div> 
+
 	  </div>
 	</div>
 
@@ -471,13 +449,13 @@ Guangyu Li </span>
 	<div class="row">
 	  <div class="column1" >
 {% capture x %}
-## COT-GAN: Generating Sequential Data via Causal Optimal Transport
+## Cot-GAN: Generating Sequential Data Via Causal Optimal Transport
 {% endcapture %}{{ x | markdownify }}
 
 <div id="block_container">
 		<div id="bloc2">
-         <span class="dates"> 2020</span>    
-         <span class="authors"> Tianlin Xu </span>
+         <span class="dates"> 21,10,2020</span>    
+         <span class="authors"> Tianlin Xu, Li K. Wenliang, Michael Munn, Beatrice Acciaio </span>
 		</div>  
 </div>
 
@@ -485,22 +463,24 @@ Guangyu Li </span>
 	  <div class="column2" >
 	    <div id="block_container">
 		<div id="bloc2">
-		<a href="https://proceedings.neurips.cc/paper/2020/file/641d77dd5271fca28764612a028d9c8e-Paper.pdf" target="_blank" class="btn btn-info" role="button"> Paper </a>
+		<a href="https://doi.org/10.48550/arXiv.2006.08571" target="_blank" class="btn btn-info" role="button"> Paper </a>
 		</div>  
-		<div id="bloc3">
-		    
+		<div id="bloc3">		    
+		<p>
+		<a href="https://github.com/tianlinxu312/cot-gan" target="_blank" class="btn btn-info" role="button"> Code </a>
+		</p>    
 		</div>  
-	     </div>
+	    </div>
 	  </div>
-	</div>
+	  </div>
 	<div class="row">
 	  <div class="column1" >
 	  </div>
 	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
+        	   <div class="purpose">
+		          Methodology   
+		   </div> 
+
 	  </div>
 	</div>
 
@@ -524,8 +504,8 @@ Guangyu Li </span>
 
 <div id="block_container">
 		<div id="bloc2">
-         <span class="dates"> 2021</span>    
-         <span class="authors"> Mark Leznik </span>
+         <span class="dates"> 19,04,2021</span>    
+         <span class="authors"> Mark Leznik, Patrick Michalsky, Peter Willis, Benjamin Schanzel, Per-Olov Östberg, Jörg Domaschka </span>
 		</div>  
 </div>
 
@@ -533,22 +513,24 @@ Guangyu Li </span>
 	  <div class="column2" >
 	    <div id="block_container">
 		<div id="bloc2">
-		<a href="https://dl.acm.org/doi/pdf/10.1145/3427921.3450257" target="_blank" class="btn btn-info" role="button"> Paper </a>
+		<a href="https://doi.org/10.1145/3427921.3450257" target="_blank" class="btn btn-info" role="button"> Paper </a>
 		</div>  
-		<div id="bloc3">
-		    
+		<div id="bloc3">		    
+		<p>
+		<a href="" target="_blank" class="btn btn-info" role="button"> Code </a>
+		</p>    
 		</div>  
-	     </div>
+	    </div>
 	  </div>
-	</div>
+	  </div>
 	<div class="row">
 	  <div class="column1" >
 	  </div>
 	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
+        	   <div class="purpose">
+		          Sanity check   
+		   </div> 
+
 	  </div>
 	</div>
 
@@ -567,13 +549,13 @@ Guangyu Li </span>
 	<div class="row">
 	  <div class="column1" >
 {% capture x %}
-## Pareto GAN: Extending the Representational Power of GANs to Heavy-Tailed Distributions
+## Pareto GAN: Extending The Representational Power Of GANs To Heavy-Tailed Distributions
 {% endcapture %}{{ x | markdownify }}
 
 <div id="block_container">
 		<div id="bloc2">
-         <span class="dates"> 2021</span>    
-         <span class="authors"> Todd Huster </span>
+         <span class="dates"> 22,01,2021</span>    
+         <span class="authors"> Todd Huster, Jeremy E.J. Cohen, Zinan Lin, Kevin Chan, Charles Kamhoua, Nandi Leslie, Cho-Yu Jason Chiang, Vyas Sekar </span>
 		</div>  
 </div>
 
@@ -581,22 +563,24 @@ Guangyu Li </span>
 	  <div class="column2" >
 	    <div id="block_container">
 		<div id="bloc2">
-		<a href="https://arxiv.org/pdf/2101.09113.pdf" target="_blank" class="btn btn-info" role="button"> Paper </a>
+		<a href="https://doi.org/10.48550/arXiv.2101.09113" target="_blank" class="btn btn-info" role="button"> Paper </a>
 		</div>  
-		<div id="bloc3">
-		    
+		<div id="bloc3">		    
+		<p>
+		<a href="https://github.com/ivanvoitalov/tail-estimation" target="_blank" class="btn btn-info" role="button"> Code </a>
+		</p>    
 		</div>  
-	     </div>
+	    </div>
 	  </div>
-	</div>
+	  </div>
 	<div class="row">
 	  <div class="column1" >
 	  </div>
 	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
+        	   <div class="purpose">
+		             
+		   </div> 
+
 	  </div>
 	</div>
 
@@ -615,13 +599,13 @@ Guangyu Li </span>
 	<div class="row">
 	  <div class="column1" >
 {% capture x %}
-## GENERATIVE TIME-SERIES MODELING WITH FOURIER FLOWS
+## Generative Time-Series Modeling With Fourier Flows
 {% endcapture %}{{ x | markdownify }}
 
 <div id="block_container">
 		<div id="bloc2">
-         <span class="dates"> 2021</span>    
-         <span class="authors"> Ahmed M. Alaa </span>
+         <span class="dates"> 18,03,2021</span>    
+         <span class="authors"> Ahmed M. Alaa, Alex James Chan, Mihaela van der Schaar </span>
 		</div>  
 </div>
 
@@ -631,20 +615,22 @@ Guangyu Li </span>
 		<div id="bloc2">
 		<a href="https://openreview.net/pdf?id=PpshD0AXfA" target="_blank" class="btn btn-info" role="button"> Paper </a>
 		</div>  
-		<div id="bloc3">
-		    
+		<div id="bloc3">		    
+		<p>
+		<a href="https://github.com/ahmedmalaa/Fourier-flows" target="_blank" class="btn btn-info" role="button"> Code </a>
+		</p>    
 		</div>  
-	     </div>
+	    </div>
 	  </div>
-	</div>
+	  </div>
 	<div class="row">
 	  <div class="column1" >
 	  </div>
 	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
+        	   <div class="purpose">
+		          Methodology   
+		   </div> 
+
 	  </div>
 	</div>
 
@@ -663,14 +649,14 @@ Guangyu Li </span>
 	<div class="row">
 	  <div class="column1" >
 {% capture x %}
-## How Faithful is your Synthetic Data?
-Sample-level Metrics for Evaluating and Auditing Generative Models
+## How Faithful Is Your Synthetic Data?
+Sample-Level Metrics For Evaluating And Auditing Generative Models
 {% endcapture %}{{ x | markdownify }}
 
 <div id="block_container">
 		<div id="bloc2">
-         <span class="dates"> 2021</span>    
-         <span class="authors"> Ahmed M. Alaa </span>
+         <span class="dates"> 17,02,2021</span>    
+         <span class="authors"> Ahmed M. Alaa, Boris van Breugel, Evgeny Saveliev, Mihaela van der Schaar </span>
 		</div>  
 </div>
 
@@ -678,22 +664,24 @@ Sample-level Metrics for Evaluating and Auditing Generative Models
 	  <div class="column2" >
 	    <div id="block_container">
 		<div id="bloc2">
-		<a href="https://arxiv.org/pdf/2102.08921.pdf" target="_blank" class="btn btn-info" role="button"> Paper </a>
+		<a href="https://doi.org/10.48550/arXiv.2102.08921" target="_blank" class="btn btn-info" role="button"> Paper </a>
 		</div>  
-		<div id="bloc3">
-		    
+		<div id="bloc3">		    
+		<p>
+		<a href="" target="_blank" class="btn btn-info" role="button"> Code </a>
+		</p>    
 		</div>  
-	     </div>
+	    </div>
 	  </div>
-	</div>
+	  </div>
 	<div class="row">
 	  <div class="column1" >
 	  </div>
 	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
+        	   <div class="purpose">
+		          Model assessment   
+		   </div> 
+
 	  </div>
 	</div>
 
@@ -712,14 +700,13 @@ Sample-level Metrics for Evaluating and Auditing Generative Models
 	<div class="row">
 	  <div class="column1" >
 {% capture x %}
-## REAL-VALUED (MEDICAL) TIME SERIES GENERATION WITH RECURRENT CONDITIONAL GANS
+## Real-Valued (Medical) Time Series Generation With Recurrent Conditional GANs
 {% endcapture %}{{ x | markdownify }}
 
 <div id="block_container">
 		<div id="bloc2">
-         <span class="dates"> 2017</span>    
-         <span class="authors"> Stephanie L. Hyland 
-Cristóbal Esteban </span>
+         <span class="dates"> 04,12,2017</span>    
+         <span class="authors"> Cristóbal Esteban, Stephanie L. Hyland, Gunnar Rätsch </span>
 		</div>  
 </div>
 
@@ -727,22 +714,24 @@ Cristóbal Esteban </span>
 	  <div class="column2" >
 	    <div id="block_container">
 		<div id="bloc2">
-		<a href="https://arxiv.org/pdf/1706.02633.pdf" target="_blank" class="btn btn-info" role="button"> Paper </a>
+		<a href="https://doi.org/10.48550/arXiv.1706.02633" target="_blank" class="btn btn-info" role="button"> Paper </a>
 		</div>  
-		<div id="bloc3">
-		    
+		<div id="bloc3">		    
+		<p>
+		<a href="https://github.com/ratschlab/RGAN" target="_blank" class="btn btn-info" role="button"> Code </a>
+		</p>    
 		</div>  
-	     </div>
+	    </div>
 	  </div>
-	</div>
+	  </div>
 	<div class="row">
 	  <div class="column1" >
 	  </div>
 	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
+        	   <div class="purpose">
+		          Application   
+		   </div> 
+
 	  </div>
 	</div>
 
@@ -761,13 +750,13 @@ Cristóbal Esteban </span>
 	<div class="row">
 	  <div class="column1" >
 {% capture x %}
-## TIMEVAE: A VARIATIONAL AUTO-ENCODER FOR MULTIVARIATE TIME SERIES GENERATION
+## TimeVAE: A Variational Auto-Encoder For Multivariate Time Series Generation
 {% endcapture %}{{ x | markdownify }}
 
 <div id="block_container">
 		<div id="bloc2">
-         <span class="dates"> 2022</span>    
-         <span class="authors"> Abhyuday Desai </span>
+         <span class="dates"> 07,12,2021</span>    
+         <span class="authors"> Abhyuday Desai, Cynthia Freeman, Zuhui Wang, Ian Beaver </span>
 		</div>  
 </div>
 
@@ -777,20 +766,22 @@ Cristóbal Esteban </span>
 		<div id="bloc2">
 		<a href="https://arxiv.org/pdf/2111.08095.pdf" target="_blank" class="btn btn-info" role="button"> Paper </a>
 		</div>  
-		<div id="bloc3">
-		    
+		<div id="bloc3">		    
+		<p>
+		<a href="https://github.com/abudesai/timeVAE" target="_blank" class="btn btn-info" role="button"> Code </a>
+		</p>    
 		</div>  
-	     </div>
+	    </div>
 	  </div>
-	</div>
+	  </div>
 	<div class="row">
 	  <div class="column1" >
 	  </div>
 	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
+        	   <div class="purpose">
+		             
+		   </div> 
+
 	  </div>
 	</div>
 
@@ -809,13 +800,13 @@ Cristóbal Esteban </span>
 	<div class="row">
 	  <div class="column1" >
 {% capture x %}
-## Conditional Loss and Deep Euler Scheme for Time Series Generation
+## Conditional Loss And Deep Euler Scheme For Time Series Generation
 {% endcapture %}{{ x | markdownify }}
 
 <div id="block_container">
 		<div id="bloc2">
-         <span class="dates"> 2021</span>    
-         <span class="authors"> Carl REMLINGER </span>
+         <span class="dates"> 06,10,2021</span>    
+         <span class="authors"> Carl Remlinger, Joseph Mikael, Romuald Elie </span>
 		</div>  
 </div>
 
@@ -823,22 +814,24 @@ Cristóbal Esteban </span>
 	  <div class="column2" >
 	    <div id="block_container">
 		<div id="bloc2">
-		<a href="https://arxiv.org/pdf/2102.05313.pdf" target="_blank" class="btn btn-info" role="button"> Paper </a>
+		<a href="https://doi.org/10.48550/arXiv.2102.05313" target="_blank" class="btn btn-info" role="button"> Paper </a>
 		</div>  
-		<div id="bloc3">
-		    
+		<div id="bloc3">		    
+		<p>
+		<a href="" target="_blank" class="btn btn-info" role="button"> Code </a>
+		</p>    
 		</div>  
-	     </div>
+	    </div>
 	  </div>
-	</div>
+	  </div>
 	<div class="row">
 	  <div class="column1" >
 	  </div>
 	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
+        	   <div class="purpose">
+		          Methodology   
+		   </div> 
+
 	  </div>
 	</div>
 
@@ -857,13 +850,13 @@ Cristóbal Esteban </span>
 	<div class="row">
 	  <div class="column1" >
 {% capture x %}
-## Time-series Transformer Generative Adversarial Networks
+## Time-Series Transformer Generative Adversarial Networks
 {% endcapture %}{{ x | markdownify }}
 
 <div id="block_container">
 		<div id="bloc2">
-         <span class="dates"> 2022</span>    
-         <span class="authors"> Padmanaba Srinivasan </span>
+         <span class="dates"> 23,05,2022</span>    
+         <span class="authors"> Padmanaba Srinivasan, William J. Knottenbelt </span>
 		</div>  
 </div>
 
@@ -871,22 +864,24 @@ Cristóbal Esteban </span>
 	  <div class="column2" >
 	    <div id="block_container">
 		<div id="bloc2">
-		<a href="https://arxiv.org/pdf/2205.11164.pdf" target="_blank" class="btn btn-info" role="button"> Paper </a>
+		<a href="https://doi.org/10.48550/arXiv.2205.11164" target="_blank" class="btn btn-info" role="button"> Paper </a>
 		</div>  
-		<div id="bloc3">
-		    
+		<div id="bloc3">		    
+		<p>
+		<a href="" target="_blank" class="btn btn-info" role="button"> Code </a>
+		</p>    
 		</div>  
-	     </div>
+	    </div>
 	  </div>
-	</div>
+	  </div>
 	<div class="row">
 	  <div class="column1" >
 	  </div>
 	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
+        	   <div class="purpose">
+		          Methodology   
+		   </div> 
+
 	  </div>
 	</div>
 
@@ -905,13 +900,13 @@ Cristóbal Esteban </span>
 	<div class="row">
 	  <div class="column1" >
 {% capture x %}
-## Generative Adversarial Networks for Markovian Temporal Dynamics: Stochastic Continuous Data Generation
+## Generative Adversarial Networks For Markovian Temporal Dynamics: Stochastic Continuous Data Generation
 {% endcapture %}{{ x | markdownify }}
 
 <div id="block_container">
 		<div id="bloc2">
-         <span class="dates"> 2021</span>    
-         <span class="authors"> Sung Woo Park </span>
+         <span class="dates"> 18,07,2021</span>    
+         <span class="authors"> Sung Woo Park, Dong Wook Shu, Junseok Kwon </span>
 		</div>  
 </div>
 
@@ -921,20 +916,22 @@ Cristóbal Esteban </span>
 		<div id="bloc2">
 		<a href="http://proceedings.mlr.press/v139/park21d/park21d.pdf" target="_blank" class="btn btn-info" role="button"> Paper </a>
 		</div>  
-		<div id="bloc3">
-		    
+		<div id="bloc3">		    
+		<p>
+		<a href="" target="_blank" class="btn btn-info" role="button"> Code </a>
+		</p>    
 		</div>  
-	     </div>
+	    </div>
 	  </div>
-	</div>
+	  </div>
 	<div class="row">
 	  <div class="column1" >
 	  </div>
 	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
+        	   <div class="purpose">
+		          Methodology   
+		   </div> 
+
 	  </div>
 	</div>
 
@@ -953,12 +950,12 @@ Cristóbal Esteban </span>
 	<div class="row">
 	  <div class="column1" >
 {% capture x %}
-## ANALYZING DEEP GENERATED FINANCIAL TIME SERIES FOR VARIOUS ASSET CLASSES
+## Analyzing Deep Generated Financial Time Series For Various Asset Classes
 {% endcapture %}{{ x | markdownify }}
 
 <div id="block_container">
 		<div id="bloc2">
-         <span class="dates"> 2021</span>    
+         <span class="dates"> 18,07,2021</span>    
          <span class="authors"> Antonio Rosolia </span>
 		</div>  
 </div>
@@ -969,20 +966,22 @@ Cristóbal Esteban </span>
 		<div id="bloc2">
 		<a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3898792" target="_blank" class="btn btn-info" role="button"> Paper </a>
 		</div>  
-		<div id="bloc3">
-		    
+		<div id="bloc3">		    
+		<p>
+		<a href="" target="_blank" class="btn btn-info" role="button"> Code </a>
+		</p>    
 		</div>  
-	     </div>
+	    </div>
 	  </div>
-	</div>
+	  </div>
 	<div class="row">
 	  <div class="column1" >
 	  </div>
 	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
+        	   <div class="purpose">
+		          Application   
+		   </div> 
+
 	  </div>
 	</div>
 
@@ -1001,13 +1000,13 @@ Cristóbal Esteban </span>
 	<div class="row">
 	  <div class="column1" >
 {% capture x %}
-## Quant GANs: deep generation of financial time series
+## Quant Gans: Deep Generation Of Financial Time Series
 {% endcapture %}{{ x | markdownify }}
 
 <div id="block_container">
 		<div id="bloc2">
-         <span class="dates"> 2020</span>    
-         <span class="authors"> Magnus Wiese </span>
+         <span class="dates"> 06,04,2020</span>    
+         <span class="authors"> Magnus Wiese, Robert Knobloch, Ralf Korn, Peter Kretschmer </span>
 		</div>  
 </div>
 
@@ -1017,20 +1016,22 @@ Cristóbal Esteban </span>
 		<div id="bloc2">
 		<a href="https://doi.org/10.1080/14697688.2020.1730426" target="_blank" class="btn btn-info" role="button"> Paper </a>
 		</div>  
-		<div id="bloc3">
-		    
+		<div id="bloc3">		    
+		<p>
+		<a href="" target="_blank" class="btn btn-info" role="button"> Code </a>
+		</p>    
 		</div>  
-	     </div>
+	    </div>
 	  </div>
-	</div>
+	  </div>
 	<div class="row">
 	  <div class="column1" >
 	  </div>
 	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
+        	   <div class="purpose">
+		          Methodology   
+		   </div> 
+
 	  </div>
 	</div>
 
@@ -1049,13 +1050,13 @@ Cristóbal Esteban </span>
 	<div class="row">
 	  <div class="column1" >
 {% capture x %}
-## Feature-driven Time Series Generation
+## Feature-Driven Time Series Generation
 {% endcapture %}{{ x | markdownify }}
 
 <div id="block_container">
 		<div id="bloc2">
-         <span class="dates"> 2017</span>    
-         <span class="authors"> Lars Kegel </span>
+         <span class="dates"> 30,05,2017</span>    
+         <span class="authors"> Lars Kegel, M. Hahmann, Wolfgang Lehner </span>
 		</div>  
 </div>
 
@@ -1065,20 +1066,22 @@ Cristóbal Esteban </span>
 		<div id="bloc2">
 		<a href="http://ceur-ws.org/Vol-1858/paper11.pdf" target="_blank" class="btn btn-info" role="button"> Paper </a>
 		</div>  
-		<div id="bloc3">
-		    
+		<div id="bloc3">		    
+		<p>
+		<a href="" target="_blank" class="btn btn-info" role="button"> Code </a>
+		</p>    
 		</div>  
-	     </div>
+	    </div>
 	  </div>
-	</div>
+	  </div>
 	<div class="row">
 	  <div class="column1" >
 	  </div>
 	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
+        	   <div class="purpose">
+		          Methodology   
+		   </div> 
+
 	  </div>
 	</div>
 
@@ -1097,13 +1100,13 @@ Cristóbal Esteban </span>
 	<div class="row">
 	  <div class="column1" >
 {% capture x %}
-## Time Series Generation with Masked Autoencoder
+## Time Series Generation With Masked Autoencoder
 {% endcapture %}{{ x | markdownify }}
 
 <div id="block_container">
 		<div id="bloc2">
-         <span class="dates"> 2022</span>    
-         <span class="authors"> MengYue Zha </span>
+         <span class="dates"> 19,05,2022</span>    
+         <span class="authors"> Mengyue Zha, SiuTim Wong, Mengqi Liu, Tong Zhang, Kani Chen </span>
 		</div>  
 </div>
 
@@ -1111,22 +1114,24 @@ Cristóbal Esteban </span>
 	  <div class="column2" >
 	    <div id="block_container">
 		<div id="bloc2">
-		<a href="https://arxiv.org/abs/2201.07006" target="_blank" class="btn btn-info" role="button"> Paper </a>
+		<a href="https://doi.org/10.48550/arXiv.2201.07006" target="_blank" class="btn btn-info" role="button"> Paper </a>
 		</div>  
-		<div id="bloc3">
-		    
+		<div id="bloc3">		    
+		<p>
+		<a href="" target="_blank" class="btn btn-info" role="button"> Code </a>
+		</p>    
 		</div>  
-	     </div>
+	    </div>
 	  </div>
-	</div>
+	  </div>
 	<div class="row">
 	  <div class="column1" >
 	  </div>
 	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
+        	   <div class="purpose">
+		          Methodology   
+		   </div> 
+
 	  </div>
 	</div>
 
@@ -1145,13 +1150,13 @@ Cristóbal Esteban </span>
 	<div class="row">
 	  <div class="column1" >
 {% capture x %}
-## Quick and Easy Time Series Generation with Established Image-based GANs
+## Quick And Easy Time Series Generation With Established Image-Based GANs
 {% endcapture %}{{ x | markdownify }}
 
 <div id="block_container">
 		<div id="bloc2">
-         <span class="dates"> 2019</span>    
-         <span class="authors"> Eoin Brophy </span>
+         <span class="dates"> 29,10,2019</span>    
+         <span class="authors"> Eoin Brophy, Zhengwei Wang, Tomas E. Ward </span>
 		</div>  
 </div>
 
@@ -1159,22 +1164,24 @@ Cristóbal Esteban </span>
 	  <div class="column2" >
 	    <div id="block_container">
 		<div id="bloc2">
-		<a href="https://arxiv.org/abs/1902.05624v3" target="_blank" class="btn btn-info" role="button"> Paper </a>
+		<a href="https://doi.org/10.48550/arXiv.1902.05624" target="_blank" class="btn btn-info" role="button"> Paper </a>
 		</div>  
-		<div id="bloc3">
-		    
+		<div id="bloc3">		    
+		<p>
+		<a href="" target="_blank" class="btn btn-info" role="button"> Code </a>
+		</p>    
 		</div>  
-	     </div>
+	    </div>
 	  </div>
-	</div>
+	  </div>
 	<div class="row">
 	  <div class="column1" >
 	  </div>
 	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
+        	   <div class="purpose">
+		          Methodology   
+		   </div> 
+
 	  </div>
 	</div>
 
@@ -1198,8 +1205,8 @@ Cristóbal Esteban </span>
 
 <div id="block_container">
 		<div id="bloc2">
-         <span class="dates"> 2021</span>    
-         <span class="authors"> Hiba Arnout </span>
+         <span class="dates"> 06,10,2021</span>    
+         <span class="authors"> Hiba Arnout, Johanna Bronner, Thomas Runkler </span>
 		</div>  
 </div>
 
@@ -1209,20 +1216,22 @@ Cristóbal Esteban </span>
 		<div id="bloc2">
 		<a href="https://doi.org/10.14428/esann%2F2021.es2021-20" target="_blank" class="btn btn-info" role="button"> Paper </a>
 		</div>  
-		<div id="bloc3">
-		    
+		<div id="bloc3">		    
+		<p>
+		<a href="" target="_blank" class="btn btn-info" role="button"> Code </a>
+		</p>    
 		</div>  
-	     </div>
+	    </div>
 	  </div>
-	</div>
+	  </div>
 	<div class="row">
 	  <div class="column1" >
 	  </div>
 	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
+        	   <div class="purpose">
+		          Model Assessment   
+		   </div> 
+
 	  </div>
 	</div>
 
@@ -1241,13 +1250,13 @@ Cristóbal Esteban </span>
 	<div class="row">
 	  <div class="column1" >
 {% capture x %}
-## Using GANs for Sharing Networked Time Series Data: Challenges, Initial Promise, and Open Questions
+## Using GANs For Sharing Networked Time Series Data: Challenges, Initial Promise, And Open Questions
 {% endcapture %}{{ x | markdownify }}
 
 <div id="block_container">
 		<div id="bloc2">
-         <span class="dates"> 2021</span>    
-         <span class="authors"> Zinan Lin </span>
+         <span class="dates"> 27,10,2020</span>    
+         <span class="authors"> Zinan Lin, Alankar Jain, Chen Wang, Giulia Fanti, Vyas Sekar </span>
 		</div>  
 </div>
 
@@ -1255,22 +1264,24 @@ Cristóbal Esteban </span>
 	  <div class="column2" >
 	    <div id="block_container">
 		<div id="bloc2">
-		<a href="https://arxiv.org/abs/1909.13403" target="_blank" class="btn btn-info" role="button"> Paper </a>
+		<a href="https://doi.org/10.1145/3419394.3423643" target="_blank" class="btn btn-info" role="button"> Paper </a>
 		</div>  
-		<div id="bloc3">
-		    
+		<div id="bloc3">		    
+		<p>
+		<a href="https://github.com/fjxmlzn/DoppelGANger" target="_blank" class="btn btn-info" role="button"> Code </a>
+		</p>    
 		</div>  
-	     </div>
+	    </div>
 	  </div>
-	</div>
+	  </div>
 	<div class="row">
 	  <div class="column1" >
 	  </div>
 	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
+        	   <div class="purpose">
+		          Methodology   
+		   </div> 
+
 	  </div>
 	</div>
 
@@ -1289,13 +1300,13 @@ Cristóbal Esteban </span>
 	<div class="row">
 	  <div class="column1" >
 {% capture x %}
-## ClaRe-GAN: Generation of Class-Specific Time Series
+## Clare-GAN: Generation Of Class-Specific Time Series
 {% endcapture %}{{ x | markdownify }}
 
 <div id="block_container">
 		<div id="bloc2">
-         <span class="dates"> 2021</span>    
-         <span class="authors"> Hiba Arnout </span>
+         <span class="dates"> 04,05,2021</span>    
+         <span class="authors"> Hiba Arnout, Johanna Bronner, Thomas Runkler </span>
 		</div>  
 </div>
 
@@ -1305,20 +1316,22 @@ Cristóbal Esteban </span>
 		<div id="bloc2">
 		<a href="https://doi.org/10.1109/SSCI50451.2021.9660020" target="_blank" class="btn btn-info" role="button"> Paper </a>
 		</div>  
-		<div id="bloc3">
-		    
+		<div id="bloc3">		    
+		<p>
+		<a href="" target="_blank" class="btn btn-info" role="button"> Code </a>
+		</p>    
 		</div>  
-	     </div>
+	    </div>
 	  </div>
-	</div>
+	  </div>
 	<div class="row">
 	  <div class="column1" >
 	  </div>
 	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
+        	   <div class="purpose">
+		          Methodology   
+		   </div> 
+
 	  </div>
 	</div>
 
@@ -1342,7 +1355,7 @@ Cristóbal Esteban </span>
 
 <div id="block_container">
 		<div id="bloc2">
-         <span class="dates"> 2020</span>    
+         <span class="dates"> 26,06,2020</span>    
          <span class="authors"> Derek Snow </span>
 		</div>  
 </div>
@@ -1353,20 +1366,22 @@ Cristóbal Esteban </span>
 		<div id="bloc2">
 		<a href="https://dx.doi.org/10.2139/ssrn.3616557" target="_blank" class="btn btn-info" role="button"> Paper </a>
 		</div>  
-		<div id="bloc3">
-		    
+		<div id="bloc3">		    
+		<p>
+		<a href="https://github.com/firmai/mtss-gan/" target="_blank" class="btn btn-info" role="button"> Code </a>
+		</p>    
 		</div>  
-	     </div>
+	    </div>
 	  </div>
-	</div>
+	  </div>
 	<div class="row">
 	  <div class="column1" >
 	  </div>
 	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
+        	   <div class="purpose">
+		          Methodology   
+		   </div> 
+
 	  </div>
 	</div>
 
@@ -1385,13 +1400,13 @@ Cristóbal Esteban </span>
 	<div class="row">
 	  <div class="column1" >
 {% capture x %}
-## TTS-GAN: A Transformer-based Time-Series Generative Adversarial Network
+## TTS-GAN: A Transformer-Based Time-Series Generative Adversarial Network
 {% endcapture %}{{ x | markdownify }}
 
 <div id="block_container">
 		<div id="bloc2">
-         <span class="dates"> 2022</span>    
-         <span class="authors"> Xiaomin Li </span>
+         <span class="dates"> 26,06,2022</span>    
+         <span class="authors"> Xiaomin Li, Vangelis Metsis, Huangyingrui Wang, Anne Hee Hiong Ngu </span>
 		</div>  
 </div>
 
@@ -1401,356 +1416,22 @@ Cristóbal Esteban </span>
 		<div id="bloc2">
 		<a href="https://doi.org/10.48550/arXiv.2202.02691" target="_blank" class="btn btn-info" role="button"> Paper </a>
 		</div>  
-		<div id="bloc3">
-		    
+		<div id="bloc3">		    
+		<p>
+		<a href="https://github.com/imics-lab/tts-gan" target="_blank" class="btn btn-info" role="button"> Code </a>
+		</p>    
 		</div>  
-	     </div>
+	    </div>
 	  </div>
-	</div>
+	  </div>
 	<div class="row">
 	  <div class="column1" >
 	  </div>
 	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
-	  </div>
-	</div>
+        	   <div class="purpose">
+		          Methodology   
+		   </div> 
 
-<div class="collapse" id="collapse{{ id }}">
-{% capture x %}
- 
-{% endcapture %}{{ x | markdownify }}
-</div>
-</div>
-<!--EndPost--------------------------------------------------------------------------------------------------------------------------------------------->
-{% assign id = 28 %}
- <hr/>
- <!--Post--------------------------------------------------------------------------------------------------------------------------------------------->
-{% assign id = id | plus:1 %}
-<div class="entry">
-	<div class="row">
-	  <div class="column1" >
-{% capture x %}
-## 
-{% endcapture %}{{ x | markdownify }}
-
-<div id="block_container">
-		<div id="bloc2">
-         <span class="dates"> </span>    
-         <span class="authors">  </span>
-		</div>  
-</div>
-
-	  </div>
-	  <div class="column2" >
-	    <div id="block_container">
-		<div id="bloc2">
-		<a href="" target="_blank" class="btn btn-info" role="button"> Paper </a>
-		</div>  
-		<div id="bloc3">
-		    
-		</div>  
-	     </div>
-	  </div>
-	</div>
-	<div class="row">
-	  <div class="column1" >
-	  </div>
-	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
-	  </div>
-	</div>
-
-<div class="collapse" id="collapse{{ id }}">
-{% capture x %}
- 
-{% endcapture %}{{ x | markdownify }}
-</div>
-</div>
-<!--EndPost--------------------------------------------------------------------------------------------------------------------------------------------->
-{% assign id = 29 %}
- <hr/>
- <!--Post--------------------------------------------------------------------------------------------------------------------------------------------->
-{% assign id = id | plus:1 %}
-<div class="entry">
-	<div class="row">
-	  <div class="column1" >
-{% capture x %}
-## 
-{% endcapture %}{{ x | markdownify }}
-
-<div id="block_container">
-		<div id="bloc2">
-         <span class="dates"> </span>    
-         <span class="authors">  </span>
-		</div>  
-</div>
-
-	  </div>
-	  <div class="column2" >
-	    <div id="block_container">
-		<div id="bloc2">
-		<a href="" target="_blank" class="btn btn-info" role="button"> Paper </a>
-		</div>  
-		<div id="bloc3">
-		    
-		</div>  
-	     </div>
-	  </div>
-	</div>
-	<div class="row">
-	  <div class="column1" >
-	  </div>
-	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
-	  </div>
-	</div>
-
-<div class="collapse" id="collapse{{ id }}">
-{% capture x %}
- 
-{% endcapture %}{{ x | markdownify }}
-</div>
-</div>
-<!--EndPost--------------------------------------------------------------------------------------------------------------------------------------------->
-{% assign id = 30 %}
- <hr/>
- <!--Post--------------------------------------------------------------------------------------------------------------------------------------------->
-{% assign id = id | plus:1 %}
-<div class="entry">
-	<div class="row">
-	  <div class="column1" >
-{% capture x %}
-## 
-{% endcapture %}{{ x | markdownify }}
-
-<div id="block_container">
-		<div id="bloc2">
-         <span class="dates"> </span>    
-         <span class="authors">  </span>
-		</div>  
-</div>
-
-	  </div>
-	  <div class="column2" >
-	    <div id="block_container">
-		<div id="bloc2">
-		<a href="" target="_blank" class="btn btn-info" role="button"> Paper </a>
-		</div>  
-		<div id="bloc3">
-		    
-		</div>  
-	     </div>
-	  </div>
-	</div>
-	<div class="row">
-	  <div class="column1" >
-	  </div>
-	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
-	  </div>
-	</div>
-
-<div class="collapse" id="collapse{{ id }}">
-{% capture x %}
- 
-{% endcapture %}{{ x | markdownify }}
-</div>
-</div>
-<!--EndPost--------------------------------------------------------------------------------------------------------------------------------------------->
-{% assign id = 31 %}
- <hr/>
- <!--Post--------------------------------------------------------------------------------------------------------------------------------------------->
-{% assign id = id | plus:1 %}
-<div class="entry">
-	<div class="row">
-	  <div class="column1" >
-{% capture x %}
-## 
-{% endcapture %}{{ x | markdownify }}
-
-<div id="block_container">
-		<div id="bloc2">
-         <span class="dates"> </span>    
-         <span class="authors">  </span>
-		</div>  
-</div>
-
-	  </div>
-	  <div class="column2" >
-	    <div id="block_container">
-		<div id="bloc2">
-		<a href="" target="_blank" class="btn btn-info" role="button"> Paper </a>
-		</div>  
-		<div id="bloc3">
-		    
-		</div>  
-	     </div>
-	  </div>
-	</div>
-	<div class="row">
-	  <div class="column1" >
-	  </div>
-	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
-	  </div>
-	</div>
-
-<div class="collapse" id="collapse{{ id }}">
-{% capture x %}
- 
-{% endcapture %}{{ x | markdownify }}
-</div>
-</div>
-<!--EndPost--------------------------------------------------------------------------------------------------------------------------------------------->
-{% assign id = 32 %}
- <hr/>
- <!--Post--------------------------------------------------------------------------------------------------------------------------------------------->
-{% assign id = id | plus:1 %}
-<div class="entry">
-	<div class="row">
-	  <div class="column1" >
-{% capture x %}
-## 
-{% endcapture %}{{ x | markdownify }}
-
-<div id="block_container">
-		<div id="bloc2">
-         <span class="dates"> </span>    
-         <span class="authors">  </span>
-		</div>  
-</div>
-
-	  </div>
-	  <div class="column2" >
-	    <div id="block_container">
-		<div id="bloc2">
-		<a href="" target="_blank" class="btn btn-info" role="button"> Paper </a>
-		</div>  
-		<div id="bloc3">
-		    
-		</div>  
-	     </div>
-	  </div>
-	</div>
-	<div class="row">
-	  <div class="column1" >
-	  </div>
-	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
-	  </div>
-	</div>
-
-<div class="collapse" id="collapse{{ id }}">
-{% capture x %}
- 
-{% endcapture %}{{ x | markdownify }}
-</div>
-</div>
-<!--EndPost--------------------------------------------------------------------------------------------------------------------------------------------->
-{% assign id = 33 %}
- <hr/>
- <!--Post--------------------------------------------------------------------------------------------------------------------------------------------->
-{% assign id = id | plus:1 %}
-<div class="entry">
-	<div class="row">
-	  <div class="column1" >
-{% capture x %}
-## 
-{% endcapture %}{{ x | markdownify }}
-
-<div id="block_container">
-		<div id="bloc2">
-         <span class="dates"> </span>    
-         <span class="authors">  </span>
-		</div>  
-</div>
-
-	  </div>
-	  <div class="column2" >
-	    <div id="block_container">
-		<div id="bloc2">
-		<a href="" target="_blank" class="btn btn-info" role="button"> Paper </a>
-		</div>  
-		<div id="bloc3">
-		    
-		</div>  
-	     </div>
-	  </div>
-	</div>
-	<div class="row">
-	  <div class="column1" >
-	  </div>
-	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
-	  </div>
-	</div>
-
-<div class="collapse" id="collapse{{ id }}">
-{% capture x %}
- 
-{% endcapture %}{{ x | markdownify }}
-</div>
-</div>
-<!--EndPost--------------------------------------------------------------------------------------------------------------------------------------------->
-{% assign id = 34 %}
- <hr/>
- <!--Post--------------------------------------------------------------------------------------------------------------------------------------------->
-{% assign id = id | plus:1 %}
-<div class="entry">
-	<div class="row">
-	  <div class="column1" >
-{% capture x %}
-## 
-{% endcapture %}{{ x | markdownify }}
-
-<div id="block_container">
-		<div id="bloc2">
-         <span class="dates"> </span>    
-         <span class="authors">  </span>
-		</div>  
-</div>
-
-	  </div>
-	  <div class="column2" >
-	    <div id="block_container">
-		<div id="bloc2">
-		<a href="" target="_blank" class="btn btn-info" role="button"> Paper </a>
-		</div>  
-		<div id="bloc3">
-		    
-		</div>  
-	     </div>
-	  </div>
-	</div>
-	<div class="row">
-	  <div class="column1" >
-	  </div>
-	  <div class="column2">
-		  <div class="tags">
-			  cs.LG
-		  </div>
-		  
 	  </div>
 	</div>
 
@@ -1783,7 +1464,7 @@ $('#yearselection').change(function (e) {
 	var tags_selected = $(this).val();
    	for (let i = 0; i < items.length; i++) {
 	     var tag_items = items[i].getElementsByClassName("dates")[0];
-	     var year_tag = tag_items.textContent.trim().split(',')[1]; 
+	     var year_tag = tag_items.textContent.trim().split(',')[2]; 
        console.log(year_tag);
       	const found = tags_selected.some(r=> year_tag.includes(r));
 	      if (found || tags_selected.length === 0) {
@@ -1813,11 +1494,11 @@ $('#authorselection').change(function (e) {
 	    }
 })
 	
-$('#tagselection').change(function (e) {
+$('#purposeselection').change(function (e) {
    	var items = document.getElementsByClassName('entry');
 	var tags_selected = $(this).val();
    	for (let i = 0; i < items.length; i++) {
-	     var tag_items = items[i].getElementsByClassName("tags")[0];
+	     var tag_items = items[i].getElementsByClassName("purpose")[0];
 	     var item_tags = tag_items.textContent.trim().split(','); 
 	     item_tags =  item_tags.map(v => v.replace("\n", '').replace("\t", '').trim());
 	      console.log("item tags");
