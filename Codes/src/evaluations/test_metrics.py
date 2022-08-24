@@ -287,8 +287,44 @@ class CovLoss(Loss):
                              self.covariance_real.to(x_fake.device))
         return loss
 
+#SigW1 metric
+#import package for augmentation
+from  src.evaluations.augmentations import apply_augmentations, parse_augmentations, Basepoint
+def compute_expected_signature(x_path, depth: int, augmentations: Tuple, normalise: bool = True):
+    x_path_augmented = apply_augmentations(x_path, augmentations)
+    expected_signature = signatory.signature(x_path_augmented, depth=depth).mean(0)
+    dim = x_path_augmented.shape[2]
+    count = 0
+    if normalise:
+        for i in range(depth):
+            expected_signature[count:count + dim**(i+1)] = expected_signature[count:count + dim**(i+1)] * math.factorial(i+1)
+            count = count + dim**(i+1)
+    return expected_signature
 
-"""
+def rmse(x, y):
+    return (x - y).pow(2).sum().sqrt()
+    
+class SigW1Metric:
+    def __init__(self, depth: int, x_real: torch.Tensor, augmentations: Optional[Tuple] = (AddTIME), normalise: bool = True):
+        assert len(x_real.shape) == 3, \
+            'Path needs to be 3-dimensional. Received %s dimension(s).' % (len(x_real.shape),)
+
+        self.augmentations = augmentations
+        self.depth = depth
+        self.n_lags = x_real.shape[1]
+
+        self.normalise = normalise
+        self.expected_signature_mu = compute_expected_signature(x_real, depth, augmentations, normalise)
+        
+
+    def __call__(self, x_path_nu: torch.Tensor):
+        """ Computes the SigW1 metric."""
+        device = x_path_nu.device
+        batch_size = x_path_nu.shape[0]
+        expected_signature_nu = compute_expected_signature(x_path_nu, self.depth, self.augmentations, self.normalise)
+        loss = rmse(self.expected_signature_mu.to(device), expected_signature_nu)
+        return loss
+
 class SigW1Loss(Loss):
     def __init__(self, x_real, **kwargs):
         name = kwargs.pop('name')
@@ -299,42 +335,20 @@ class SigW1Loss(Loss):
         loss = self.sig_w1_metric(x_fake)
         return loss
 
+#W1 metric
+class W1(Loss):
+    def __init__(self,D, x_real, **kwargs):
+        name = kwargs.pop('name')
+        super(W1, self).__init__(name=name)
+        self.D=D
+        self.D_real=D(x_real).mean()
 
-def rmse(x, y):
-    return (x - y).pow(2).sum().sqrt()
-
-
-class SigW1Metric:
-    def __init__(self, depth: int, x_real: torch.Tensor, mask_rate: float, augmentations: Optional[Tuple] = (), normalise: bool = True):
-        assert len(x_real.shape) == 3, \
-            'Path needs to be 3-dimensional. Received %s dimension(s).' % (
-                len(x_real.shape),)
-
-        self.augmentations = augmentations
-        self.depth = depth
-        self.n_lags = x_real.shape[1]
-        self.mask_rate = mask_rate
-
-        self.normalise = normalise
-        self.expected_signature_mu = signatory.signature(
-            x_real, depth=depth).mean(0)
-
-    def __call__(self, x_path_nu: torch.Tensor):
-        
-        device = x_path_nu.device
-
-        #expected_signature_nu1 = compute_expected_signature(x_path_nu[:batch_size//2], self.depth, self.augmentations)
-        #expected_signature_nu2 = compute_expected_signature(x_path_nu[batch_size//2:], self.depth, self.augmentations)
-        #y = self.expected_signature_mu.to(device)
-        #loss = (expected_signature_nu1-y)*(expected_signature_nu2-y)
-        #loss = loss.sum()
-        expected_signature_nu = signatory.signature(
-            x_path_nu, depth=self.depth).mean(0)
-        loss = rmse(self.expected_signature_mu.to(
-            device), expected_signature_nu)
-        # loss = masked_rmse(self.expected_signature_mu.to(
-        #    device), expected_signature_nu, self.mask_rate, device)
+    def compute(self, x_fake):
+        loss = self.D_real-self.D(x_fake).mean()
         return loss
+
+
+
 """
 
 
