@@ -1,0 +1,11 @@
+#dataset: AR, GBM
+dataset: AR
+device: cuda
+gpu_id : "0"
+
+dscore_hidden_size: 32
+dscore_epochs : 30
+dscore_num_layers: 2
+pscore_hidden_size: 64
+pscore_epochs : 50
+pscore_num_layers: 3
