@@ -68,7 +68,7 @@ class LSTMGenerator(GeneratorBase):
 class CVAE(GeneratorBase):
     """Conditional Variational Auto Encoder (CVAE)."""
     
-    def __init__(self, input_dim: int, output_dim: int, dim: int, level: int, latent_dim: int, augmentation: str = None, hidden_dim: int = 50, alpha:: float = 0.2):
+    def __init__(self, input_dim: int, output_dim: int, dim: int, level: int, latent_dim: int, augmentation: str = None, hidden_dim: int = 50, alpha: float = 0.2):
         super(CVAE, self).__init__()
         self.latent_dim = latent_dim
         self.hidden_dim = hidden_dim
