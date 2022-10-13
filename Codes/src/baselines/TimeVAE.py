@@ -5,7 +5,6 @@ from torch import autograd
 
 from src.baselines.base import BaseTrainer
 from tqdm import tqdm
-from src.utils import sample_indices, AddTime
 from torch.nn.functional import one_hot
 import wandb
 import torch.nn.functional as F
@@ -35,19 +34,19 @@ class TimeVAETrainer(BaseTrainer):
     def step(self, device, step):
             # generate x_fake
 
-            if self.conditional:
-                data = next(iter(self.train_dl))
-                x = data[0].to(device)
-                condition = data[1].to(device)
-                # condition = one_hot(
-                #     data[1], self.config.num_classes).unsqueeze(1).repeat(1, data[0].shape[1], 1).to(device)
-                x_real_batch = torch.cat(
-                    [x, condition], dim=2)
-            else:
-                condition = None
-                x_real_batch = next(iter(self.train_dl))[0].to(device)
+        if self.conditional:
+            data = next(iter(self.train_dl))
+            x = data[0].to(device)
+            condition = data[1].to(device)
+            # condition = one_hot(
+            #     data[1], self.config.num_classes).unsqueeze(1).repeat(1, data[0].shape[1], 1).to(device)
+            x_real_batch = torch.cat(
+                [x, condition], dim=2)
+        else:
+            condition = None
+            x_real_batch = next(iter(self.train_dl))[0].to(device)
     
-        G_loss = self.G_trainstep(device, x_real, condition, step)
+        G_loss = self.G_trainstep(device, x_real_batch, step)
         wandb.log({'G_loss': G_loss}, step)
         
         

@@ -17,6 +17,7 @@ import torch
 from src.utils import get_experiment_dir, save_obj
 
 
+
 def main():
     config_dir = 'configs/' + 'train_gan.yaml'
     with open(config_dir) as file:
@@ -30,19 +31,19 @@ def main():
 
     # initialize weight and bias
     # Place here your API key.
-    os.environ["WANDB_API_KEY"] = "0a2ae01d4ea2b07b7fca1f71e45562ab1a123c80"
+    # os.environ["WANDB_API_KEY"] = "a0a43a4b820d0a581e3579b07d15bd9881f4b559"
     tags = [
-        config.gan_algo,
+        config.algo,
         config.dataset,
     ]
 
     wandb.init(
-        project='GAN_evaluation',
+        project='Generative_model_evaluation',
         config=copy.deepcopy(dict(config)),
-        entity="hangl",
+        entity="jiajie0502",
         tags=tags,
         group=config.dataset,
-        name=config.gan_algo
+        name=config.algo
         # save_code=True,
         # job_type=config.function,
     )
@@ -54,6 +55,7 @@ def main():
     else:
         config.update({"device": "cpu"}, allow_val_change=True)
     # torch.cuda.set_per_process_memory_fraction(0.5, 0)get_dataset
+    from src.datasets.dataloader import get_dataset
     train_dl, test_dl = get_dataset(config, num_workers=4)
     from src.baselines.models import get_trainer
     trainer = get_trainer(config, train_dl, test_dl)

@@ -634,7 +634,7 @@ def rmse(x, y):
 
 
 class SigW1Metric:
-    def __init__(self, depth: int, x_real: torch.Tensor, augmentations: Optional[Tuple] = (AddTIME), normalise: bool = True):
+    def __init__(self, depth: int, x_real: torch.Tensor, augmentations: Optional[Tuple] = (AddTime), normalise: bool = True):
         assert len(x_real.shape) == 3, \
             'Path needs to be 3-dimensional. Received %s dimension(s).' % (
                 len(x_real.shape),)

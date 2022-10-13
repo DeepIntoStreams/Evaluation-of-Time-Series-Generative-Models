@@ -1,5 +1,5 @@
 from src.baselines.RCGAN import RCGANTrainer
-from src.baselines.TimeVAE import TIMEVAETrainer
+from src.baselines.TimeVAE import TimeVAETrainer
 from src.baselines.networks.discriminators import LSTMDiscriminator
 from src.baselines.networks.generators import LSTMGenerator
 from src.baselines.networks.TimeVAE import VariationalAutoencoderConvInterpretable
@@ -50,6 +50,10 @@ def get_trainer(config, train_dl, test_dl):
         D_out_dim = 1
     
     
+    # Compute test metrics for train and test set
+    test_metrics_train = get_standard_test_metrics(x_real_train)
+    test_metrics_test = get_standard_test_metrics(x_real_test)
+    
     if config.model_type == "GAN":
         
         generator = GENERATORS[config.generator](
@@ -60,7 +64,7 @@ def get_trainer(config, train_dl, test_dl):
         print('DISCRIMINATOR:', discriminator)
         
         trainer = {
-        "ROUGH_RCGAN": RCGANTrainer(G=generator, D=discriminator,
+        model_name: RCGANTrainer(G=generator, D=discriminator,
                                     test_metrics_train=test_metrics_train, test_metrics_test=test_metrics_test,
                                     train_dl=train_dl, batch_size=config.batch_size, n_gradient_steps=config.steps,
                                     config=config)}[model_name]
@@ -83,16 +87,16 @@ def get_trainer(config, train_dl, test_dl):
         
         print('VAE:', vae)
         
-        trainer = {"TimeVAE": TimeVAETrainer}
+        trainer = {model_name: TimeVAETrainer(G=vae,
+                                    test_metrics_train=test_metrics_train, test_metrics_test=test_metrics_test,
+                                    train_dl=train_dl, batch_size=config.batch_size, n_gradient_steps=config.steps,
+                                    config=config)}[model_name]
         
     else:
         raise ValueError("Unkown model type")
         
-    # Compute test metrics for train and test set
-    test_metrics_train = get_standard_test_metrics(x_real_train)
-    test_metrics_test = get_standard_test_metrics(x_real_test)
-    
 
+    
     # Check if multi-GPU available and if so, use the available GPU's
     print("GPU's available:", torch.cuda.device_count())
     # Required for multi-GPU
