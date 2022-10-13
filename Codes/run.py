@@ -53,15 +53,15 @@ def main():
         config.update({"device": "cuda:0"}, allow_val_change=True)
     else:
         config.update({"device": "cpu"}, allow_val_change=True)
-    #torch.cuda.set_per_process_memory_fraction(0.5, 0)
-    from src.datasets.dataloader import get_dataset
+    # torch.cuda.set_per_process_memory_fraction(0.5, 0)get_dataset
     train_dl, test_dl = get_dataset(config, num_workers=4)
-    from src.models import get_trainer
+    from src.baselines.models import get_trainer
     trainer = get_trainer(config, train_dl, test_dl)
 
     # Define transforms and create dataloaders
 
-    # WandB – wandb.watch() automatically fetches all layer dimensions, gradients, model parameters and logs them automatically to your dashboard.
+    # WandB – wan
+    # from src.datasets.dataloader import db.watch() automatically fetches all layer dimensions, gradients, model parameters and logs them automatically to your dashboard.
     # Using log="all" log histograms of parameter values in addition to gradients
     # wandb.watch(model, log="all", log_freq=200) # -> There was a wandb bug that made runs in Sweeps crash
 

@@ -12,7 +12,5 @@ torchsde==0.2.5
 torchvision==0.10.0
 tqdm==4.64.0
 wfdb==3.4.1
-opencv-python
-git+ssh://git@github.com/kschlegel/JointCoordinateSystems.git
 signatory==1.2.6.1.9.0 
 seaborn
