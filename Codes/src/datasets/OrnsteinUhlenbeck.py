@@ -11,7 +11,8 @@ import pathlib
 import os
 from src.datasets.utils import load_data, save_data, train_test_split
 
-def get_OU_data(dataset_size = 8192, t_size = 64,withtime=False):
+
+def get_OU_data(dataset_size=8192, t_size=64, withtime=False):
     '''
     Input:
     dataset_size: int, the size of the generated dataset
@@ -40,7 +41,7 @@ def get_OU_data(dataset_size = 8192, t_size = 64,withtime=False):
     y0 = torch.rand(dataset_size, device=device).unsqueeze(-1) * 2 - 1
     ts = torch.linspace(0, t_size-1, t_size, device=device)
     ys = torchsde.sdeint(ou_sde, y0, ts, dt=1e-1)
-    
+
     ###################
     # Typically important to normalise data. Note that the data is normalised with respect to the statistics of the
     # initial data, _not_ the whole time series. This seems to help the learning process, presumably because if the
@@ -54,8 +55,8 @@ def get_OU_data(dataset_size = 8192, t_size = 64,withtime=False):
     # As discussed, time must be included as a channel for the discriminator.
     ###################
     if withtime:
-      ys = torch.cat([ts.unsqueeze(0).unsqueeze(-1).expand(dataset_size, t_size, 1),
-                    ys.transpose(0, 1)], dim=2)
+        ys = torch.cat([ts.unsqueeze(0).unsqueeze(-1).expand(dataset_size, t_size, 1),
+                        ys.transpose(0, 1)], dim=2)
 
     return ys
 
@@ -72,16 +73,18 @@ class OU(torch.utils.data.TensorDataset):
         data_loc = pathlib.Path(
             'data/OU/processed_data_{}'.format(n_lags))
 
-        if os.path.exists(data_loc): 
-        #if data file exists pass
+        if os.path.exists(data_loc):
+            # if data file exists pass
             pass
         else:
-        #else generate path
+            # else generate path
             if not os.path.exists(data_loc.parent):
                 os.mkdir(data_loc.parent)
             if not os.path.exists(data_loc):
                 os.mkdir(data_loc)
-            x_real =  get_OU_data(dataset_size =20000, t_size = n_lags, withtime=False):#get_var_dataset(window_size=n_lags, batch_size=5000, dim=3, phi=0.8, sigma=0.5)
+            # get_var_dataset(window_size=n_lags, batch_size=5000, dim=3, phi=0.8, sigma=0.5)
+            x_real = get_OU_data(dataset_size=20000,
+                                 t_size=n_lags, withtime=False)
             train_X, test_X = train_test_split(x_real, 0.8)
             save_data(
                 data_loc,
@@ -101,4 +104,4 @@ class OU(torch.utils.data.TensorDataset):
         else:
             raise NotImplementedError(
                 "the set {} is not implemented.".format(set))
-        return 
+        return
