@@ -246,26 +246,20 @@ def _test_regressor(model, test_loader, config):
     return test_loss
 
 
-def fake_loader(generator, num_samples, n_lags, batch_size, config):
-    if config.conditional:
-        targets = torch.randint(
-            0, config.num_classes, (num_samples,))
-        condition = one_hot(targets,
-                            config.num_classes).float().unsqueeze(1).repeat(1, config.n_lags, 1)
-        with torch.no_grad():
-            fake_data = generator(num_samples, n_lags,
-                                  device='cpu', condition=condition)
-    # transform to torch tensor
-            tensor_x = torch.Tensor(fake_data[:, :, :-config.num_classes])
-            tensor_y = torch.LongTensor(targets)
-        return DataLoader(TensorDataset(tensor_x, tensor_y), batch_size=batch_size)
-    else:
-        with torch.no_grad():
+def fake_loader(generator, num_samples, n_lags, batch_size, config, **kwargs):
+    if 'recovery' in kwargs:
+        recovery = kwargs['recovery']
+    with torch.no_grad():
+        if config.algo == 'TimeGAN':
+            fake_data = generator(batch_size=num_samples,
+                                  n_lags=n_lags, device='cpu')
+            fake_data = recovery(fake_data)
+        else:
             condition = None
             fake_data = generator(num_samples, n_lags,
                                   device='cpu', condition=condition)
-            tensor_x = torch.Tensor(fake_data)
-        return DataLoader(TensorDataset(tensor_x), batch_size=batch_size)
+        tensor_x = torch.Tensor(fake_data)
+    return DataLoader(TensorDataset(tensor_x), batch_size=batch_size)
 
 
 def compute_discriminative_score(real_train_dl, real_test_dl, fake_train_dl, fake_test_dl, config,
@@ -712,7 +706,7 @@ def sig_fid_model(X: torch.tensor, config):
     return model
 
 
-def full_evaluation(generator, real_train_dl, real_test_dl, fid_model, config):
+def full_evaluation(generator, real_train_dl, real_test_dl, config, **kwargs):
     """ evaluation for the synthetic genreation, including.
         discriminative score, predictive score, predictive_FID, predictive_KID
         We compute the mean and std of evaluation scores 
@@ -723,26 +717,31 @@ def full_evaluation(generator, real_train_dl, real_test_dl, fid_model, config):
     """
     d_scores = []
     p_scores = []
-    FIDs = []
-    KIDs = []
     Sig_MMDs = []
     real_data = torch.cat([loader_to_tensor(real_train_dl),
                           loader_to_tensor(real_test_dl)])
     dim = real_data.shape[-1]
 
-    for i in tqdm(range(10)):
+    for i in tqdm(range(5)):
         # take random 10000 samples from real dataset
         idx = torch.randint(real_data.shape[0], (10000,))
         real_train_dl = DataLoader(TensorDataset(
             real_data[idx[:-2000]]), batch_size=128)
         real_test_dl = DataLoader(TensorDataset(
             real_data[idx[-2000:]]), batch_size=128)
-        fake_train_dl = fake_loader(generator, num_samples=8000,
-                                    n_lags=config.n_lags, batch_size=128, config=config
-                                    )
-        fake_test_dl = fake_loader(generator, num_samples=2000,
-                                   n_lags=config.n_lags, batch_size=128, config=config
-                                   )
+        if 'recovery' in kwargs:
+            recovery = kwargs['recovery']
+            fake_train_dl = fake_loader(generator, num_samples=8000,
+                                        n_lags=config.n_lags, batch_size=128, config=config, recovery=recovery)
+            fake_test_dl = fake_loader(generator, num_samples=2000,
+                                       n_lags=config.n_lags, batch_size=128, config=config, recovery=recovery
+                                       )
+        else:
+            fake_train_dl = fake_loader(generator, num_samples=8000,
+                                        n_lags=config.n_lags, batch_size=128, config=config)
+            fake_test_dl = fake_loader(generator, num_samples=2000,
+                                       n_lags=config.n_lags, batch_size=128, config=config
+                                       )
 
         d_score_mean, d_score_std = compute_discriminative_score(
             real_train_dl, real_test_dl, fake_train_dl, fake_test_dl, config, int(dim/2), 1, epochs=30, batch_size=128)
@@ -754,33 +753,26 @@ def full_evaluation(generator, real_train_dl, real_test_dl, fid_model, config):
                           loader_to_tensor(real_test_dl)])
         fake = torch.cat([loader_to_tensor(fake_train_dl),
                           loader_to_tensor(fake_test_dl)])
-        predictive_fid = FID_score(fid_model, real, fake)
-        predictive_kid = KID_score(fid_model, real, fake)
+        #predictive_fid = FID_score(fid_model, real, fake)
+        #predictive_kid = KID_score(fid_model, real, fake)
         sig_mmd = Sig_mmd(real, fake, depth=5)
         Sig_MMDs.append(sig_mmd)
-        FIDs.append(predictive_fid)
-        KIDs.append(predictive_kid)
+        # FIDs.append(predictive_fid)
+        # KIDs.append(predictive_kid)
     d_mean, d_std = np.array(d_scores).mean(), np.array(d_scores).std()
     p_mean, p_std = np.array(p_scores).mean(), np.array(p_scores).std()
-    fid_mean, fid_std = np.array(FIDs).mean(), np.array(FIDs).std()
-    kid_mean, kid_std = np.array(KIDs).mean(), np.array(KIDs).std()
+    #fid_mean, fid_std = np.array(FIDs).mean(), np.array(FIDs).std()
+    #kid_mean, kid_std = np.array(KIDs).mean(), np.array(KIDs).std()
     sig_mmd_mean, sig_mmd_std = np.array(
         Sig_MMDs).mean(), np.array(Sig_MMDs).std()
 
     print('discriminative score with mean:', d_mean, 'std:', d_std)
     print('predictive score with mean:', p_mean, 'std:', p_std)
-    print('fid score with mean:', fid_mean, 'std:', fid_std)
-    print('kid score with mean:', kid_mean, 'std:', kid_std)
     print('sig mmd with mean:', sig_mmd_mean, 'std:', sig_mmd_std)
     wandb.run.summary['discriminative_score_mean'] = d_mean
     wandb.run.summary['discriminative_score_std'] = d_std
 
     wandb.run.summary['predictive_score_mean'] = p_mean
     wandb.run.summary['predictive_score_std'] = p_std
-    wandb.run.summary['fid_score_mean'] = fid_mean
-    wandb.run.summary['fid_score_std'] = fid_std
-
-    wandb.run.summary['kid_score_mean'] = kid_mean
-    wandb.run.summary['kid_score_std'] = kid_std
     wandb.run.summary['sig_mmd_mean'] = sig_mmd_mean
     wandb.run.summary['sig_mmd_std'] = sig_mmd_std

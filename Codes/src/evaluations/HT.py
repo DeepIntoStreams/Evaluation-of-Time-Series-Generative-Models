@@ -5,12 +5,8 @@ from tqdm import tqdm
 from torch.utils.data import DataLoader
 import pandas as pd
 from src.evaluations.test_metrics import Sig_mmd
-from functools import partial
-import torch.nn as nn
 from src.evaluations.evaluations import compute_discriminative_score, compute_predictive_score, sig_fid_model
 from torch.utils.data import DataLoader, TensorDataset
-import signatory
-from src.evaluations.evaluations import _train_regressor
 from src.evaluations.test_metrics import Predictive_FID, Predictive_KID
 from src.utils import to_numpy
 

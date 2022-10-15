@@ -1,8 +1,6 @@
 from src.evaluations.augmentations import apply_augmentations, parse_augmentations, Basepoint
 from functools import partial
 from typing import Tuple, Optional
-from unicodedata import name
-
 from src.utils import to_numpy
 # from .trainers.sig_wgan import SigW1Metric
 
@@ -14,7 +12,6 @@ from os import path as pt
 import warnings
 from scipy import linalg
 from sklearn.metrics.pairwise import polynomial_kernel
-import tqdm
 # import signatory
 import ksig
 from src.utils import AddTime
@@ -534,7 +531,7 @@ def Sig_mmd(X, Y, depth):
         [torch.zeros((N1, 1, C1)).to(X.device), Y], dim=1)
     X = to_numpy(AddTime(X))
     Y = to_numpy(AddTime(Y))
-    n_components = 100
+    n_components = 20
     static_kernel = ksig.static.kernels.RBFKernel()
     # an RBF base kernel for vector-valued data which is lifted to a kernel for sequences
     static_feat = ksig.static.features.NystroemFeatures(
@@ -709,9 +706,8 @@ def diff(x): return x[:, 1:] - x[:, :-1]
 
 
 test_metrics = {
-    'Predictive_FID': partial(Predictive_FID, name='Predictive_FID'),
-    'Predictive_KID': partial(Predictive_KID, name='Predictive_KID')
-}
+    'Sig_mmd': partial(Sig_MMD_loss, name='Sig_mmd', depth=4),
+    'SigW1': partial(SigW1Loss, name='SigW1', augmentations=[], normalise=False, depth=4)}
 
 
 def is_multivariate(x: torch.Tensor):
@@ -723,8 +719,7 @@ def get_standard_test_metrics(x: torch.Tensor, **kwargs):
     """ Initialise list of standard test metrics for evaluating the goodness of the generator. """
     if 'model' in kwargs:
         model = kwargs['model']
-    test_metrics_list = [
-        test_metrics['Predictive_FID'](x, model),
-        test_metrics['Predictive_KID'](x, model)
-    ]
+    test_metrics_list = [test_metrics['Sig_mmd'](x),
+                         test_metrics['SigW1'](x)
+                         ]
     return test_metrics_list

@@ -8,14 +8,10 @@ import yaml
 import os
 
 from os import path as pt
-from typing import Optional
-import argparse
-from src.evaluations.evaluations import compute_discriminative_score, fake_loader, compute_classfication_score, plot_summary
-import matplotlib.pyplot as plt
-import numpy as np
+from src.evaluations.evaluations import compute_discriminative_score, fake_loader, compute_classfication_score, plot_summary, full_evaluation
 import torch
 from src.utils import get_experiment_dir, save_obj
-
+from torch import nn
 
 
 def main():
@@ -31,7 +27,8 @@ def main():
 
     # initialize weight and bias
     # Place here your API key.
-    # os.environ["WANDB_API_KEY"] = "a0a43a4b820d0a581e3579b07d15bd9881f4b559"
+    # setup own api key in the config
+    os.environ["WANDB_API_KEY"] = config.wandb_api
     tags = [
         config.algo,
         config.dataset,
@@ -40,7 +37,7 @@ def main():
     wandb.init(
         project='Generative_model_evaluation',
         config=copy.deepcopy(dict(config)),
-        entity="jiajie0502",
+        entity="deepintostreams",
         tags=tags,
         group=config.dataset,
         name=config.algo
@@ -88,33 +85,37 @@ def main():
         # Select test function
         #_test_CIFAR10(model, test_loader, config)
     from src.baselines.models import GENERATORS
-    generator = GENERATORS[config.generator](
-        input_dim=config.G_input_dim, hidden_dim=config.G_hidden_dim, output_dim=config.input_dim, n_layers=config.G_num_layers)
-    generator.load_state_dict(torch.load(pt.join(
-        config.exp_dir, 'generator_state_dict.pt')))
-    fake_train_dl = fake_loader(generator, num_samples=len(train_dl.dataset),
-                                n_lags=config.n_lags, batch_size=train_dl.batch_size, config=config
-                                )
-    fake_test_dl = fake_loader(generator, num_samples=len(test_dl.dataset),
-                               n_lags=config.n_lags, batch_size=test_dl.batch_size, config=config
-                               )
-    if config.dataset in ['ROUGH', 'STOCK']:
-        plot_summary(fake_test_dl, test_dl, config)
+    if config.algo == 'TimeGAN':
+        generator = GENERATORS[config.generator](
+            input_dim=config.G_input_dim, hidden_dim=config.G_hidden_dim, output_dim=config.input_dim,
+            n_layers=config.G_num_layers, init_fixed=config.init_fixed)
+        generator.load_state_dict(torch.load(pt.join(
+            config.exp_dir, 'generator_state_dict.pt')), strict=True)
+
+        recovery = nn.Sequential(trainer.supervisor.to(
+            device='cpu'), trainer.recovery.to(device='cpu'))
+        generator.eval()
+        fake_test_dl = fake_loader(generator, num_samples=len(test_dl.dataset),
+                                   n_lags=config.n_lags, batch_size=128, config=config, recovery=recovery
+                                   )
+
+        full_evaluation(generator, train_dl, test_dl,
+                        config, recovery=recovery)
     else:
-        pass
+        generator = GENERATORS[config.generator](
+            input_dim=config.G_input_dim, hidden_dim=config.G_hidden_dim, output_dim=config.input_dim, n_layers=config.G_num_layers)
+        generator.load_state_dict(torch.load(pt.join(
+            config.exp_dir, 'generator_state_dict.pt')))
+
+        fake_test_dl = fake_loader(generator, num_samples=len(test_dl.dataset),
+                                   n_lags=config.n_lags, batch_size=test_dl.batch_size, config=config
+                                   )
+        full_evaluation(generator, train_dl, test_dl, config)
+
+    plot_summary(fake_test_dl, test_dl, config)
     wandb.save(pt.join(config.exp_dir, '*png*'))
     wandb.save(pt.join(config.exp_dir, '*pt*'))
     wandb.save(pt.join(config.exp_dir, '*pdf*'))
-    discriminative_score = compute_discriminative_score(
-        train_dl, test_dl, fake_train_dl, fake_test_dl, config, epochs=50)
-    wandb.run.summary['discriminative_score'] = discriminative_score
-    if config.dataset == 'sMnist':
-        TFTR_acc, TRTF_acc = compute_classfication_score(train_dl, fake_train_dl, config,
-                                                         hidden_size=64, num_layers=3, epochs=50)
-        wandb.run.summary['TFTR_acc'] = TFTR_acc
-        wandb.run.summary['TRTF_acc'] = TRTF_acc
-    else:
-        pass
 
 
 if __name__ == '__main__':

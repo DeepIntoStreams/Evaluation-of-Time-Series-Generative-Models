@@ -1,16 +1,11 @@
 import torch
-from torch.autograd import Variable
-import functools
-
 import torch
-from torch import autograd
+
 
 from src.baselines.base import BaseTrainer
 from tqdm import tqdm
-from src.utils import sample_indices, AddTime
 from torch.nn.functional import one_hot
 import wandb
-import torch.nn.functional as F
 import torch.optim.swa_utils as swa_utils
 
 

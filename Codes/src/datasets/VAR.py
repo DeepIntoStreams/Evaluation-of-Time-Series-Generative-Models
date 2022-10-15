@@ -1,6 +1,4 @@
-from tqdm import tqdm
 import numpy as np
-from fbm import fbm, MBM
 import torch
 import pathlib
 import os
@@ -26,7 +24,8 @@ class Pipeline:
                 break
             x = step.inverse_transform(x)
         return x
-        
+
+
 class StandardScalerTS():
     """ Standard scales a given (indexed) input vector along the specified axis. """
 
@@ -43,7 +42,8 @@ class StandardScalerTS():
 
     def inverse_transform(self, x):
         return x * self.std.to(x.device) + self.mean.to(x.device)
-        
+
+
 def get_var_dataset(window_size, data_size=5000, dim=3, phi=0.8, sigma=0.5):
     def multi_AR(window_size, dim=3, phi=0.8, sigma=0.5, burn_in=200):
         window_size = window_size + burn_in
@@ -67,7 +67,8 @@ def get_var_dataset(window_size, data_size=5000, dim=3, phi=0.8, sigma=0.5):
 
     def get_pipeline():
         transforms = list()
-        transforms.append(('standard_scale', StandardScalerTS(axis=(0, 1))))  # standard scale
+        # standard scale
+        transforms.append(('standard_scale', StandardScalerTS(axis=(0, 1))))
         pipeline = Pipeline(steps=transforms)
         return pipeline
 
@@ -88,16 +89,17 @@ class VAR(torch.utils.data.TensorDataset):
         data_loc = pathlib.Path(
             'data/VAR/processed_data_{}'.format(n_lags))
 
-        if os.path.exists(data_loc): 
-        #if data file exists pass
+        if os.path.exists(data_loc):
+            # if data file exists pass
             pass
         else:
-        #else generate path
+            # else generate path
             if not os.path.exists(data_loc.parent):
                 os.mkdir(data_loc.parent)
             if not os.path.exists(data_loc):
                 os.mkdir(data_loc)
-            x_real = get_var_dataset(window_size=n_lags, data_size=20000, dim=3, phi=0.8, sigma=0.5)
+            x_real = get_var_dataset(
+                window_size=n_lags, data_size=20000, dim=3, phi=0.8, sigma=0.5)
             train_X, test_X = train_test_split(x_real, 0.8)
             save_data(
                 data_loc,
@@ -117,4 +119,4 @@ class VAR(torch.utils.data.TensorDataset):
         else:
             raise NotImplementedError(
                 "the set {} is not implemented.".format(set))
-        return 
+        return

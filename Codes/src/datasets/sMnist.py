@@ -1,7 +1,5 @@
 
 from torchvision import datasets, transforms
-import torch
-from typing import Tuple
 
 
 class MNIST(datasets.MNIST):

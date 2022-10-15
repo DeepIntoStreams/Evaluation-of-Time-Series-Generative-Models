@@ -120,9 +120,9 @@ def get_experiment_dir(config):
     if config.model_type == 'VAE':
         exp_dir = './numerical_results/{dataset}/algo_{gan}_Model_{model}_n_lag_{n_lags}_{seed}'.format(
             dataset=config.dataset, gan=config.algo, model=config.model, n_lags=config.n_lags, seed=config.seed)
-    else:    
+    else:
         exp_dir = './numerical_results/{dataset}/algo_{gan}_G_{generator}_D_{discriminator}_includeD_{include_D}_n_lag_{n_lags}_{seed}'.format(
-            dataset=config.dataset, gan=config.gan_algo, generator=config.generator,
+            dataset=config.dataset, gan=config.algo, generator=config.generator,
             discriminator=config.discriminator, include_D=config.include_D, n_lags=config.n_lags, seed=config.seed)
     os.makedirs(exp_dir, exist_ok=True)
     if config.train and os.path.exists(exp_dir):
