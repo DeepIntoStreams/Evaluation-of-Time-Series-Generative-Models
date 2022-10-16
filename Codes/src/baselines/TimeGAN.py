@@ -1,16 +1,9 @@
 import torch
-from torch.autograd import Variable
-import functools
-
 import torch
-from torch import autograd
 
 from src.baselines.base import BaseTrainer
 from tqdm import tqdm
-from src.utils import sample_indices, AddTime
-from torch.nn.functional import one_hot
 import wandb
-import torch.nn.functional as F
 import torch.nn as nn
 from src.utils import init_weights
 import torch.optim.swa_utils as swa_utils
@@ -230,8 +223,6 @@ class TIMEGANTrainer(BaseTrainer):
             self.evaluate(X_hat, i)
             wandb.log({'G_loss': G_loss}, i)
             wandb.log({'D_loss': D_loss}, i)
-            if i > self.config.swa_step_start:
-                self.averaged_G.update_parameters(self.G)
 
     def compute_loss(self, d_out, target):
         targets = d_out.new_full(size=d_out.size(), fill_value=target)

@@ -12,6 +12,13 @@ pip install .
 ```
 Note that this pipeline relis on **wandb** for logging experiemnts, user needs to create a personal wandb account. 
 
+or run 
+```console
+pip install -r requirements.txt
+conda install pytorch==1.11.0 torchvision==0.12.0 torchaudio==0.11.0 cudatoolkit=10.2 -c pytorch
+pip install signatory==1.2.6.1.9.0 --no-cache-dir --force-reinstall
+```
+
 ## Description 
 
  We aim to create an pipeline with easy configuration interface for controlling on various GAN baseline models, datasets and evaluation metrics. The pipeline is still under development and may change based on the objective of the paper, also it would great to have progressive adjustments and improvements during our work.

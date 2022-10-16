@@ -1,6 +1,7 @@
-# gan model, PathChar_GAN,RPathChar_GAN,RGAN, CotGAN,NsdeGAN 
+# gan model, PathChar_GAN,RPathChar_GAN,RGAN,TimeGAN, CotGAN
 model_type: GAN
-algo: RCGAN
+algo: TimeGAN  
+wandb_api: "0a2ae01d4ea2b07b7fca1f71e45562ab1a123c80"
 train: True
 pretrained: False
 #generator: PathChar
@@ -24,11 +25,12 @@ lr_G: 0.002
 lr_D: 0.003
 D_steps_per_G_step: 3
 batch_size: 256
-steps: 2000
+steps: 10
 #generator hyperparameter:
 G_input_dim: 5
 G_hidden_dim: 64 
 G_num_layers: 2
+init_fixed: False
 #discriminator hyperparameter:
 D_hidden_dim: 64
 D_num_layers: 3

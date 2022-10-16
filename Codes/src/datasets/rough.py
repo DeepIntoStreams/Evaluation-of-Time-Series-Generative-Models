@@ -1,6 +1,6 @@
 from tqdm import tqdm
 import numpy as np
-from fbm import fbm, MBM
+from fbm import MBM
 import torch
 import pathlib
 import os

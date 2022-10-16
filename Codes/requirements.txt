@@ -6,10 +6,6 @@ ml_collections==0.1.1
 numpy==1.22.1
 pandas==1.3.5
 requests==2.27.1
-
-torchcde==0.2.5
-torchsde==0.2.5
-
 tqdm==4.64.0
 wfdb==3.4.1
 wandb

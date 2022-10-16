@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="973274f4-cfbe-4768-9771-d90b0fd27582" name="gan_eval">
+        <fileTransfer rootFolder="/home/hanglou/work/Evaluation-of-Time-Series-Generative-Models" accessType="SFTP" host="localhost" port="2222" sshConfigId="bd8d34ad-b7f7-4bfc-8aea-79d9820ee248" sshConfig="hanglou@localhost:2222 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
