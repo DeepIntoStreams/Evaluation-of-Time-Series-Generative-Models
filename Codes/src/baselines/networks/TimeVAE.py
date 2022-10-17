@@ -101,6 +101,20 @@ class VariationalAutoencoderConvInterpretable(BaseVariationalAutoencoder):
                                 custom_seas = self.custom_seas, # tuple consisting of pairs (num_seasons, len_per_season)
                                 use_residual_conn = self.use_residual_conn
                             )
+        return decoder
+        
+    
+    def forward(self, batch_size: int, n_lags: int, device: str, condition=None, z=None):
+        if condition is not None:
+            Z = torch.randn([batch_size, self.latent_dim]).to(device)
+            Z = torch.cat([Z, condition], dim=-1)
+        else:
+            if z is None:
+                Z = torch.randn([batch_size, self.latent_dim]).to(device)
+            else:
+                Z = z.to(device)
+        x = self.decoder(Z)
+        return x
 
         
         
@@ -136,6 +150,7 @@ class encoder_block(nn.Module):
     def forward(self, z):
         '''
         Input dimension: [Batch, input_dim, n_lags]
+        Output dimension: [Batch, latent_dim]
         '''
         batch = z.shape[0]
         hidden_state = self.encoder(z).reshape(batch, -1)
@@ -156,7 +171,7 @@ class sampling_layer(nn.Module):
     def forward(self, z_mean, z_log_var):
         batch = z_mean.shape[0]
         dim = z_mean.shape[1]
-        epsilon = torch.randn([batch, dim])
+        epsilon = torch.randn([batch, dim]).to(z_mean.device)
         return z_mean + torch.exp(0.5 * z_log_var) * epsilon
 
     
@@ -237,6 +252,7 @@ class decoder_block(nn.Module):
     def forward(self, z):
         '''
         Input dimension: [Batch, latent_dim]
+        Output dimension: [Batch, input_dim, n_lags]
         '''
         batch = z.shape[0]
         
@@ -258,12 +274,12 @@ class decoder_block(nn.Module):
             scale = self.scale_model(z)
             output *= scale
             
-        if outputs is None: 
+        if output is None: 
             raise Exception('''Error: No decoder model to use. 
             You must use one or more of:
             trend, generic seasonality(ies), custom seasonality(ies), and/or residual connection. ''')
 
-        return outputs
+        return output.permute([0,2,1]) 
     
     
 def _get_season_indexes_over_seq(num_seasons, len_per_season):
@@ -479,7 +495,7 @@ class decoder_residual_block(nn.Module):
         self.model.add_module('last_ReLU_{}',
                                   torch.nn.ReLU())
         
-        self.last_linear_layer =  nn.Linear(self.final_length * self.input_dim, self.n_lags * self.input_dim)
+        self.last_linear_layer = nn.Linear(self.final_length * self.input_dim, self.n_lags * self.input_dim)
     def forward(self, z):
         """
         Input dimension: [Batch, latent_dim]

@@ -72,8 +72,6 @@ def get_trainer(config, train_dl, test_dl):
                                              n_gradient_steps=config.steps, config=config)}[model_name]
 
     elif config.model_type == "VAE":
-        config.update({"input_dim": config.input_dim +
-                      config.num_classes}, allow_val_change=True)
 
         vae = VAES[config.model](hidden_layer_sizes=config.hidden_layer_sizes,
                                  trend_poly=config.trend_poly,

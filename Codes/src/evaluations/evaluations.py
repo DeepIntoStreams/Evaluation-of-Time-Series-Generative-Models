@@ -254,10 +254,17 @@ def fake_loader(generator, num_samples, n_lags, batch_size, config, **kwargs):
             fake_data = generator(batch_size=num_samples,
                                   n_lags=n_lags, device='cpu')
             fake_data = recovery(fake_data)
+        elif config.algo == 'TimeVAE':
+            condition = None
+            fake_data = generator(num_samples, n_lags,
+                                  device='cpu', condition=condition).permute([0,2,1])
+            print(fake_data.shape)
+        
         else:
             condition = None
             fake_data = generator(num_samples, n_lags,
                                   device='cpu', condition=condition)
+            print(fake_data.shape)
         tensor_x = torch.Tensor(fake_data)
     return DataLoader(TensorDataset(tensor_x), batch_size=batch_size)
 
@@ -707,7 +714,7 @@ def sig_fid_model(X: torch.tensor, config):
 
 
 def full_evaluation(generator, real_train_dl, real_test_dl, config, **kwargs):
-    """ evaluation for the synthetic genreation, including.
+    """ evaluation for the synthetic generation, including.
         discriminative score, predictive score, predictive_FID, predictive_KID
         We compute the mean and std of evaluation scores 
         with 10000 samples and 10 repetitions  
