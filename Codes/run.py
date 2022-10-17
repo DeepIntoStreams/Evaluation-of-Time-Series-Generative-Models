@@ -15,7 +15,8 @@ from torch import nn
 
 
 def main():
-    config_dir = 'configs/' + 'train_gan.yaml'
+    # config_dir = 'configs/' + 'train_gan.yaml'
+    config_dir = 'configs/' + 'train_vae.yaml'
     with open(config_dir) as file:
         config = ml_collections.ConfigDict(yaml.safe_load(file))
     # print(config)
@@ -76,15 +77,21 @@ def main():
 
         print(datetime.datetime.now())
         trainer.fit(config.device)
-        save_obj(trainer.G.state_dict(), pt.join(
-            config.exp_dir, 'generator_state_dict.pt'))
+        if config.algo == 'TimeVAE':
+            save_obj(trainer.G.encoder.state_dict(), pt.join(
+                config.exp_dir, 'encoder_state_dict.pt'))
+            save_obj(trainer.G.decoder.state_dict(), pt.join(
+                config.exp_dir, 'decoder_state_dict.pt'))
+        else:
+            save_obj(trainer.G.state_dict(), pt.join(
+                config.exp_dir, 'generator_state_dict.pt'))
 
     elif config.pretrained:
         pass
 
         # Select test function
         #_test_CIFAR10(model, test_loader, config)
-    from src.baselines.models import GENERATORS
+    from src.baselines.models import GENERATORS, VAES
     if config.algo == 'TimeGAN':
         generator = GENERATORS[config.generator](
             input_dim=config.G_input_dim, hidden_dim=config.G_hidden_dim, output_dim=config.input_dim,
@@ -101,6 +108,28 @@ def main():
 
         full_evaluation(generator, train_dl, test_dl,
                         config, recovery=recovery)
+    elif config.algo == 'TimeVAE':
+        vae = VAES[config.model](hidden_layer_sizes=config.hidden_layer_sizes,
+                                       trend_poly=config.trend_poly,
+                                       num_gen_seas=config.num_gen_seas,
+                                       custom_seas=config.custom_seas,
+                                       use_scaler=config.use_scaler,
+                                       use_residual_conn=config.use_residual_conn,
+                                       n_lags=config.n_lags,
+                                       input_dim=config.input_dim,
+                                       latent_dim=config.latent_dim,
+                                       reconstruction_wt=config.reconstruction_wt)
+        
+        vae.encoder.load_state_dict(torch.load(pt.join(
+            config.exp_dir, 'encoder_state_dict.pt')), strict=True)
+        vae.decoder.load_state_dict(torch.load(pt.join(
+            config.exp_dir, 'decoder_state_dict.pt')), strict=True)
+        vae.eval()
+        
+        fake_test_dl = fake_loader(vae, num_samples=len(test_dl.dataset),
+                                   n_lags=config.n_lags, batch_size=128, config=config)
+        full_evaluation(vae, train_dl, test_dl, config)
+        
     else:
         generator = GENERATORS[config.generator](
             input_dim=config.G_input_dim, hidden_dim=config.G_hidden_dim, output_dim=config.input_dim, n_layers=config.G_num_layers)
