@@ -4,17 +4,17 @@ The main objective of the project is to summarize the evaluation metrics used in
 
 ## Test metrics
 We include the following test metric in our code pipeline:
-- Sig-W1 metric: a generic metric for distribution induced by time series.  
-- Metrics on marginal distribution: to measure the fitting of generative models in terms of the fitting of the marginal distribution.  
-- Metrics on dependency: to measure the fitting of generative models in terms of correlation and autocorrelation.  
-- Discriminative score: to train a classifier to distinguish whether the sample is from the true distribution or synthetic distribution. The smaller the discriminative score, the better generator.  
-- Predictive score: train a sequence-to-sequence model to predict the latter part of a time series given the first part, using generated data, then evaluate on the true data. Smaller losses, meaning ability to predict, are better.  
+- Sig-W1 metric [1]: a generic metric for distribution induced by time series.  
+- Metrics on marginal distribution [1]: to measure the fitting of generative models in terms of the fitting of the marginal distribution.  
+- Metrics on dependency [1]: to measure the fitting of generative models in terms of correlation and autocorrelation.  
+- Discriminative score [2]: to train a classifier to distinguish whether the sample is from the true distribution or synthetic distribution. The smaller the discriminative score, the better generator.  
+- Predictive score [2]: train a sequence-to-sequence model to predict the latter part of a time series given the first part, using generated data, then evaluate on the true data. Smaller losses, meaning ability to predict, are better.  
 
 ## Models
 We implement some well known models including:
-- Time-GAN
-- Recurrent Conditional GAN (RCGAN)
-- Time-VAE 
+- Time-GAN [2]
+- Recurrent Conditional GAN (RCGAN) [3]
+- Time-VAE [4]
 
 ## Datasets
 We provide the following datasets for model testing:
@@ -25,8 +25,9 @@ We provide the following datasets for model testing:
 - BeiJing air quality data
 
 
-## Project Outcomes
-- A survey paper;
-- A Python code base;
-- A database (library) for relevant papers (allow the update from the community).
+## Citation
+- [1] Ni, H., Szpruch, L., Wiese, M., Liao, S. and Xiao, B., 2021. Sig-Wasserstein GANs for Time Series Generation.  
+- [2] Yoon, J., Jarrett, D. and Van der Schaar, M., 2019. Time-series generative adversarial networks. Advances in neural information processing systems, 32.  
+- [3] Esteban, C., Hyland, S.L. and Rätsch, G., 2017. Real-valued (medical) time series generation with recurrent conditional gans. arXiv preprint arXiv:1706.02633. 
+- [4] Desai A., Freeman C., Wang, Z.H., Beaver I., 2021 TimeVAE: A Variational Auto-Encoder For Multivariate Time Series Generation. arXiv preprint arXiv:2111.08095.
 
