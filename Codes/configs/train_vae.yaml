@@ -23,7 +23,7 @@ n_lags: 50
 lr_G: 0.002
 D_steps_per_G_step: 3
 batch_size: 256
-steps: 2000
+steps: 10
 
 
 #vae hyperparameter:

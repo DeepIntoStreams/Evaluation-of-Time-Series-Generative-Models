@@ -43,7 +43,7 @@ class TimeVAETrainer(BaseTrainer):
         wandb.log({'G_loss': G_loss}, step)
 
     def G_trainstep(self, device, x_real, step):
-        
+        # print("x_real: ", x_real.shape)
         latent_z, mean, log_var = self.G.encoder(x_real)
         toggle_grad(self.G, True)
         self.G.encoder.train()
@@ -58,7 +58,10 @@ class TimeVAETrainer(BaseTrainer):
         self.losses_history['reconstruction_loss'].append(reconstruction_loss)
         self.losses_history['latent_loss'].append(latent_loss)
         self.G_optimizer.step()
-
+        
+        toggle_grad(self.G, False)
+        # print("x_fake: ", x_fake.shape)
+        self.evaluate(x_fake.permute([0,2,1]), step)
         # self.evaluate(x_fake, step) # Need on for
 
         return G_loss.item()
