@@ -1,0 +1,37 @@
+---
+layout: default
+---
+
+<article class="post">
+  <h1>{{ page.title }}</h1>
+  
+  {% if page.paperurl %}
+    <p><a href=" {{ page.paperurl }} "><u>Paper</u></a></p>
+  {% endif %}
+
+  <div class="entry">
+    {{ content }}
+  </div>
+
+  <div class="date">
+    Written on {{ page.date | date: "%B %e, %Y" }}
+  </div>
+  
+  
+  {% include disqus.html %}
+  <span>[
+  {% for tag in page.tags %}
+    {% capture tag_name %}{{ tag }}{% endcapture %}
+    <a href="/tag/{{ tag_name }}"><code class="highligher-rouge"><nobr>{{ tag_name }}</nobr></code>&nbsp;</a>
+  {% endfor %}
+]</span>
+  
+  
+  <script src="https://utteranc.es/client.js"
+        repo="ScoreBasedGenerativeModeling/scorebasedgenerativemodeling.github.io"
+        issue-term="pathname"
+        theme="github-light"
+        crossorigin="anonymous"
+        async>
+</script>
+</article>
