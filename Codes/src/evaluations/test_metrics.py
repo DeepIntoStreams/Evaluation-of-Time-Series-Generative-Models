@@ -707,7 +707,9 @@ def diff(x): return x[:, 1:] - x[:, :-1]
 
 test_metrics = {
     'Sig_mmd': partial(Sig_MMD_loss, name='Sig_mmd', depth=4),
-    'SigW1': partial(SigW1Loss, name='SigW1', augmentations=[], normalise=False, depth=4)}
+    'SigW1': partial(SigW1Loss, name='SigW1', augmentations=[], normalise=False, depth=4),
+    'abs_metric': partial(HistoLoss, n_bins=50, name='abs_metric'),
+    'cross_correl': partial(CrossCorrelLoss, name='cross_correl'), }
 
 
 def is_multivariate(x: torch.Tensor):
@@ -720,6 +722,8 @@ def get_standard_test_metrics(x: torch.Tensor, **kwargs):
     if 'model' in kwargs:
         model = kwargs['model']
     test_metrics_list = [test_metrics['Sig_mmd'](x),
-                         test_metrics['SigW1'](x)
+                         test_metrics['SigW1'](x),
+                         test_metrics['abs_metric'](x),
+                         test_metrics['cross_correl'](x)
                          ]
     return test_metrics_list

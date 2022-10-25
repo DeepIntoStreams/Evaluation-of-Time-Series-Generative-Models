@@ -69,7 +69,16 @@ def get_trainer(config, train_dl, test_dl):
                                              test_metrics_train=test_metrics_train,
                                              test_metrics_test=test_metrics_test,
                                              train_dl=train_dl, batch_size=config.batch_size,
-                                             n_gradient_steps=config.steps, config=config)}[model_name]
+                                             n_gradient_steps=config.steps, config=config),
+            "AR1_RCGAN": RCGANTrainer(G=generator, D=discriminator,
+                                      test_metrics_train=test_metrics_train, test_metrics_test=test_metrics_test,
+                                      train_dl=train_dl, batch_size=config.batch_size, n_gradient_steps=config.steps,
+                                      config=config),
+            "AR1_TimeGAN":  TIMEGANTrainer(G=generator, gamma=1,
+                                           test_metrics_train=test_metrics_train,
+                                           test_metrics_test=test_metrics_test,
+                                           train_dl=train_dl, batch_size=config.batch_size,
+                                           n_gradient_steps=config.steps, config=config)}[model_name]
 
     elif config.model_type == "VAE":
 
