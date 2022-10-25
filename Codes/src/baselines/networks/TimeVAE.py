@@ -220,7 +220,7 @@ class decoder_block(nn.Module):
             self.trend_model = trend_block(self.input_dim, self.latent_dim, self.n_lags, self.trend_poly)
         
         # # generic seasonalities
-        # if self.num_gen_seas is not None and self.num_gen_seas > 0:
+        if self.num_gen_seas is not None and self.num_gen_seas > 0:
             self.generic_model = generic_seasonal_block(self.input_dim, 
                                                             self.latent_dim,
                                                             self.n_lags, 
@@ -244,7 +244,7 @@ class decoder_block(nn.Module):
                                                          self.n_lags, 
                                                          self.hidden_layer_sizes)
         # scaling block    
-        if self.use_scaler and outputs is not None: 
+        if self.use_scaler: 
             self.scale_model = level_block(self.input_dim, self.latent_dim, self.n_lags)
             
 
@@ -270,7 +270,7 @@ class decoder_block(nn.Module):
             residuals = self.residual_model(z)
             output += residuals
             
-        if self.use_scaler and outputs is not None:
+        if self.use_scaler and output is not None:
             scale = self.scale_model(z)
             output *= scale
             
@@ -333,7 +333,7 @@ class trend_block(nn.Module):
         trend_params = self.model(z) # (Batch, input_dim)
         trend_params = torch.reshape(trend_params, (trend_params.shape[0], self.input_dim, self.trend_poly)) # (Batch, input_dim, P)
         
-        lin_space = torch.arange(0, self.n_lags, 1) / self.n_lags
+        lin_space = (torch.arange(0, self.n_lags, 1) / self.n_lags).to(z.device) 
         
         poly_space = torch.stack([lin_space ** float(p+1) for p in range(self.trend_poly)], axis=0) # shape: (P, T)
         
@@ -417,7 +417,7 @@ class generic_seasonal_block(nn.Module):
         phase = self.model[1](z).reshape(z.shape[0], 1, self.input_dim, self.num_gen_seas) # shape: (Batch, 1, input_dim, S)
         amplitude = self.model[2](z).reshape(z.shape[0], 1, self.input_dim, self.num_gen_seas) # shape: (Batch, 1, input_dim, S)
         
-        lin_space = (torch.arange(0, self.n_lags, 1) / self.n_lags).reshape(1,-1,1,1) # shape: (1, T, 1, 1)
+        lin_space = (torch.arange(0, self.n_lags, 1) / self.n_lags).reshape(1,-1,1,1).to(z.device) # shape: (1, T, 1, 1)
         seas_vals = (amplitude * torch.sin( 2. * np.pi * freq * lin_space + phase )).sum(-1) # shape: (Batch, T, input_dim)
         
         return seas_vals, freq, phase, amplitude

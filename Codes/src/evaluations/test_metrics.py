@@ -110,7 +110,7 @@ def cacf_torch(x, lags: list, dim=(0, 1)):
     x_l = x[..., ind[0]]
     x_r = x[..., ind[1]]
     cacf_list = list()
-    for i in lags:
+    for i in range(lags):
         y = x_l[:, i:] * x_r[:, :-i] if i > 0 else x_l * x_r
         cacf_i = torch.mean(y, (1))
         cacf_list.append(cacf_i)
@@ -721,5 +721,42 @@ def get_standard_test_metrics(x: torch.Tensor, **kwargs):
         model = kwargs['model']
     test_metrics_list = [test_metrics['Sig_mmd'](x),
                          test_metrics['SigW1'](x)
-                         ]
+                        ]
     return test_metrics_list
+
+
+def sig_mmd_permutation_test(X, X1, Y, num_permutation) -> float:
+    """two sample permutation test 
+
+    Args:
+        test_func (function): function inputs: two batch of test samples, output: statistic
+        X (torch.tensor): batch of samples (N,C) or (N,T,C)
+        Y (torch.tensor): batch of samples (N,C) or (N,T,C)
+        num_permutation (int): 
+    Returns:
+        float: test power
+    """
+    # compute H1 statistics
+    # test_func.eval()
+    with torch.no_grad():
+
+        t0 = Sig_mmd(X, X1, depth=5).cpu().detach().numpy()
+        t1 = Sig_mmd(X, Y, depth=5).cpu().detach().numpy()
+        print(t1)
+        n, m = X.shape[0], Y.shape[0]
+        combined = torch.cat([X, Y])
+
+        statistics = []
+
+        for i in range(num_permutation):
+            idx1 = torch.randperm(n+m)
+
+            statistics.append(
+                Sig_mmd(combined[idx1[:n]], combined[idx1[n:]], depth=5))
+            # print(statistics)
+        # print(np.array(statistics))
+    power = (t1 > torch.tensor(statistics).cpu(
+    ).detach().numpy()).sum()/num_permutation
+    type1_error = 1 - (t0 > torch.tensor(statistics).cpu(
+    ).detach().numpy()).sum()/num_permutation
+    return power, type1_error

@@ -19,6 +19,7 @@ def main():
     config_dir = 'configs/' + 'train_vae.yaml'
     with open(config_dir) as file:
         config = ml_collections.ConfigDict(yaml.safe_load(file))
+
     # print(config)
     os.environ["CUDA_VISIBLE_DEVICES"] = config.gpu_id
     print(os.environ["CUDA_VISIBLE_DEVICES"])
@@ -29,11 +30,13 @@ def main():
     # initialize weight and bias
     # Place here your API key.
     # setup own api key in the config
+    # os.environ['WANDB_MODE'] = 'offline'
     os.environ["WANDB_API_KEY"] = config.wandb_api
     tags = [
         config.algo,
         config.dataset,
     ]
+
 
     wandb.init(
         project='Generative_model_evaluation',
@@ -119,17 +122,17 @@ def main():
                                        input_dim=config.input_dim,
                                        latent_dim=config.latent_dim,
                                        reconstruction_wt=config.reconstruction_wt)
-        
+
         vae.encoder.load_state_dict(torch.load(pt.join(
             config.exp_dir, 'encoder_state_dict.pt')), strict=True)
         vae.decoder.load_state_dict(torch.load(pt.join(
             config.exp_dir, 'decoder_state_dict.pt')), strict=True)
         vae.eval()
-        
+
         fake_test_dl = fake_loader(vae, num_samples=len(test_dl.dataset),
                                    n_lags=config.n_lags, batch_size=128, config=config)
         full_evaluation(vae, train_dl, test_dl, config)
-        
+
     else:
         generator = GENERATORS[config.generator](
             input_dim=config.G_input_dim, hidden_dim=config.G_hidden_dim, output_dim=config.input_dim, n_layers=config.G_num_layers)

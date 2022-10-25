@@ -30,7 +30,7 @@ class BaseTrainer:
     def evaluate(self, x_fake, step):
         self.losses_history['time'].append(time.time() - self.init_time)
 
-        if step % 5 == 0:
+        if step % 1000 == 0:
             with torch.no_grad():
                 for test_metric in self.test_metrics_train:
                     test_metric(x_fake)

@@ -8,7 +8,7 @@ from src.datasets.stock import Stock
 from src.datasets.beijing_air_quality import Beijing_air_quality
 # from src.datasets.BerkeleyMHAD import BerkeleyMHAD, target_sampler
 from src.datasets.AR1 import AR1_dataset
-
+from src.datasets.GBM import GBM
 
 def get_dataset(
     config: ml_collections.ConfigDict,
@@ -25,7 +25,8 @@ def get_dataset(
         "STOCK": Stock,
         "Air_Quality": Beijing_air_quality,
         # "BerkeleyMHAD": BerkeleyMHAD,
-        "AR1": AR1_dataset
+        "AR1": AR1_dataset,
+        "GBM": GBM
 
 
     }[config.dataset]
