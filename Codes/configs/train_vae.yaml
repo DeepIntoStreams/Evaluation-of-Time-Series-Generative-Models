@@ -46,7 +46,6 @@ use_residual_conn: True
 ### ADDED FOR COMPABILITY
 
 #generator hyperparameter:
-G_input_dim: 5
 G_hidden_dim: 64 
 G_num_layers: 2
 

@@ -33,9 +33,9 @@ def get_GBM_paths(drift=0., scale=0.1, dim=2, size=20000, n_lags=50, h=1):
     """
 
     print('Generate 20000 path samples of geometric Brownian motion')
-    dataset = torch.ones(size, n_lags, d)
+    dataset = torch.ones(size, n_lags, dim)
     dataset[:, 1:, :] = torch.exp(
-        (drift-scale**2/2)*h + (scale*np.sqrt(h)*torch.randn(size, n_lags-1, d)))
+        (drift-scale**2/2)*h + (scale*np.sqrt(h)*torch.randn(size, n_lags-1, dim)))
     dataset = dataset.cumprod(1)
     return dataset
 
