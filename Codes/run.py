@@ -12,14 +12,10 @@ from src.evaluations.evaluations import compute_discriminative_score, fake_loade
 import torch
 from src.utils import get_experiment_dir, save_obj
 from torch import nn
+import argparse
 
 
-def main():
-    # config_dir = 'configs/' + 'train_gan.yaml'
-    config_dir = 'configs/' + 'train_vae.yaml'
-    with open(config_dir) as file:
-        config = ml_collections.ConfigDict(yaml.safe_load(file))
-    # print(config)
+def main(config):
     os.environ["CUDA_VISIBLE_DEVICES"] = config.gpu_id
     print(os.environ["CUDA_VISIBLE_DEVICES"])
     # Set the seed
@@ -110,26 +106,26 @@ def main():
                         config, recovery=recovery)
     elif config.algo == 'TimeVAE':
         vae = VAES[config.model](hidden_layer_sizes=config.hidden_layer_sizes,
-                                       trend_poly=config.trend_poly,
-                                       num_gen_seas=config.num_gen_seas,
-                                       custom_seas=config.custom_seas,
-                                       use_scaler=config.use_scaler,
-                                       use_residual_conn=config.use_residual_conn,
-                                       n_lags=config.n_lags,
-                                       input_dim=config.input_dim,
-                                       latent_dim=config.latent_dim,
-                                       reconstruction_wt=config.reconstruction_wt)
-        
+                                 trend_poly=config.trend_poly,
+                                 num_gen_seas=config.num_gen_seas,
+                                 custom_seas=config.custom_seas,
+                                 use_scaler=config.use_scaler,
+                                 use_residual_conn=config.use_residual_conn,
+                                 n_lags=config.n_lags,
+                                 input_dim=config.input_dim,
+                                 latent_dim=config.latent_dim,
+                                 reconstruction_wt=config.reconstruction_wt)
+
         vae.encoder.load_state_dict(torch.load(pt.join(
             config.exp_dir, 'encoder_state_dict.pt')), strict=True)
         vae.decoder.load_state_dict(torch.load(pt.join(
             config.exp_dir, 'decoder_state_dict.pt')), strict=True)
         vae.eval()
-        
+
         fake_test_dl = fake_loader(vae, num_samples=len(test_dl.dataset),
                                    n_lags=config.n_lags, batch_size=128, config=config)
         full_evaluation(vae, train_dl, test_dl, config)
-        
+
     else:
         generator = GENERATORS[config.generator](
             input_dim=config.G_input_dim, hidden_dim=config.G_hidden_dim, output_dim=config.input_dim, n_layers=config.G_num_layers)
@@ -148,4 +144,19 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--algo', type=str, default='LSTM_DEV',
+                        help='choose from TimeGAN,RCGAN,TimeVAE')
+    parser.add_argument('--dataset', type=str, default='AR1',
+                        help='choose from AR1, ROUGH, GBM')
+    args = parser.parse_args()
+    if args.algo == 'TimeVAE':
+        config_dir = 'configs/' + 'train_vae.yaml'
+
+    else:
+        config_dir = 'configs/' + 'train_gan.yaml'
+    with open(config_dir) as file:
+        config = ml_collections.ConfigDict(yaml.safe_load(file))
+    config.dataset = args.dataset
+
+    main(config)

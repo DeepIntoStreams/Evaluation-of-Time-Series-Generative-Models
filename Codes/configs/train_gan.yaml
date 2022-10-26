@@ -1,7 +1,7 @@
 # gan model, PathChar_GAN,RPathChar_GAN,RGAN,TimeGAN, CotGAN
 model_type: GAN
 algo: TimeGAN  
-wandb_api: "0a2ae01d4ea2b07b7fca1f71e45562ab1a123c80"
+wandb_api: 
 train: True
 pretrained: False
 #generator: PathChar
@@ -10,9 +10,6 @@ generator: LSTM
 discriminator: LSTM
 #dataset, ROUGH, MNIST, STOCK, BerkeleyMHAD, Air_Quality
 dataset: ROUGH
-# BerkeleyMHAD datatype: angles, keypoints
-data_type: angles
-num_classes: 3
 conditional: False
 
 device: cuda

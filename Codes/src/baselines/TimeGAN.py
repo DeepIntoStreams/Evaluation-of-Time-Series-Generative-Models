@@ -10,7 +10,7 @@ import torch.optim.swa_utils as swa_utils
 
 
 class TimeGAN_module(nn.Module):
-    def __init__(self, input_dim: int, hidden_dim: int, n_layers: int, out_dim):
+    def __init__(self, input_dim: int, hidden_dim: int, n_layers: int, out_dim, activation=None):
         super(TimeGAN_module, self).__init__()
         self.input_dim = input_dim
 
@@ -21,13 +21,17 @@ class TimeGAN_module(nn.Module):
         self.linear = nn.Linear(hidden_dim, out_dim)
 
         self.linear.apply(init_weights)
+        self.activation = activation
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
 
         h = self.model(x)[0]
 
-        x = nn.Sigmoid()(self.linear(h))
-        return x
+        x = self.linear(h)
+        if self.activation == None:
+            return x
+        else:
+            return self.activation(x)
 
 
 class TIMEGANTrainer(BaseTrainer):
@@ -45,11 +49,11 @@ class TIMEGANTrainer(BaseTrainer):
         self.D = TimeGAN_module(
             input_dim=config.input_dim, hidden_dim=config.D_hidden_dim, out_dim=1, n_layers=config.D_num_layers).to(config.device)
         self.embedder = TimeGAN_module(
-            input_dim=config.input_dim, hidden_dim=config.D_hidden_dim, out_dim=config.input_dim, n_layers=config.D_num_layers).to(config.device)
+            input_dim=config.input_dim, hidden_dim=config.D_hidden_dim, out_dim=config.input_dim, n_layers=config.D_num_layers, activation=nn.Sigmoid()).to(config.device)
         self.recovery = TimeGAN_module(
             input_dim=config.input_dim, hidden_dim=config.D_hidden_dim, out_dim=config.input_dim, n_layers=config.D_num_layers).to(config.device)
         self.supervisor = TimeGAN_module(
-            input_dim=config.input_dim, hidden_dim=config.D_hidden_dim, out_dim=config.input_dim, n_layers=config.D_num_layers).to(config.device)
+            input_dim=config.input_dim, hidden_dim=config.D_hidden_dim, out_dim=config.input_dim, n_layers=config.D_num_layers, activation=nn.Sigmoid()).to(config.device)
         self.D_optimizer = torch.optim.Adam(
             self.D.parameters(), lr=config.lr_D, betas=(0, 0.9))
         self.embedder_optimizer = torch.optim.Adam(
@@ -220,9 +224,11 @@ class TIMEGANTrainer(BaseTrainer):
             # Step discriminator params
             self.D_optimizer.step()
             toggle_grad(self.D, False)
-            self.evaluate(X_hat, i)
+            self.evaluate(X_hat, X, i, self.config)
             wandb.log({'G_loss': G_loss}, i)
             wandb.log({'D_loss': D_loss}, i)
+            if i > self.config.swa_step_start:
+                self.averaged_G.update_parameters(self.G)
 
     def compute_loss(self, d_out, target):
         targets = d_out.new_full(size=d_out.size(), fill_value=target)

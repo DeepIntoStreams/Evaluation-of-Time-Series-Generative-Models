@@ -151,6 +151,34 @@ class Compare_test_metrics:
                 disturbance.append(i)
         return pd.DataFrame({'sig_mmd': Sig_MMDs, 'signature fid': sig_fids, 'signature kid': sig_kids, 'predictive scores': p_scores, 'discriminative score': d_scores, 'disturbance': disturbance})
 
+    def permutation_test(self, test_func, num_perm, sample_size):
+        with torch.no_grad():
+            X = self.subsample(self.X, sample_size)
+            Y = self.subsample(self.Y, sample_size)
+            X = X.to(self.config.device)
+            Y = Y.to(self.config.device)
+
+            # print(t1)
+            n, m = X.shape[0], Y.shape[0]
+            combined = torch.cat([X, Y])
+            H0_stats = []
+            H1_stats = []
+
+            for i in range(num_perm):
+                idx = torch.randperm(n+m)
+                H0_stats.append(
+                    test_func(combined[idx[:n]], combined[idx[n:]]).cpu().detach().numpy())
+                H1_stats.append(test_func(self.subsample(
+                    self.X, sample_size).to(self.config.device), self.subsample(self.Y, sample_size).to(self.config.device)).cpu().detach().numpy())
+            Q_a = np.quantile(np.array(H0_stats), q=0.95)
+            Q_b = np.quantile(np.array(H1_stats), q=0.05)
+
+            # print(statistics)
+            # print(np.array(statistics))
+            power = 1 - (Q_a > np.array(H1_stats)).sum()/num_perm
+            type1_error = (Q_b < np.array(H0_stats)).sum()/num_perm
+        return power, type1_error
+
 
 if __name__ == '__main__':
     import ml_collections

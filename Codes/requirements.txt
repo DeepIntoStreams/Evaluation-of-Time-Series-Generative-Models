@@ -1,15 +1,14 @@
-evaluate==0.1.0
+matplotlib == 3.5.2
+ml_collections == 0.1.1
+numpy
+PyYAML == 6.0
+sklearn
+seaborn
+tqdm==4.64.0
+wandb
+wfdb==3.4.1
 fbm==0.3.0
+evaluate
 lib==4.0.0
-matplotlib==3.5.2
-ml_collections==0.1.1
-numpy==1.22.1
 pandas==1.3.5
 requests==2.27.1
-tqdm==4.64.0
-wfdb==3.4.1
-wandb
-sklearn
-git+https://github.com/tgcsaba/ksig.git
-cupy-cuda102
-seaborn

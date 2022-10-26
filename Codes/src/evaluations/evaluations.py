@@ -10,7 +10,7 @@ from src.utils import loader_to_tensor, to_numpy, save_obj
 import matplotlib.pyplot as plt
 from os import path as pt
 import seaborn as sns
-from src.evaluations.test_metrics import Predictive_KID, Sig_mmd, kurtosis_torch, skew_torch, cacf_torch, FID_score, KID_score
+from src.evaluations.test_metrics import Predictive_KID, Sig_mmd, kurtosis_torch, skew_torch, cacf_torch, FID_score, KID_score, CrossCorrelLoss, HistoLoss
 from matplotlib.ticker import MaxNLocator
 import numpy as np
 from sklearn.manifold import TSNE
@@ -257,9 +257,9 @@ def fake_loader(generator, num_samples, n_lags, batch_size, config, **kwargs):
         elif config.algo == 'TimeVAE':
             condition = None
             fake_data = generator(num_samples, n_lags,
-                                  device='cpu', condition=condition).permute([0,2,1])
+                                  device='cpu', condition=condition).permute([0, 2, 1])
             print(fake_data.shape)
-        
+
         else:
             condition = None
             fake_data = generator(num_samples, n_lags,
@@ -725,6 +725,8 @@ def full_evaluation(generator, real_train_dl, real_test_dl, config, **kwargs):
     d_scores = []
     p_scores = []
     Sig_MMDs = []
+    hist_losses = []
+    cross_corrs = []
     real_data = torch.cat([loader_to_tensor(real_train_dl),
                           loader_to_tensor(real_test_dl)])
     dim = real_data.shape[-1]
@@ -764,6 +766,8 @@ def full_evaluation(generator, real_train_dl, real_test_dl, config, **kwargs):
         #predictive_kid = KID_score(fid_model, real, fake)
         sig_mmd = Sig_mmd(real, fake, depth=5)
         Sig_MMDs.append(sig_mmd)
+        cross_corrs.append(to_numpy(CrossCorrelLoss(real)(fake)))
+        hist_losses.append(to_numpy(HistoLoss(real)(fake)))
         # FIDs.append(predictive_fid)
         # KIDs.append(predictive_kid)
     d_mean, d_std = np.array(d_scores).mean(), np.array(d_scores).std()
@@ -772,9 +776,15 @@ def full_evaluation(generator, real_train_dl, real_test_dl, config, **kwargs):
     #kid_mean, kid_std = np.array(KIDs).mean(), np.array(KIDs).std()
     sig_mmd_mean, sig_mmd_std = np.array(
         Sig_MMDs).mean(), np.array(Sig_MMDs).std()
+    hist_mean, hist_std = np.array(
+        hist_losses).mean(), np.array(hist_losses).std()
+    corr_mean, corr_std = np.array(
+        cross_corrs).mean(), np.array(cross_corrs).std()
 
     print('discriminative score with mean:', d_mean, 'std:', d_std)
     print('predictive score with mean:', p_mean, 'std:', p_std)
+    print('histogram loss with mean:', hist_mean, 'std:', hist_std)
+    print('cross correlation loss with mean:', corr_mean, 'std:', corr_std)
     print('sig mmd with mean:', sig_mmd_mean, 'std:', sig_mmd_std)
     wandb.run.summary['discriminative_score_mean'] = d_mean
     wandb.run.summary['discriminative_score_std'] = d_std
@@ -783,3 +793,8 @@ def full_evaluation(generator, real_train_dl, real_test_dl, config, **kwargs):
     wandb.run.summary['predictive_score_std'] = p_std
     wandb.run.summary['sig_mmd_mean'] = sig_mmd_mean
     wandb.run.summary['sig_mmd_std'] = sig_mmd_std
+    wandb.run.summary['cross_corr_loss_mean'] = corr_mean
+    wandb.run.summary['cross_corr_loss_std'] = corr_std
+
+    wandb.run.summary['hist_loss_mean'] = hist_mean
+    wandb.run.summary['hist_loss_std'] = hist_std

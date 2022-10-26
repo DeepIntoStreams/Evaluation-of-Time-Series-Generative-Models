@@ -1,7 +1,7 @@
 # gan model, PathChar_GAN,RPathChar_GAN,RGAN, CotGAN,NsdeGAN 
 model_type: VAE
 algo: TimeVAE
-wandb_api: "a0a43a4b820d0a581e3579b07d15bd9881f4b559"
+wandb_api: 
 train: True
 pretrained: False
 #generator: PathChar
