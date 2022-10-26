@@ -6,7 +6,6 @@ from src.datasets.rough import Rough_S
 from src.datasets.sMnist import MNIST
 from src.datasets.stock import Stock
 from src.datasets.beijing_air_quality import Beijing_air_quality
-# from src.datasets.BerkeleyMHAD import BerkeleyMHAD, target_sampler
 from src.datasets.AR1 import AR1_dataset
 
 
@@ -29,57 +28,28 @@ def get_dataset(
 
 
     }[config.dataset]
-    if config.dataset == "BerkeleyMHAD":
 
-        training_set = dataset(
-            partition="train",
-            n_lags=config.n_lags,
-            data_type=config.data_type
-        ).X
-        test_set = dataset(
-            partition="test",
-            n_lags=config.n_lags,
-            data_type=config.data_type
+    training_set = dataset(
+        partition="train",
+        n_lags=config.n_lags,
+    )
+    test_set = dataset(
+        partition="test",
+        n_lags=config.n_lags,
+    )
 
-        ).X
-        train_sampler = target_sampler(
-            torch.arange(config.num_classes), training_set)
-        test_sampler = target_sampler(
-            torch.arange(config.num_classes), test_set)
-        training_loader = DataLoader(
-            training_set,
-            batch_size=config.batch_size,
-            shuffle=False,
-            num_workers=num_workers, sampler=train_sampler,
-        )
-        test_loader = DataLoader(
-            test_set,
-            batch_size=config.batch_size,
-            shuffle=False,
-            num_workers=num_workers, sampler=test_sampler,
-        )
-    else:
-        training_set = dataset(
-            partition="train",
-            n_lags=config.n_lags,
-        )
-        test_set = dataset(
-            partition="test",
-            n_lags=config.n_lags,
-        )
-
-        training_loader = DataLoader(
-            training_set,
-            batch_size=config.batch_size,
-            shuffle=True,
-            num_workers=num_workers,
-        )
-        test_loader = DataLoader(
-            test_set,
-            batch_size=config.batch_size,
-            shuffle=True,
-            num_workers=num_workers,
-        )
+    training_loader = DataLoader(
+        training_set,
+        batch_size=config.batch_size,
+        shuffle=True,
+        num_workers=num_workers,
+    )
+    test_loader = DataLoader(
+        test_set,
+        batch_size=config.batch_size,
+        shuffle=True,
+        num_workers=num_workers,
+    )
     config.update({"n_lags": next(iter(test_loader))[
                   0].shape[1]}, allow_val_change=True)
     print("data shape:", next(iter(test_loader))[0].shape)

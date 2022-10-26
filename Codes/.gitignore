@@ -133,3 +133,4 @@ dmypy.json
 wandb
 data/*
 !data/.gitkeep
+numerical_results/*

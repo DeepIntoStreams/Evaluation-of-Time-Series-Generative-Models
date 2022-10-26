@@ -10,9 +10,6 @@ generator: LSTM
 discriminator: LSTM
 #dataset, ROUGH, MNIST, STOCK, BerkeleyMHAD, Air_Quality
 dataset: ROUGH
-# BerkeleyMHAD datatype: angles, keypoints
-data_type: angles
-num_classes: 3
 conditional: False
 
 device: cuda
