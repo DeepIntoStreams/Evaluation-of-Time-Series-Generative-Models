@@ -10,7 +10,7 @@ from src.utils import loader_to_tensor, to_numpy, save_obj
 import matplotlib.pyplot as plt
 from os import path as pt
 import seaborn as sns
-from src.evaluations.test_metrics import Predictive_KID, Sig_mmd, kurtosis_torch, skew_torch, cacf_torch, FID_score, KID_score, CrossCorrelLoss, HistoLoss
+from src.evaluations.test_metrics import Predictive_KID, Sig_mmd, kurtosis_torch, skew_torch, cacf_torch, FID_score, KID_score, CrossCorrelLoss, HistoLoss, CovLoss, ACFLoss, sig_mmd_permutation_test
 from matplotlib.ticker import MaxNLocator
 import numpy as np
 from sklearn.manifold import TSNE
@@ -727,6 +727,9 @@ def full_evaluation(generator, real_train_dl, real_test_dl, config, **kwargs):
     Sig_MMDs = []
     hist_losses = []
     cross_corrs = []
+    cov_losses = []
+    acf_losses = []
+
     real_data = torch.cat([loader_to_tensor(real_train_dl),
                           loader_to_tensor(real_test_dl)])
     dim = real_data.shape[-1]
@@ -766,8 +769,10 @@ def full_evaluation(generator, real_train_dl, real_test_dl, config, **kwargs):
         #predictive_kid = KID_score(fid_model, real, fake)
         sig_mmd = Sig_mmd(real, fake, depth=5)
         Sig_MMDs.append(sig_mmd)
-        cross_corrs.append(to_numpy(CrossCorrelLoss(real)(fake)))
-        hist_losses.append(to_numpy(HistoLoss(real)(fake)))
+        cross_corrs.append(to_numpy(CrossCorrelLoss(real, name='cross_correlation')(fake)))
+        hist_losses.append(to_numpy(HistoLoss(real, n_bins=50, name='marginal_distribution')(fake)))
+        cov_losses.append(to_numpy(CovLoss(real, name='covariance')(fake)))
+        acf_losses.append(to_numpy(ACFLoss(real, name='auto_correlation')(fake)))
         # FIDs.append(predictive_fid)
         # KIDs.append(predictive_kid)
     d_mean, d_std = np.array(d_scores).mean(), np.array(d_scores).std()
@@ -780,21 +785,37 @@ def full_evaluation(generator, real_train_dl, real_test_dl, config, **kwargs):
         hist_losses).mean(), np.array(hist_losses).std()
     corr_mean, corr_std = np.array(
         cross_corrs).mean(), np.array(cross_corrs).std()
+    cov_mean, cov_std = np.array(
+        cov_losses).mean(), np.array(cov_losses).std()
+    acf_mean, acf_std = np.array(
+        acf_losses).mean(), np.array(acf_losses).std()
+
+    # Permutation test
+    fake_data = loader_to_tensor(fake_loader(generator, num_samples=int(real_data.shape[0]//2), n_lags=config.n_lags, batch_size=128, config=config))
+    power, type1_error = sig_mmd_permutation_test(real_data, fake_data, fake_data, 5)
 
     print('discriminative score with mean:', d_mean, 'std:', d_std)
     print('predictive score with mean:', p_mean, 'std:', p_std)
-    print('histogram loss with mean:', hist_mean, 'std:', hist_std)
+    print('marginal_distribution loss with mean:', hist_mean, 'std:', hist_std)
     print('cross correlation loss with mean:', corr_mean, 'std:', corr_std)
+    print('covariance loss with mean:', sig_mmd_mean, 'std:', sig_mmd_std)
+    print('autocorrelation loss with mean:', sig_mmd_mean, 'std:', sig_mmd_std)
     print('sig mmd with mean:', sig_mmd_mean, 'std:', sig_mmd_std)
+    print('permutation test with power', power, 'type 1 error:', type1_error)
+
     wandb.run.summary['discriminative_score_mean'] = d_mean
     wandb.run.summary['discriminative_score_std'] = d_std
-
     wandb.run.summary['predictive_score_mean'] = p_mean
     wandb.run.summary['predictive_score_std'] = p_std
     wandb.run.summary['sig_mmd_mean'] = sig_mmd_mean
     wandb.run.summary['sig_mmd_std'] = sig_mmd_std
     wandb.run.summary['cross_corr_loss_mean'] = corr_mean
     wandb.run.summary['cross_corr_loss_std'] = corr_std
-
-    wandb.run.summary['hist_loss_mean'] = hist_mean
-    wandb.run.summary['hist_loss_std'] = hist_std
+    wandb.run.summary['marginal_distribution_loss_mean'] = hist_mean
+    wandb.run.summary['marginal_distribution_loss_std'] = hist_std
+    wandb.run.summary['cov_loss_mean'] = cov_mean
+    wandb.run.summary['cov_loss_std'] = cov_std
+    wandb.run.summary['acf_loss_mean'] = acf_mean
+    wandb.run.summary['acf_loss_std'] = acf_std
+    wandb.run.summary['permutation_test_power'] = power
+    wandb.run.summary['permutation_test_type1_error'] = type1_error
