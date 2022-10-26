@@ -11,7 +11,7 @@ We include the following test metric in our code pipeline:
 - Predictive score [2]: train a sequence-to-sequence model to predict the latter part of a time series given the first part, using generated data, then evaluate on the true data. Smaller losses, meaning ability to predict, are better.  
 
 ## Models
-We implement some well known models including:
+We implement some popular models for time series generation including:
 - Time-GAN [2]
 - Recurrent Conditional GAN (RCGAN) [3]
 - Time-VAE [4]
