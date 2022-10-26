@@ -21,8 +21,8 @@ We provide the following datasets for model testing:
 - Autoregressive process
 - Geometric Brownian motion
 - Rough volatility model (rough Bergomi)
-- Google stock data
-- Beijing air quality data
+- Google stock data [2]
+- Beijing air quality data [5]
 
 ## Structure
 The repository is structures as follows: 
@@ -33,5 +33,7 @@ The repository is structures as follows:
 [1] Ni, H., Szpruch, L., Wiese, M., Liao, S. and Xiao, B., 2021. Sig-Wasserstein GANs for Time Series Generation.  
 [2] Yoon, J., Jarrett, D. and Van der Schaar, M., 2019. Time-series generative adversarial networks. Advances in neural information processing systems, 32.  
 [3] Esteban, C., Hyland, S.L. and Rätsch, G., 2017. Real-valued (medical) time series generation with recurrent conditional gans. arXiv preprint arXiv:1706.02633.  
-[4] Desai A., Freeman C., Wang, Z.H., Beaver I., 2021 TimeVAE: A Variational Auto-Encoder For Multivariate Time Series Generation. arXiv preprint arXiv:2111.08095.
+[4] Desai A., Freeman C., Wang, Z.H., Beaver I., 2021 TimeVAE: A Variational Auto-Encoder For Multivariate Time Series Generation. arXiv preprint arXiv:2111.08095.  
+[5] Zhang S., Guo B., Dong A., He J., Xu Z., and Chen S.X., 2017, Cautionary tales on air-quality improvement in beijing. Proceedings of the Royal Society A: Mathematical, Physical and Engineering Sciences.
+
 
