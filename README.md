@@ -22,7 +22,7 @@ We provide the following datasets for model testing:
 - Geometric Brownian motion
 - Rough volatility model (rough Bergomi)
 - Google stock data
-- BeiJing air quality data
+- Beijing air quality data
 
 ## Structure
 The repository is structures as follows: 
