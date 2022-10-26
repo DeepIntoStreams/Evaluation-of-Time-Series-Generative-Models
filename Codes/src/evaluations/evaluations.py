@@ -792,7 +792,7 @@ def full_evaluation(generator, real_train_dl, real_test_dl, config, **kwargs):
 
     # Permutation test
     fake_data = loader_to_tensor(fake_loader(generator, num_samples=int(real_data.shape[0]//2), n_lags=config.n_lags, batch_size=128, config=config))
-    power, type1_error = sig_mmd_permutation_test(real_data, fake_data, fake_data, 5)
+    power, type1_error = sig_mmd_permutation_test(real_data, fake_data, 5)
 
     print('discriminative score with mean:', d_mean, 'std:', d_std)
     print('predictive score with mean:', p_mean, 'std:', p_std)

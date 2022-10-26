@@ -14,7 +14,7 @@ pip install cupy-cuda102
 pip install git+https://github.com/tgcsaba/ksig.git --no-deps
 pip install -r requirements.txt
 ```
-Note that this pipeline relis on **wandb** for logging and tracking experiemnts, user needs to create a personal wandb account and specify the personal wandb api key in [configs/train_gan.yaml](configs/train_gan.yaml). 
+Note that this pipeline relies on **wandb** for logging and tracking experiemnts, user needs to create a personal wandb account and specify the personal wandb api key in [configs/train_gan.yaml](configs/train_gan.yaml). 
 
 
 ## Description 

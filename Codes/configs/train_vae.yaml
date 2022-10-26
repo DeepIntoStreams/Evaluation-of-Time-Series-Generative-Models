@@ -1,7 +1,7 @@
 # gan model, PathChar_GAN,RPathChar_GAN,RGAN, CotGAN,NsdeGAN 
 model_type: VAE
 algo: TimeVAE
-wandb_api: 
+wandb_api:
 train: True
 pretrained: False
 #generator: PathChar
@@ -23,7 +23,7 @@ n_lags: 50
 lr_G: 0.002
 D_steps_per_G_step: 3
 batch_size: 256
-steps: 2000
+steps: 5
 
 
 #vae hyperparameter:
