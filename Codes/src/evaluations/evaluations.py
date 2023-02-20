@@ -1,20 +1,16 @@
 import torch
 import torch.nn as nn
 import wandb
-import torch.nn.functional as F
 from tqdm import tqdm
-from torch.nn.functional import one_hot
 from torch.utils.data import DataLoader, TensorDataset
 import copy
 from src.utils import loader_to_tensor, to_numpy, save_obj
 import matplotlib.pyplot as plt
 from os import path as pt
 import seaborn as sns
-from src.evaluations.test_metrics import Predictive_KID, Sig_mmd, kurtosis_torch, skew_torch, cacf_torch, FID_score, KID_score, CrossCorrelLoss, HistoLoss, CovLoss, ACFLoss, sig_mmd_permutation_test
-from matplotlib.ticker import MaxNLocator
+from src.evaluations.test_metrics import Sig_mmd, SigW1Loss, CrossCorrelLoss, HistoLoss, CovLoss, ACFLoss, sig_mmd_permutation_test
 import numpy as np
 from sklearn.manifold import TSNE
-import warnings
 import os
 import signatory
 
@@ -209,11 +205,11 @@ def _train_regressor(
             torch.cuda.empty_cache()
     print("Best Val MSE: {:.4f}".format(best_loss))
     # Load best model weights
-    model.load_state_dict(best_model_wts)
+    # model.load_state_dict(best_model_wts)
     epoch_loss = _test_regressor(
         model, test_loader, config)
 
-    return best_loss
+    return epoch_loss
 
 
 def _test_regressor(model, test_loader, config):
@@ -311,23 +307,6 @@ def compute_discriminative_score(real_train_dl, real_test_dl, fake_train_dl, fak
     return abs(mean_acc-0.5), std_acc
 
 
-def plot_samples(real_dl, fake_dl, config):
-    sns.set()
-    real_X, fake_X = loader_to_tensor(real_dl), loader_to_tensor(fake_dl)
-    x_real_dim = real_X.shape[-1]
-    for i in range(x_real_dim):
-        plt.plot(to_numpy(fake_X[:250, :, i]).T, 'C%s' % i, alpha=0.1)
-    plt.savefig(pt.join(config.exp_dir, 'x_fake.png'))
-    plt.close()
-
-    for i in range(x_real_dim):
-        random_indices = torch.randint(0, real_X.shape[0], (250,))
-        plt.plot(
-            to_numpy(real_X[random_indices, :, i]).T, 'C%s' % i, alpha=0.1)
-    plt.savefig(pt.join(config.exp_dir, 'x_real.png'))
-    plt.close()
-
-
 def plot_samples1(real_dl, fake_dl, config):
     sns.set()
     real_X, fake_X = loader_to_tensor(real_dl), loader_to_tensor(fake_dl)
@@ -345,135 +324,6 @@ def set_style(ax):
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     ax.spines['bottom'].set_visible(False)
-
-
-def compare_hists(x_real, x_fake, ax=None, log=False, label=None):
-    """ Computes histograms and plots those. """
-    if ax is None:
-        _, ax = plt.subplots(1, 1)
-    if label is not None:
-        label_historical = 'Historical ' + label
-        label_generated = 'Generated ' + label
-    else:
-        label_historical = 'Historical'
-        label_generated = 'Generated'
-    ax.hist(x_real.flatten(), bins=80, alpha=0.6,
-            density=True, label=label_historical)[1]
-    ax.hist(x_fake.flatten(), bins=80, alpha=0.6,
-            density=True, label=label_generated)
-    ax.grid()
-    set_style(ax)
-    ax.legend()
-    if log:
-        ax.set_ylabel('log-pdf')
-        ax.set_yscale('log')
-    else:
-        ax.set_ylabel('pdf')
-    return ax
-
-
-def compare_acf(x_real, x_fake, ax=None, max_lag=64, CI=True, dim=(0, 1), drop_first_n_lags=0):
-    """ Computes ACF of historical and (mean)-ACF of generated and plots those. """
-    if ax is None:
-        _, ax = plt.subplots(1, 1)
-    acf_real_list = cacf_torch(x_real, max_lag=max_lag, dim=dim).cpu().numpy()
-    acf_real = np.mean(acf_real_list, axis=0)
-
-    acf_fake_list = cacf_torch(x_fake, max_lag=max_lag, dim=dim).cpu().numpy()
-    acf_fake = np.mean(acf_fake_list, axis=0)
-
-    ax.plot(acf_real[drop_first_n_lags:], label='Historical')
-    ax.plot(acf_fake[drop_first_n_lags:], label='Generated', alpha=0.8)
-
-    if CI:
-        acf_fake_std = np.std(acf_fake_list, axis=0)
-        ub = acf_fake + acf_fake_std
-        lb = acf_fake - acf_fake_std
-
-        for i in range(acf_real.shape[-1]):
-            ax.fill_between(
-                range(acf_fake[:, i].shape[0]),
-                ub[:, i], lb[:, i],
-                color='orange',
-                alpha=.3
-            )
-    set_style(ax)
-    ax.set_xlabel('Lags')
-    ax.set_ylabel('ACF')
-    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-    ax.grid(True)
-    ax.legend()
-    return ax
-
-
-def plot_hists_marginals(x_real, x_fake):
-    sns.set()
-    n_hists = 10
-    n_lags = x_real.shape[1]
-    len_interval = n_lags // n_hists
-    fig = plt.figure(figsize=(20, 8))
-
-    for i in range(n_hists):
-        ax = fig.add_subplot(2, 5, i+1)
-        compare_hists(to_numpy(x_real[:, i*len_interval, 0]),
-                      to_numpy(x_fake[:, i*len_interval, 0]), ax=ax)
-        ax.set_title("Step {}".format(i*len_interval))
-    fig.tight_layout()
-    # fig.savefig(pt.join(config.exp_dir, 'marginal_comparison.png'))
-    # plt.close(fig)
-    return fig
-
-
-def plot_summary(fake_dl, real_dl, config, max_lag=None):
-    x_real, x_fake = loader_to_tensor(real_dl), loader_to_tensor(fake_dl)
-    if max_lag is None:
-        max_lag = min(128, x_fake.shape[1])
-
-    dim = x_real.shape[2]
-    _, axes = plt.subplots(dim, 3, figsize=(25, dim * 5))
-
-    if len(axes.shape) == 1:
-        axes = axes[None, ...]
-    for i in range(dim):
-        x_real_i = x_real[..., i:i + 1]
-        x_fake_i = x_fake[..., i:i + 1]
-
-        compare_hists(x_real=to_numpy(x_real_i),
-                      x_fake=to_numpy(x_fake_i), ax=axes[i, 0])
-
-        def text_box(x, height, title):
-            textstr = '\n'.join((
-                r'%s' % (title,),
-                # t'abs_metric=%.2f' % abs_metric
-                r'$s=%.2f$' % (skew_torch(x).item(),),
-                r'$\kappa=%.2f$' % (kurtosis_torch(x).item(),))
-            )
-            props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-            axes[i, 0].text(
-                0.05, height, textstr,
-                transform=axes[i, 0].transAxes,
-                fontsize=14,
-                verticalalignment='top',
-                bbox=props
-            )
-
-        text_box(x_real_i, 0.95, 'Historical')
-        text_box(x_fake_i, 0.70, 'Generated')
-
-        compare_hists(x_real=to_numpy(x_real_i), x_fake=to_numpy(
-            x_fake_i), ax=axes[i, 1], log=True)
-        # compare_acf(x_real=x_real_i, x_fake=x_fake_i,
-        #           ax=axes[i, 2], max_lag=max_lag, CI=False, dim=(0, 1))
-    plt.savefig(pt.join(config.exp_dir, 'comparison.png'))
-    plt.close()
-
-    for i in range(x_real.shape[2]):
-        fig = plot_hists_marginals(
-            x_real=x_real[..., i:i+1], x_fake=x_fake[..., i:i+1])
-        fig.savefig(
-            pt.join(config.exp_dir, 'hists_marginals_dim{}.pdf'.format(i)))
-        plt.close()
-    plot_samples(real_dl, fake_dl, config)
 
 
 def compute_classfication_score(real_train_dl, fake_train_dl, config,
@@ -542,7 +392,7 @@ def compute_predictive_score(real_train_dl, real_test_dl, fake_train_dl, fake_te
     return mean_loss, std_loss
 
 
-def visualization(real_dl, fake_dl, config):
+def visualization(real_dl, fake_dl, config, plot_show=False):
     real_X, fake_X = loader_to_tensor(real_dl), loader_to_tensor(fake_dl)
     # Analysis sample size (for faster computation)
     anal_sample_no = min([1000, len(real_X)])
@@ -586,7 +436,10 @@ def visualization(real_dl, fake_dl, config):
     plt.title('t-SNE plot')
     plt.xlabel('x-tsne')
     plt.ylabel('y_tsne')
-    plt.savefig(pt.join(config.exp_dir, 't-SNE.png'))
+    if plot_show:
+        plt.show()
+    else:
+        plt.savefig(pt.join(config.exp_dir, 't-SNE.png'))
     plt.close()
 
 
@@ -716,12 +569,13 @@ def sig_fid_model(X: torch.tensor, config):
 def full_evaluation(generator, real_train_dl, real_test_dl, config, **kwargs):
     """ evaluation for the synthetic generation, including.
         discriminative score, predictive score, predictive_FID, predictive_KID
-        We compute the mean and std of evaluation scores 
-        with 10000 samples and 10 repetitions  
+        We compute the mean and std of evaluation scores
+        with 10000 samples and 10 repetitions
     Args:
         generator (_type_): torch.model
         real_X (_type_): torch.tensor
     """
+    sns.set()
     d_scores = []
     p_scores = []
     Sig_MMDs = []
@@ -729,6 +583,7 @@ def full_evaluation(generator, real_train_dl, real_test_dl, config, **kwargs):
     cross_corrs = []
     cov_losses = []
     acf_losses = []
+    sigw1_losses = []
 
     real_data = torch.cat([loader_to_tensor(real_train_dl),
                           loader_to_tensor(real_test_dl)])
@@ -756,29 +611,49 @@ def full_evaluation(generator, real_train_dl, real_test_dl, config, **kwargs):
                                        )
 
         d_score_mean, d_score_std = compute_discriminative_score(
-            real_train_dl, real_test_dl, fake_train_dl, fake_test_dl, config, int(dim/2), 1, epochs=30, batch_size=128)
+            real_train_dl, real_test_dl, fake_train_dl, fake_test_dl, config, int(dim/2), 1, epochs=10, batch_size=128)
         d_scores.append(d_score_mean)
         p_score_mean, p_score_std = compute_predictive_score(
-            real_train_dl, real_test_dl, fake_train_dl, fake_test_dl, config, 32, 2, epochs=50, batch_size=128)
+            real_train_dl, real_test_dl, fake_train_dl, fake_test_dl, config, 32, 2, epochs=10, batch_size=128)
         p_scores.append(p_score_mean)
         real = torch.cat([loader_to_tensor(real_train_dl),
                           loader_to_tensor(real_test_dl)])
         fake = torch.cat([loader_to_tensor(fake_train_dl),
                           loader_to_tensor(fake_test_dl)])
-        #predictive_fid = FID_score(fid_model, real, fake)
-        #predictive_kid = KID_score(fid_model, real, fake)
+        # predictive_fid = FID_score(fid_model, real, fake)
+        # predictive_kid = KID_score(fid_model, real, fake)
+
+        sigw1_losses.append(
+            to_numpy(SigW1Loss(x_real=real, depth=2, name='sigw1')(fake)))
         sig_mmd = Sig_mmd(real, fake, depth=5)
+        while sig_mmd > 1e3:
+            sig_mmd = Sig_mmd(real, fake, depth=5)
         Sig_MMDs.append(sig_mmd)
-        cross_corrs.append(to_numpy(CrossCorrelLoss(real, name='cross_correlation')(fake)))
-        hist_losses.append(to_numpy(HistoLoss(real, n_bins=50, name='marginal_distribution')(fake)))
+        cross_corrs.append(to_numpy(CrossCorrelLoss(
+            real, name='cross_correlation')(fake)))
+        if config.dataset == 'GBM' or config.dataset == 'ROUGH':
+            # Ignore the starting point
+            hist_losses.append(
+                to_numpy(HistoLoss(real[:, 1:, :], n_bins=50, name='marginal_distribution')(fake[:, 1:, :])))
+            # Compute the autocorrelation matrix
+            print('compute the autocorrelation matrix')
+            acf_losses.append(
+                to_numpy(ACFLoss(real, name='auto_correlation', stationary=False)(fake)))
+        else:
+            hist_losses.append(
+                to_numpy(HistoLoss(real, n_bins=50, name='marginal_distribution')(fake)))
+            acf_losses.append(
+                to_numpy(ACFLoss(real, name='auto_correlation')(fake)))
+
         cov_losses.append(to_numpy(CovLoss(real, name='covariance')(fake)))
-        acf_losses.append(to_numpy(ACFLoss(real, name='auto_correlation')(fake)))
         # FIDs.append(predictive_fid)
         # KIDs.append(predictive_kid)
     d_mean, d_std = np.array(d_scores).mean(), np.array(d_scores).std()
     p_mean, p_std = np.array(p_scores).mean(), np.array(p_scores).std()
-    #fid_mean, fid_std = np.array(FIDs).mean(), np.array(FIDs).std()
-    #kid_mean, kid_std = np.array(KIDs).mean(), np.array(KIDs).std()
+    # fid_mean, fid_std = np.array(FIDs).mean(), np.array(FIDs).std()
+    # kid_mean, kid_std = np.array(KIDs).mean(), np.array(KIDs).std()
+    sigw1_mean, sigw1_std = np.array(
+        sigw1_losses).mean(), np.array(sigw1_losses).std()
     sig_mmd_mean, sig_mmd_std = np.array(
         Sig_MMDs).mean(), np.array(Sig_MMDs).std()
     hist_mean, hist_std = np.array(
@@ -791,15 +666,22 @@ def full_evaluation(generator, real_train_dl, real_test_dl, config, **kwargs):
         acf_losses).mean(), np.array(acf_losses).std()
 
     # Permutation test
-    fake_data = loader_to_tensor(fake_loader(generator, num_samples=int(real_data.shape[0]//2), n_lags=config.n_lags, batch_size=128, config=config))
+    if 'recovery' in kwargs:
+        recovery = kwargs['recovery']
+        fake_data = loader_to_tensor(fake_loader(generator, num_samples=int(
+            real_data.shape[0]//2), n_lags=config.n_lags, batch_size=128, config=config, recovery=recovery))
+    else:
+        fake_data = loader_to_tensor(fake_loader(generator, num_samples=int(
+            real_data.shape[0]//2), n_lags=config.n_lags, batch_size=128, config=config))
     power, type1_error = sig_mmd_permutation_test(real_data, fake_data, 5)
 
     print('discriminative score with mean:', d_mean, 'std:', d_std)
     print('predictive score with mean:', p_mean, 'std:', p_std)
     print('marginal_distribution loss with mean:', hist_mean, 'std:', hist_std)
     print('cross correlation loss with mean:', corr_mean, 'std:', corr_std)
-    print('covariance loss with mean:', sig_mmd_mean, 'std:', sig_mmd_std)
-    print('autocorrelation loss with mean:', sig_mmd_mean, 'std:', sig_mmd_std)
+    print('covariance loss with mean:', cov_mean, 'std:', cov_std)
+    print('autocorrelation loss with mean:', acf_mean, 'std:', acf_std)
+    print('sigw1 with mean:', sigw1_mean, 'std:', sigw1_std)
     print('sig mmd with mean:', sig_mmd_mean, 'std:', sig_mmd_std)
     print('permutation test with power', power, 'type 1 error:', type1_error)
 
@@ -807,6 +689,8 @@ def full_evaluation(generator, real_train_dl, real_test_dl, config, **kwargs):
     wandb.run.summary['discriminative_score_std'] = d_std
     wandb.run.summary['predictive_score_mean'] = p_mean
     wandb.run.summary['predictive_score_std'] = p_std
+    wandb.run.summary['sigw1_mean'] = sigw1_mean
+    wandb.run.summary['sigw1_std'] = sigw1_std
     wandb.run.summary['sig_mmd_mean'] = sig_mmd_mean
     wandb.run.summary['sig_mmd_std'] = sig_mmd_std
     wandb.run.summary['cross_corr_loss_mean'] = corr_mean

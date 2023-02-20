@@ -34,16 +34,17 @@ class TimeVAETrainer(BaseTrainer):
             # condition = one_hot(
             #     data[1], self.config.num_classes).unsqueeze(1).repeat(1, data[0].shape[1], 1).to(device)
             x_real_batch = torch.cat(
-                [x, condition], dim=2).permute([0,2,1])
+                [x, condition], dim=2).permute([0, 2, 1])
         else:
             condition = None
-            x_real_batch = next(iter(self.train_dl))[0].permute([0,2,1]).to(device)
+            x_real_batch = next(iter(self.train_dl))[
+                0].permute([0, 2, 1]).to(device)
 
         G_loss = self.G_trainstep(device, x_real_batch, step)
         wandb.log({'G_loss': G_loss}, step)
 
     def G_trainstep(self, device, x_real, step):
-        
+
         latent_z, mean, log_var = self.G.encoder(x_real)
         toggle_grad(self.G, True)
         self.G.encoder.train()
@@ -53,13 +54,13 @@ class TimeVAETrainer(BaseTrainer):
 
         reconstruction_loss, latent_loss = self.compute_loss(
             x_real, x_fake, mean, log_var)
-        G_loss = self.G.reconstruction_wt * reconstruction_loss +  latent_loss
+        G_loss = self.G.reconstruction_wt * reconstruction_loss + latent_loss
         G_loss.backward()
         self.losses_history['reconstruction_loss'].append(reconstruction_loss)
         self.losses_history['latent_loss'].append(latent_loss)
         self.G_optimizer.step()
 
-        # self.evaluate(x_fake, step) # Need on for
+        # self.evaluate(x_fake,x_real, step,self.config) # Need on for
 
         return G_loss.item()
 

@@ -1,7 +1,8 @@
-from src.evaluations.augmentations import apply_augmentations, parse_augmentations, Basepoint
+from src.evaluations.augmentations import apply_augmentations, parse_augmentations, Basepoint, Scale
 from functools import partial
 from typing import Tuple, Optional
 from src.utils import to_numpy
+import math
 # from .trainers.sig_wgan import SigW1Metric
 
 import torch
@@ -101,19 +102,80 @@ def acf_torch(x: torch.Tensor, max_lag: int, dim: Tuple[int] = (0, 1)) -> torch.
         return torch.cat(acf_list, 1)
 
 
+def non_stationary_acf_torch(X, symmetric=False):
+    """
+    Compute the correlation matrix between any two time points of the time series
+    Parameters
+    ----------
+    X (torch.Tensor): [B, T, D]
+    symmetric (bool): whether to return the upper triangular matrix of the full matrix
+
+    Returns
+    -------
+    Correlation matrix of the shape [T, T, D] where each entry (t_i, t_j, d_i) is the correlation between the d_i-th coordinate of X_{t_i} and X_{t_j}
+    """
+    # Get the batch size, sequence length, and input dimension from the input tensor
+    B, T, D = X.shape
+
+    # Create a tensor to hold the correlations
+    correlations = torch.zeros(T, T, D)
+
+    # Loop through each time step from lag to T-1
+    for t in range(T):
+        # Loop through each lag from 1 to lag
+        for tau in range(t, T):
+            # Compute the correlation between X_{t, d} and X_{t-tau, d}
+            correlation = torch.sum(X[:, t, :] * X[:, tau, :], dim=0) / (
+                torch.norm(X[:, t, :], dim=0) * torch.norm(X[:, tau, :], dim=0))
+            # print(correlation)
+            # Store the correlation in the output tensor
+            correlations[t, tau, :] = correlation
+            if symmetric:
+                correlations[tau, t, :] = correlation
+
+    return correlations
+
+
 def cacf_torch(x, lags: list, dim=(0, 1)):
+    """
+    Computes the cross-correlation between feature dimension and time dimension
+    Parameters
+    ----------
+    x
+    lags
+    dim
+
+    Returns
+    -------
+
+    """
+    # Define a helper function to get the lower triangular indices for a given dimension
     def get_lower_triangular_indices(n):
         return [list(x) for x in torch.tril_indices(n, n)]
 
+    # Get the lower triangular indices for the input tensor x
     ind = get_lower_triangular_indices(x.shape[2])
+
+    # Standardize the input tensor x along the given dimensions
     x = (x - x.mean(dim, keepdims=True)) / x.std(dim, keepdims=True)
+
+    # Split the input tensor into left and right parts based on the lower triangular indices
     x_l = x[..., ind[0]]
     x_r = x[..., ind[1]]
+
+    # Compute the cross-correlation at each lag and store in a list
     cacf_list = list()
     for i in range(lags):
+        # Compute the element-wise product of the left and right parts, shifted by the lag if i > 0
         y = x_l[:, i:] * x_r[:, :-i] if i > 0 else x_l * x_r
+
+        # Compute the mean of the product along the time dimension
         cacf_i = torch.mean(y, (1))
+
+        # Append the result to the list of cross-correlations
         cacf_list.append(cacf_i)
+
+    # Concatenate the cross-correlations across lags and reshape to the desired output shape
     cacf = torch.cat(cacf_list, 1)
     return cacf.reshape(cacf.shape[0], -1, len(ind[0]))
 
@@ -168,13 +230,23 @@ def cov_diff(x): return torch.abs(x).mean()
 
 
 class ACFLoss(Loss):
-    def __init__(self, x_real, max_lag=64, **kwargs):
+    def __init__(self, x_real, max_lag=64, stationary=True, **kwargs):
         super(ACFLoss, self).__init__(norm_foo=acf_diff, **kwargs)
-        self.acf_real = acf_torch(self.transform(x_real), max_lag, dim=(0, 1))
-        self.max_lag = max_lag
+        self.max_lag = min(max_lag, x_real.shape[1])
+        self.stationary = stationary
+        if stationary:
+            self.acf_real = acf_torch(self.transform(
+                x_real), self.max_lag, dim=(0, 1))
+        else:
+            self.acf_real = non_stationary_acf_torch(self.transform(
+                x_real), symmetric=False)  # Divide by 2 because it is symmetric matrix
 
     def compute(self, x_fake):
-        acf_fake = acf_torch(self.transform(x_fake), self.max_lag)
+        if self.stationary:
+            acf_fake = acf_torch(self.transform(x_fake), self.max_lag)
+        else:
+            acf_fake = non_stationary_acf_torch(self.transform(
+                x_fake), symmetric=False)
         return self.norm_foo(acf_fake - self.acf_real.to(x_fake.device))
 
 
@@ -255,6 +327,7 @@ class HistoLoss(Loss):
             tmp_densities = list()
             tmp_locs = list()
             tmp_deltas = list()
+            # Exclude the initial point
             for t in range(x_real.shape[1]):
                 x_ti = x_real[:, t, i].reshape(-1, 1)
                 d, b = histogram_torch(x_ti, n_bins, density=True)
@@ -275,6 +348,7 @@ class HistoLoss(Loss):
 
         for i in range(x_fake.shape[2]):
             tmp_loss = list()
+            # Exclude the initial point
             for t in range(x_fake.shape[1]):
                 loc = self.locs[i][t].view(1, -1).to(x_fake.device)
                 x_ti = x_fake[:, t, i].contiguous(
@@ -631,7 +705,7 @@ def rmse(x, y):
 
 
 class SigW1Metric:
-    def __init__(self, depth: int, x_real: torch.Tensor, augmentations: Optional[Tuple] = (AddTime), normalise: bool = True):
+    def __init__(self, depth: int, x_real: torch.Tensor, augmentations: Optional[Tuple] = (Scale(),), normalise: bool = True):
         assert len(x_real.shape) == 3, \
             'Path needs to be 3-dimensional. Received %s dimension(s).' % (
                 len(x_real.shape),)
@@ -656,10 +730,10 @@ class SigW1Metric:
 
 
 class SigW1Loss(Loss):
-    def __init__(self, x_real, **kwargs):
+    def __init__(self, x_real, depth, **kwargs):
         name = kwargs.pop('name')
         super(SigW1Loss, self).__init__(name=name)
-        self.sig_w1_metric = SigW1Metric(x_real=x_real, **kwargs)
+        self.sig_w1_metric = SigW1Metric(x_real=x_real, depth=depth, **kwargs)
 
     def compute(self, x_fake):
         loss = self.sig_w1_metric(x_fake)
