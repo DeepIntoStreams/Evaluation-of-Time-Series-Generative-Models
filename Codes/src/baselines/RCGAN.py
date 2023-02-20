@@ -61,10 +61,10 @@ class RCGANTrainer(BaseTrainer):
                 self.losses_history['D_loss_real'].append(D_loss_real)
                 self.losses_history['D_loss'].append(D_loss_fake + D_loss_real)
                 wandb.log({'D_loss': D_loss_fake + D_loss_real}, step)
-        G_loss = self.G_trainstep(device, step)
+        G_loss = self.G_trainstep(x_real_batch, device, step)
         wandb.log({'G_loss': G_loss}, step)
 
-    def G_trainstep(self, device, step):
+    def G_trainstep(self, x_real, device, step):
         if self.conditional:
             condition = one_hot(torch.randint(
                 0, self.config.num_classes, (self.batch_size,)),
@@ -81,9 +81,11 @@ class RCGANTrainer(BaseTrainer):
         self.D.train()
         G_loss = self.compute_loss(d_fake, 1.)
         G_loss.backward()
+        torch.nn.utils.clip_grad_norm_(
+            self.G.parameters(), 10)
         self.losses_history['G_loss'].append(G_loss)
         self.G_optimizer.step()
-        self.evaluate(x_fake, step)
+        self.evaluate(x_fake, x_real, step, self.config)
 
         return G_loss.item()
 
@@ -106,6 +108,8 @@ class RCGANTrainer(BaseTrainer):
         dloss = dloss_fake + dloss_real
 
         dloss.backward()
+        torch.nn.utils.clip_grad_norm_(
+            self.D.parameters(), 10)
         # Step discriminator params
         self.D_optimizer.step()
 
@@ -116,7 +120,7 @@ class RCGANTrainer(BaseTrainer):
 
     def compute_loss(self, d_out, target):
         targets = d_out.new_full(size=d_out.size(), fill_value=target)
-        loss = F.binary_cross_entropy_with_logits(d_out, targets)
+        loss = torch.nn.BCELoss()(torch.nn.Sigmoid()(d_out), targets)
         return loss
 
     def wgan_gp_reg(self, x_real, x_fake, center=1.):

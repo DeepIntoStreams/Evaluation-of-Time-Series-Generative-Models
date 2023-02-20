@@ -62,7 +62,7 @@ class TIMEGANTrainer(BaseTrainer):
             self.recovery.parameters(), lr=config.lr_D, betas=(0, 0.9))
         self.supervisor_optimizer = torch.optim.Adam(
             self.supervisor.parameters(), lr=config.lr_D, betas=(0, 0.9))  # Using TTUR
-        self.averaged_G = swa_utils.AveragedModel(G)
+        #self.averaged_G = swa_utils.AveragedModel(G)
         self.gamma = gamma
         self.train_dl = train_dl
         self.reg_param = 0
@@ -227,8 +227,8 @@ class TIMEGANTrainer(BaseTrainer):
             self.evaluate(X_hat, X, i, self.config)
             wandb.log({'G_loss': G_loss}, i)
             wandb.log({'D_loss': D_loss}, i)
-            if i > self.config.swa_step_start:
-                self.averaged_G.update_parameters(self.G)
+           # if i > self.config.swa_step_start:
+            #    self.averaged_G.update_parameters(self.G)
 
     def compute_loss(self, d_out, target):
         targets = d_out.new_full(size=d_out.size(), fill_value=target)

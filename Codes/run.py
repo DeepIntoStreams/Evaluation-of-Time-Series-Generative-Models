@@ -8,7 +8,9 @@ import yaml
 import os
 
 from os import path as pt
-from src.evaluations.evaluations import compute_discriminative_score, fake_loader, compute_classfication_score, plot_summary, full_evaluation
+from src.evaluations.evaluations import compute_discriminative_score, fake_loader, compute_classfication_score, \
+    full_evaluation
+from src.evaluations.plot import plot_summary, compare_acf_matrix
 import torch
 from src.utils import get_experiment_dir, save_obj
 from torch import nn
@@ -78,6 +80,11 @@ def main(config):
                 config.exp_dir, 'encoder_state_dict.pt'))
             save_obj(trainer.G.decoder.state_dict(), pt.join(
                 config.exp_dir, 'decoder_state_dict.pt'))
+        elif config.algo == 'TimeGAN':
+            save_obj(trainer.recovery.state_dict(), pt.join(
+                config.exp_dir, 'recovery_state_dict.pt'))
+            save_obj(trainer.supervisor.state_dict(), pt.join(
+                config.exp_dir, 'supervisor_state_dict.pt'))
         else:
             save_obj(trainer.G.state_dict(), pt.join(
                 config.exp_dir, 'generator_state_dict.pt'))
@@ -95,8 +102,15 @@ def main(config):
         generator.load_state_dict(torch.load(pt.join(
             config.exp_dir, 'generator_state_dict.pt')), strict=True)
 
-        recovery = nn.Sequential(trainer.supervisor.to(
-            device='cpu'), trainer.recovery.to(device='cpu'))
+        supervisor = trainer.supervisor.to(
+            device='cpu')
+        supervisor.load_state_dict(torch.load(pt.join(
+            config.exp_dir, 'supervisor_state_dict.pt')), strict=True)
+        recovery = trainer.recovery.to(device='cpu')
+        recovery.load_state_dict(torch.load(pt.join(
+            config.exp_dir, 'recovery_state_dict.pt')), strict=True)
+        recovery = nn.Sequential(supervisor, recovery)
+
         generator.eval()
         fake_test_dl = fake_loader(generator, num_samples=len(test_dl.dataset),
                                    n_lags=config.n_lags, batch_size=128, config=config, recovery=recovery
@@ -128,7 +142,7 @@ def main(config):
 
     else:
         generator = GENERATORS[config.generator](
-            input_dim=config.G_input_dim, hidden_dim=config.G_hidden_dim, output_dim=config.input_dim, n_layers=config.G_num_layers)
+            input_dim=config.G_input_dim, hidden_dim=config.G_hidden_dim, output_dim=config.input_dim, n_layers=config.G_num_layers, init_fixed=config.init_fixed)
         generator.load_state_dict(torch.load(pt.join(
             config.exp_dir, 'generator_state_dict.pt')))
 
@@ -138,6 +152,9 @@ def main(config):
         full_evaluation(generator, train_dl, test_dl, config)
 
     plot_summary(fake_test_dl, test_dl, config)
+    # For non-stationary data, we plot the acf matrix
+    if config.dataset == 'GBM' or config.dataset == 'ROUGH':
+        compare_acf_matrix(test_dl, fake_test_dl, config)
     wandb.save(pt.join(config.exp_dir, '*png*'))
     wandb.save(pt.join(config.exp_dir, '*pt*'))
     wandb.save(pt.join(config.exp_dir, '*pdf*'))
@@ -155,8 +172,11 @@ if __name__ == '__main__':
 
     else:
         config_dir = 'configs/' + 'train_gan.yaml'
+
     with open(config_dir) as file:
         config = ml_collections.ConfigDict(yaml.safe_load(file))
+    config.algo = args.algo
+
     config.dataset = args.dataset
 
     main(config)
