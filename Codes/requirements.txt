@@ -2,7 +2,7 @@ matplotlib == 3.5.2
 ml_collections == 0.1.1
 numpy
 PyYAML == 6.0
-sklearn
+scikit-learn
 seaborn
 tqdm==4.64.0
 wandb

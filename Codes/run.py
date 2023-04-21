@@ -162,10 +162,10 @@ def main(config):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--algo', type=str, default='LSTM_DEV',
+    parser.add_argument('--algo', type=str, default='RCGAN',
                         help='choose from TimeGAN,RCGAN,TimeVAE')
     parser.add_argument('--dataset', type=str, default='AR1',
-                        help='choose from AR1, ROUGH, GBM')
+                        help='choose from AR1, ROUGH, GBM,STOCK,Air_Quality')
     args = parser.parse_args()
     if args.algo == 'TimeVAE':
         config_dir = 'configs/' + 'train_vae.yaml'
