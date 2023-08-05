@@ -1,6 +1,7 @@
 # Evaluation of Time Series Generative Models
 
-The main objective of the project is to summarize the evaluation metrics used in unconditional generative models for synthetic data generation, list advantages and disadvantages of each evaluation metric based on experiments on different datasets and models. We also provide a code pipeline for evaluation of test metrics. 
+The main objective of the project is to summarize the evaluation metrics used in unconditional generative models for synthetic data generation, list advantages and disadvantages of each evaluation metric based on experiments on different datasets and models. 
+
 
 ## Test metrics
 We include the following test metric in our code pipeline:
@@ -10,25 +11,25 @@ We include the following test metric in our code pipeline:
 - Discriminative score [2]: to train a classifier to distinguish whether the sample is from the true distribution or synthetic distribution. The smaller the discriminative score, the better generator.  
 - Predictive score [2]: train a sequence-to-sequence model to predict the latter part of a time series given the first part, using generated data, then evaluate on the true data. Smaller losses, meaning ability to predict, are better.  
 
+We also provide a code pipeline which provides implementation of well-known generative models, their corresponding training procedure on specific datasets, and model assessment using the evaluation test metrics described before. See the figure below for the workflow of our pipeline:
+
+![Code pipeline](Pipeline.png)
+
 ## Models
 We implement some popular models for time series generation including:
-- Time-GAN [2]
-- Recurrent Conditional GAN (RCGAN) [3]
-- Time-VAE [4]
+- Time-GAN [2];
+- Recurrent Conditional GAN (RCGAN) [3];
+- Time-VAE [4].
 
 ## Datasets
 We provide the following datasets for model testing:
-- Autoregressive process
-- Geometric Brownian motion
-- Rough volatility model (rough Bergomi)
-- Google stock data [2]
-- Beijing air quality data [5]
+- Autoregressive process;
+- Geometric Brownian motion;
+- Rough volatility model (rough Bergomi);
+- Google stock data [2];
+- Beijing air quality data [5].
 
-## Structure
-The repository is structures as follows: 
-- Codes: contains the code pipeline for evaluation metrics of time series generation, implementation of different well known generative models and their corresponding training procedure.
-- Reference Papers: contains the collection of papers related to time series generation.
-
+For detailed instruction on repository structure and usage, refer to [Codes/README.md](Codes/README.md).
 ## Reference
 [1] Ni, H., Szpruch, L., Wiese, M., Liao, S. and Xiao, B., 2021. Sig-Wasserstein GANs for Time Series Generation.  
 [2] Yoon, J., Jarrett, D. and Van der Schaar, M., 2019. Time-series generative adversarial networks. Advances in neural information processing systems, 32.  

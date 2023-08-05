@@ -219,9 +219,9 @@ class decoder_block(nn.Module):
                                                         self.n_lags,
                                                         self.num_gen_seas)
         #  #  self.generic_model = generic_seasonal_block2(self.input_dim,
-        #                                                             self.latent_dim,
-        #                                                             self.n_lags,
-        #                                                             self.num_gen_seas)
+    #                                                             self.latent_dim,
+    #                                                             self.n_lags,
+    #                                                             self.num_gen_seas)
 
         # custom seasons
         if self.custom_seas is not None and len(self.custom_seas) > 0:
@@ -271,19 +271,6 @@ class decoder_block(nn.Module):
             trend, generic seasonality(ies), custom seasonality(ies), and/or residual connection. ''')
 
         return output.permute([0, 2, 1])
-
-
-def _get_season_indexes_over_seq(num_seasons, len_per_season):
-    curr_len = 0
-    season_idx = []
-    curr_idx = 0
-    while curr_len < seq_len:
-        reps = len_per_season if curr_len + len_per_season <= seq_len else seq_len - curr_len
-        season_idx.extend([curr_idx] * reps)
-        curr_idx += 1
-        if curr_idx == num_seasons: curr_idx = 0
-        curr_len += reps
-    return season_idx
 
 
 class level_block(nn.Module):
