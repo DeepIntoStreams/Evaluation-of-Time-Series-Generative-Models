@@ -11,7 +11,7 @@ We include the following test metric in our code pipeline:
 - Discriminative score [2]: to train a classifier to distinguish whether the sample is from the true distribution or synthetic distribution. The smaller the discriminative score, the better generator.  
 - Predictive score [2]: train a sequence-to-sequence model to predict the latter part of a time series given the first part, using generated data, then evaluate the true data. Smaller losses, meaning the ability to predict, are better.  
 
-We also provide a code pipeline that provides the implementation of well-known generative models, their corresponding training procedure, and model assessment using the evaluation test metrics described before. Also, we provide several datasets as examples to demonstrate how to utilize the pipeline. See the figure below for the workflow of our pipeline:
+We also provide a code pipeline that provides the implementation of well-known generative models, their corresponding training procedure, and model assessment using the evaluation test metrics described before. Furthermore, we provide several datasets as examples to demonstrate how to utilize the pipeline. See the figure below for the workflow of our pipeline:
 
 ![Code pipeline](Pipeline.png)
 
