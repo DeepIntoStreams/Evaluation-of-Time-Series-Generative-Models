@@ -19,68 +19,13 @@ from src.utils import AddTime
 import signatory
 
 
-def cov_torch(x, rowvar=False, bias=True, ddof=None, aweights=None):
-    # """Estimates covariance matrix like numpy.cov"""
-    # reshape x
-    # _, T, C = x.shape
-    # x = x.reshape(-1, T * C)
-    # ensure at least 2D
-    # if x.dim() == 1:
-    #    x = x.view(-1, 1)
-
-    # treat each column as a data point, each row as a variable
-    # if rowvar and x.shape[0] != 1:
-    #    x = x.t()
-
-    # if ddof is None:
-    #    if bias == 0:
-    #        ddof = 1
-    #    else:
-    #        ddof = 0
-
-    # w = aweights
-    # if w is not None:
-    #    if not torch.is_tensor(w):
-    #        w = torch.tensor(w, dtype=torch.float)
-    #    w_sum = torch.sum(w)
-    #    avg = torch.sum(x * (w / w_sum)[:, None], 0)
-    # else:
-    #    avg = torch.mean(x, 0)
-
-    # Determine the normalization
-    # if w is None:
-    #    fact = x.shape[0] - ddof
-    # elif ddof == 0:
-    #    fact = w_sum
-    # elif aweights is None:
-    #    fact = w_sum - ddof
-    # else:
-    #    fact = w_sum - ddof * torch.sum(w * w) / w_sum
-
-    # xm = x.sub(avg.expand_as(x))
-
-    # if w is None:
-    #    X_T = xm.t()
-    # else:
-    #    X_T = torch.mm(torch.diag(w), xm).t()
-
-    # c = torch.mm(X_T, xm)
-    # c = c / fact
-
-    # return c.squeeze()
+def cov_torch(x):
+    """Estimates covariance matrix like numpy.cov"""
     device = x.device
     x = to_numpy(x)
     _, L, C = x.shape
     x = x.reshape(-1, L*C)
     return torch.from_numpy(np.cov(x, rowvar=False)).to(device).float()
-
-
-def q_var_torch(x: torch.Tensor):
-    """
-    :param x: torch.Tensor [B, S, D]
-    :return: quadratic variation of x. [B, D]
-    """
-    return torch.sum(torch.pow(x[:, 1:] - x[:, :-1], 2), 1)
 
 
 def acf_torch(x: torch.Tensor, max_lag: int, dim: Tuple[int] = (0, 1)) -> torch.Tensor:
@@ -120,18 +65,16 @@ def non_stationary_acf_torch(X, symmetric=False):
     # Create a tensor to hold the correlations
     correlations = torch.zeros(T, T, D)
 
-    # Loop through each time step from lag to T-1
-    for t in range(T):
-        # Loop through each lag from 1 to lag
-        for tau in range(t, T):
-            # Compute the correlation between X_{t, d} and X_{t-tau, d}
-            correlation = torch.sum(X[:, t, :] * X[:, tau, :], dim=0) / (
-                torch.norm(X[:, t, :], dim=0) * torch.norm(X[:, tau, :], dim=0))
-            # print(correlation)
-            # Store the correlation in the output tensor
-            correlations[t, tau, :] = correlation
-            if symmetric:
-                correlations[tau, t, :] = correlation
+    for i in range(D):
+        # Compute the correlation between X_{t, d} and X_{t-tau, d}
+        correlations[:, :, i] = torch.corrcoef(X[:, :, i].t())
+
+    if not symmetric:
+        # Loop through each time step from lag to T-1
+        for t in range(T):
+            # Loop through each lag from 1 to lag
+            for tau in range(t+1, T):
+                correlations[tau, t, :] = 0
 
     return correlations
 
@@ -178,28 +121,6 @@ def cacf_torch(x, lags: list, dim=(0, 1)):
     # Concatenate the cross-correlations across lags and reshape to the desired output shape
     cacf = torch.cat(cacf_list, 1)
     return cacf.reshape(cacf.shape[0], -1, len(ind[0]))
-
-
-def skew_torch(x, dim=(0, 1), dropdims=True):
-    x = x - x.mean(dim, keepdims=True)
-    x_3 = torch.pow(x, 3).mean(dim, keepdims=True)
-    x_std_3 = torch.pow(x.std(dim, unbiased=True, keepdims=True), 3)
-    skew = x_3 / x_std_3
-    if dropdims:
-        skew = skew[0, 0]
-    return skew
-
-
-def kurtosis_torch(x, dim=(0, 1), excess=True, dropdims=True):
-    x = x - x.mean(dim, keepdims=True)
-    x_4 = torch.pow(x, 4).mean(dim, keepdims=True)
-    x_var2 = torch.pow(torch.var(x, dim=dim, unbiased=False, keepdims=True), 2)
-    kurtosis = x_4 / x_var2
-    if excess:
-        kurtosis = kurtosis - 3
-    if dropdims:
-        kurtosis = kurtosis[0, 0]
-    return kurtosis
 
 
 class Loss(nn.Module):
@@ -266,26 +187,6 @@ class StdLoss(Loss):
 
     def compute(self, x_fake, **kwargs):
         return self.norm_foo(x_fake.std((0, 1)) - self.std_real)
-
-
-class SkewnessLoss(Loss):
-    def __init__(self, x_real, **kwargs):
-        super(SkewnessLoss, self).__init__(norm_foo=torch.abs, **kwargs)
-        self.skew_real = skew_torch(self.transform(x_real))
-
-    def compute(self, x_fake, **kwargs):
-        skew_fake = skew_torch(self.transform(x_fake))
-        return self.norm_foo(skew_fake - self.skew_real)
-
-
-class KurtosisLoss(Loss):
-    def __init__(self, x_real, **kwargs):
-        super(KurtosisLoss, self).__init__(norm_foo=torch.abs, **kwargs)
-        self.kurtosis_real = kurtosis_torch(self.transform(x_real))
-
-    def compute(self, x_fake):
-        kurtosis_fake = kurtosis_torch(self.transform(x_fake))
-        return self.norm_foo(kurtosis_fake - self.kurtosis_real)
 
 
 class CrossCorrelLoss(Loss):
@@ -377,90 +278,255 @@ class CovLoss(Loss):
         return loss
 
 
-def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
-    """Numpy implementation of the Frechet Distance.
-    The Frechet distance between two multivariate Gaussians X_1 ~ N(mu_1, C_1)
-    and X_2 ~ N(mu_2, C_2) is
-            d^2 = ||mu_1 - mu_2||^2 + Tr(C_1 + C_2 - 2*sqrt(C_1*C_2)).
-
-    Stable version by Dougal J. Sutherland.
-    Params:
-    -- mu1 : Numpy array containing the activations of the pool_3 layer of the
-             inception net ( like returned by the function 'get_predictions')
-             for generated samples.
-    -- mu2   : The sample mean over activations of the pool_3 layer, precalcualted
-               on an representive data set.
-    -- sigma1: The covariance matrix over activations of the pool_3 layer for
-               generated samples.
-    -- sigma2: The covariance matrix over activations of the pool_3 layer,
-               precalcualted on an representive data set.
-    Returns:
-    --   : The Frechet Distance.
+def ONND(x_real, x_fake):
     """
+    Calculates the Outgoing Nearest Neighbour Distance (ONND) to assess the diversity of the generated data
+    Parameters
+    ----------
+    x_real: torch.tensor, [B, L, D]
+    x_fake: torch.tensor, [B, L', D']
 
-    mu1 = np.atleast_1d(mu1)
-    mu2 = np.atleast_1d(mu2)
+    Returns
+    -------
+    ONND: float
+    """
+    b1, t1, d1 = x_real.shape
+    b2, t2, d2 = x_fake.shape
+    assert t1 == t2, "Time length does not agree!"
+    assert d1 == d2, "Feature dimension does not agree!"
 
-    sigma1 = np.atleast_2d(sigma1)
-    sigma2 = np.atleast_2d(sigma2)
-
-    assert mu1.shape == mu2.shape, "Training and test mean vectors have different lengths"
-    assert sigma1.shape == sigma2.shape, "Training and test covariances have different dimensions"
-
-    diff = mu1 - mu2
-    # product might be almost singular
-    covmean, _ = linalg.sqrtm(sigma1.dot(sigma2), disp=False)
-    if not np.isfinite(covmean).all():
-        msg = "fid calculation produces singular product; adding %s to diagonal of cov estimates" % eps
-        warnings.warn(msg)
-        offset = np.eye(sigma1.shape[0]) * eps
-        covmean = linalg.sqrtm((sigma1 + offset).dot(sigma2 + offset))
-
-    # numerical error might give slight imaginary component
-    if np.iscomplexobj(covmean):
-        if not np.allclose(np.diagonal(covmean).imag, 0, atol=1e-3):
-            m = np.max(np.abs(covmean.imag))
-            raise ValueError("Imaginary component {}".format(m))
-        covmean = covmean.real
-
-    tr_covmean = np.trace(covmean)
-
-    return torch.tensor(diff.dot(diff) + np.trace(sigma1) + np.trace(sigma2) - 2 * tr_covmean)
+    # Compute samplewise difference
+    x_real_repeated = x_real.repeat_interleave(b2, 0)
+    x_fake_repeated = x_fake.repeat([b1, 1, 1])
+    samplewise_diff = x_real_repeated - x_fake_repeated
+    # Compute samplewise MSE
+    MSE_X_Y = torch.norm(samplewise_diff, dim=2).mean(dim=1).reshape([b1, -1])
+    # For every sample in x_real, compute the minimum MSE and calculate the average among all the minimums
+    ONND = (torch.min(MSE_X_Y, dim=1)[0]).mean()
+    return ONND
 
 
-def polynomial_mmd_averages(codes_g, codes_r, n_subsets=50, subset_size=1000,
-                            ret_var=False, **kernel_args):
-    m = min(codes_g.shape[0], codes_r.shape[0])
-    mmds = np.zeros(n_subsets)
-    if ret_var:
-        vars = np.zeros(n_subsets)
-    choice = np.random.choice
+def INND(x_real, x_fake):
+    """
+    Calculates the Incoming Nearest Neighbour Distance (INND) to assess the authenticity of the generated data
+    Parameters
+    ----------
+    x_real: torch.tensor, [B, L, D]
+    x_fake: torch.tensor, [B, L', D']
 
-    for i in range(n_subsets):
-        g = codes_g[choice(len(codes_g), subset_size, replace=False)]
-        r = codes_r[choice(len(codes_r), subset_size, replace=False)]
-        o = polynomial_mmd(g, r, **kernel_args,
-                           var_at_m=m, ret_var=ret_var)
-        if ret_var:
-            mmds[i], vars[i] = o
-        else:
-            mmds[i] = o
-    return (mmds, vars) if ret_var else torch.tensor(mmds.mean()*1e3)
+    Returns
+    -------
+    INND: float
+    """
+    b1, t1, d1 = x_real.shape
+    b2, t2, d2 = x_fake.shape
+    assert t1 == t2, "Time length does not agree!"
+    assert d1 == d2, "Feature dimension does not agree!"
+
+    # Compute samplewise difference
+    x_fake_repeated = x_fake.repeat_interleave(b1, 0)
+    x_real_repeated = x_real.repeat([b2, 1, 1])
+    samplewise_diff = x_real_repeated - x_fake_repeated
+    # Compute samplewise MSE
+    MSE_X_Y = torch.norm(samplewise_diff, dim=2).mean(dim=1).reshape([b2, -1])
+    # For every sample in x_real, compute the minimum MSE and calculate the average among all the minimums
+    INND = (torch.min(MSE_X_Y, dim=1)[0]).mean()
+    return INND
 
 
-def polynomial_mmd(codes_g, codes_r, degree=3, gamma=None, coef0=1,
-                   var_at_m=None, ret_var=True):
-    # use  k(x, y) = (gamma <x, y> + coef0)^degree
-    # default gamma is 1 / dim
-    X = codes_g
-    Y = codes_r
+def ICD(x_fake):
+    """
+    Calculates the Intra Class Distance (ICD) to detect a potential model collapse
+    Parameters
+    ----------
+    x_fake: torch.tensor, [B, L, D]
 
-    K_XX = polynomial_kernel(X, degree=degree, gamma=gamma, coef0=coef0)
-    K_YY = polynomial_kernel(Y, degree=degree, gamma=gamma, coef0=coef0)
-    K_XY = polynomial_kernel(X, Y, degree=degree, gamma=gamma, coef0=coef0)
+    Returns
+    -------
+    ICD: float
+    """
+    batch, _, _ = x_fake.shape
 
-    return _mmd2_and_variance(K_XX, K_XY, K_YY,
-                              var_at_m=var_at_m, ret_var=ret_var)
+    # Compute samplewise difference
+    x_fake_repeated_interleave = x_fake.repeat_interleave(batch, 0)
+    x_fake_repeated = x_fake.repeat([batch, 1, 1])
+    samplewise_diff = x_fake_repeated_interleave - x_fake_repeated
+    # Compute samplewise MSE
+    MSE_X_Y = torch.norm(samplewise_diff, dim=2).mean(dim=1).reshape([batch, -1])
+    # For every sample in x_real, compute the minimum MSE and calculate the average among all the minimums
+    ICD = 2 * (MSE_X_Y).sum()
+    return ICD / (batch ** 2)
+
+def Sig_mmd(X, Y, depth):
+    """
+    Compute the signature MMD between two distributions
+    Parameters
+    ----------
+    X: torch.tensor, [B, L, D]
+    Y: torch.tensor, [B', L', D']
+    depth: int, signature depth
+
+    Returns
+    -------
+    Sig_MMD between X and Y, torch tensor
+    """
+    # convert torch tensor to numpy
+    N, L, C = X.shape
+    N1, _, C1 = Y.shape
+    X = torch.cat(
+        [torch.zeros((N, 1, C)).to(X.device), X], dim=1)
+    Y = torch.cat(
+        [torch.zeros((N1, 1, C1)).to(X.device), Y], dim=1)
+    X = to_numpy(AddTime(X))
+    Y = to_numpy(AddTime(Y))
+    n_components = 20
+    static_kernel = ksig.static.kernels.RBFKernel()
+    # an RBF base kernel for vector-valued data which is lifted to a kernel for sequences
+    static_feat = ksig.static.features.NystroemFeatures(
+        static_kernel, n_components=n_components)
+    # Nystroem features with an RBF base kernel
+
+    proj = ksig.projections.CountSketchRandomProjection(
+        n_components=n_components)
+    # a CountSketch random projection
+
+    lr_sig_kernel = ksig.kernels.LowRankSignatureKernel(
+        n_levels=depth, static_features=static_feat, projection=proj)
+    # sig_kernel = ksig.kernels.SignatureKernel(
+    #   n_levels=depth, static_kernel=static_kernel)
+    # a SignatureKernel object, which works as a callable for computing the signature kernel matrix
+    lr_sig_kernel.fit(X)
+    K_XX = lr_sig_kernel(X)  # K_XX has shape (10, 10)
+    K_XY = lr_sig_kernel(X, Y)
+    K_YY = lr_sig_kernel(Y)
+    m = K_XX.shape[0]
+    diag_X = np.diagonal(K_XX)
+    diag_Y = np.diagonal(K_YY)
+
+    Kt_XX_sums = K_XX.sum(axis=1) - diag_X
+    Kt_YY_sums = K_YY.sum(axis=1) - diag_Y
+    K_XY_sums_0 = K_XY.sum(axis=0)
+
+    Kt_XX_sum = Kt_XX_sums.sum()
+    Kt_YY_sum = Kt_YY_sums.sum()
+    K_XY_sum = K_XY_sums_0.sum()
+    mmd2 = (Kt_XX_sum + Kt_YY_sum) / (m * (m-1))
+    mmd2 -= 2 * K_XY_sum / (m * m)
+
+    return torch.tensor(mmd2)
+
+
+class Sig_MMD_loss(Loss):
+    """
+    Signature MMD Loss
+    """
+    def __init__(self, x_real, depth, **kwargs):
+        super(Sig_MMD_loss, self).__init__(**kwargs)
+        self.x_real = x_real
+        self.depth = depth
+
+    def compute(self, x_fake):
+        return Sig_mmd(self.x_real, x_fake, self.depth)
+
+
+class cross_correlation(Loss):
+    def __init__(self, x_real, **kwargs):
+        super(cross_correlation).__init__(**kwargs)
+        self.x_real = x_real
+
+    def compute(self, x_fake):
+        fake_corre = torch.from_numpy(np.corrcoef(
+            x_fake.mean(1).permute(1, 0))).float()
+        real_corre = torch.from_numpy(np.corrcoef(
+            self.x_real.mean(1).permute(1, 0))).float()
+        return torch.abs(fake_corre-real_corre)
+
+
+def compute_expected_signature(x_path, depth: int, augmentations: Tuple, normalise: bool = True):
+    x_path_augmented = apply_augmentations(x_path, augmentations)
+    expected_signature = signatory.signature(
+        x_path_augmented, depth=depth).mean(0)
+    dim = x_path_augmented.shape[2]
+    count = 0
+    if normalise:
+        for i in range(depth):
+            expected_signature[count:count + dim**(
+                i+1)] = expected_signature[count:count + dim**(i+1)] * math.factorial(i+1)
+            count = count + dim**(i+1)
+    return expected_signature
+
+
+def rmse(x, y):
+    return (x - y).pow(2).sum().sqrt()
+
+
+class SigW1Metric:
+    def __init__(self, depth: int, x_real: torch.Tensor, augmentations: Optional[Tuple] = (Scale(),), normalise: bool = True):
+        assert len(x_real.shape) == 3, \
+            'Path needs to be 3-dimensional. Received %s dimension(s).' % (
+                len(x_real.shape),)
+
+        self.augmentations = augmentations
+        self.depth = depth
+        self.n_lags = x_real.shape[1]
+
+        self.normalise = normalise
+        self.expected_signature_mu = compute_expected_signature(
+            x_real, depth, augmentations, normalise)
+
+    def __call__(self, x_path_nu: torch.Tensor):
+        """ Computes the SigW1 metric."""
+        device = x_path_nu.device
+        batch_size = x_path_nu.shape[0]
+        expected_signature_nu = compute_expected_signature(
+            x_path_nu, self.depth, self.augmentations, self.normalise)
+        loss = rmse(self.expected_signature_mu.to(
+            device), expected_signature_nu)
+        return loss
+
+
+class SigW1Loss(Loss):
+    def __init__(self, x_real, depth, **kwargs):
+        name = kwargs.pop('name')
+        super(SigW1Loss, self).__init__(name=name)
+        self.sig_w1_metric = SigW1Metric(x_real=x_real, depth=depth, **kwargs)
+
+    def compute(self, x_fake):
+        loss = self.sig_w1_metric(x_fake)
+        return loss
+
+
+test_metrics = {
+    'Sig_mmd': partial(Sig_MMD_loss, name='Sig_mmd', depth=4),
+    'SigW1': partial(SigW1Loss, name='SigW1', augmentations=[], normalise=False, depth=4),
+    'marginal_distribution': partial(HistoLoss, n_bins=50, name='marginal_distribution'),
+    'cross_correl': partial(CrossCorrelLoss, name='cross_correl'),
+    'covariance': partial(CovLoss, name='covariance'),
+    'auto_correl': partial(ACFLoss, name='auto_correl')}
+
+
+def is_multivariate(x: torch.Tensor):
+    """ Check if the path / tensor is multivariate. """
+    return True if x.shape[-1] > 1 else False
+
+
+def get_standard_test_metrics(x: torch.Tensor, **kwargs):
+    """ Initialise list of standard test metrics for evaluating the goodness of the generator. """
+    if 'model' in kwargs:
+        model = kwargs['model']
+    test_metrics_list = [test_metrics['Sig_mmd'](x),
+                         test_metrics['SigW1'](x),
+                         test_metrics['marginal_distribution'](x),
+                         test_metrics['cross_correl'](x),
+                         test_metrics['covariance'](x),
+                         test_metrics['auto_correl'](x)
+                         ]
+    return test_metrics_list
+
+
+"""
+---------------------------- Hypothesis testing related ----------------------------------------
+"""
 
 
 def _sqn(arr):
@@ -554,6 +620,91 @@ def _mmd2_and_variance(K_XX, K_XY, K_YY, unit_diagonal=False,
     return mmd2, var_est
 
 
+def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
+    """Numpy implementation of the Frechet Distance.
+    The Frechet distance between two multivariate Gaussians X_1 ~ N(mu_1, C_1)
+    and X_2 ~ N(mu_2, C_2) is
+            d^2 = ||mu_1 - mu_2||^2 + Tr(C_1 + C_2 - 2*sqrt(C_1*C_2)).
+
+    Stable version by Dougal J. Sutherland.
+    Params:
+    -- mu1 : Numpy array containing the activations of the pool_3 layer of the
+             inception net ( like returned by the function 'get_predictions')
+             for generated samples.
+    -- mu2   : The sample mean over activations of the pool_3 layer, precalcualted
+               on an representive data set.
+    -- sigma1: The covariance matrix over activations of the pool_3 layer for
+               generated samples.
+    -- sigma2: The covariance matrix over activations of the pool_3 layer,
+               precalcualted on an representive data set.
+    Returns:
+    --   : The Frechet Distance.
+    """
+
+    mu1 = np.atleast_1d(mu1)
+    mu2 = np.atleast_1d(mu2)
+
+    sigma1 = np.atleast_2d(sigma1)
+    sigma2 = np.atleast_2d(sigma2)
+
+    assert mu1.shape == mu2.shape, "Training and test mean vectors have different lengths"
+    assert sigma1.shape == sigma2.shape, "Training and test covariances have different dimensions"
+
+    diff = mu1 - mu2
+    # product might be almost singular
+    covmean, _ = linalg.sqrtm(sigma1.dot(sigma2), disp=False)
+    if not np.isfinite(covmean).all():
+        msg = "fid calculation produces singular product; adding %s to diagonal of cov estimates" % eps
+        warnings.warn(msg)
+        offset = np.eye(sigma1.shape[0]) * eps
+        covmean = linalg.sqrtm((sigma1 + offset).dot(sigma2 + offset))
+
+    # numerical error might give slight imaginary component
+    if np.iscomplexobj(covmean):
+        if not np.allclose(np.diagonal(covmean).imag, 0, atol=1e-3):
+            m = np.max(np.abs(covmean.imag))
+            raise ValueError("Imaginary component {}".format(m))
+        covmean = covmean.real
+
+    tr_covmean = np.trace(covmean)
+
+    return torch.tensor(diff.dot(diff) + np.trace(sigma1) + np.trace(sigma2) - 2 * tr_covmean)
+
+
+def polynomial_mmd_averages(codes_g, codes_r, n_subsets=50, subset_size=1000,
+                            ret_var=False, **kernel_args):
+    m = min(codes_g.shape[0], codes_r.shape[0])
+    mmds = np.zeros(n_subsets)
+    if ret_var:
+        vars = np.zeros(n_subsets)
+    choice = np.random.choice
+
+    for i in range(n_subsets):
+        g = codes_g[choice(len(codes_g), subset_size, replace=False)]
+        r = codes_r[choice(len(codes_r), subset_size, replace=False)]
+        o = polynomial_mmd(g, r, **kernel_args,
+                           var_at_m=m, ret_var=ret_var)
+        if ret_var:
+            mmds[i], vars[i] = o
+        else:
+            mmds[i] = o
+    return (mmds, vars) if ret_var else torch.tensor(mmds.mean()*1e3)
+
+
+def polynomial_mmd(codes_g, codes_r, degree=3, gamma=None, coef0=1,
+                   var_at_m=None, ret_var=True):
+    # use  k(x, y) = (gamma <x, y> + coef0)^degree
+    # default gamma is 1 / dim
+    X = codes_g
+    Y = codes_r
+
+    K_XX = polynomial_kernel(X, degree=degree, gamma=gamma, coef0=coef0)
+    K_YY = polynomial_kernel(Y, degree=degree, gamma=gamma, coef0=coef0)
+    K_XY = polynomial_kernel(X, Y, degree=degree, gamma=gamma, coef0=coef0)
+
+    return _mmd2_and_variance(K_XX, K_XY, K_YY,
+                              var_at_m=var_at_m, ret_var=ret_var)
+
 def FID_score(model, input_real, input_fake):
     """compute the FID score
 
@@ -578,7 +729,8 @@ def FID_score(model, input_real, input_fake):
 
 
 def KID_score(model, input_real, input_fake):
-    """compute the KID score
+    """
+    Compute the Kernel Inception Distance (KID) score. The MMD distance between
 
     Args:
         model (torch model): pretrained rnn model
@@ -593,64 +745,6 @@ def KID_score(model, input_real, input_fake):
     act_fake = linear(rnn(input_fake)[
         0][:, -1]).detach().cpu().numpy()
     return polynomial_mmd_averages(act_fake, act_real)
-
-
-def Sig_mmd(X, Y, depth):
-    # convert torch tensor to numpy
-    N, L, C = X.shape
-    N1, _, C1 = Y.shape
-    X = torch.cat(
-        [torch.zeros((N, 1, C)).to(X.device), X], dim=1)
-    Y = torch.cat(
-        [torch.zeros((N1, 1, C1)).to(X.device), Y], dim=1)
-    X = to_numpy(AddTime(X))
-    Y = to_numpy(AddTime(Y))
-    n_components = 20
-    static_kernel = ksig.static.kernels.RBFKernel()
-    # an RBF base kernel for vector-valued data which is lifted to a kernel for sequences
-    static_feat = ksig.static.features.NystroemFeatures(
-        static_kernel, n_components=n_components)
-    # Nystroem features with an RBF base kernel
-
-    proj = ksig.projections.CountSketchRandomProjection(
-        n_components=n_components)
-    # a CountSketch random projection
-
-    lr_sig_kernel = ksig.kernels.LowRankSignatureKernel(
-        n_levels=depth, static_features=static_feat, projection=proj)
-    # sig_kernel = ksig.kernels.SignatureKernel(
-    #   n_levels=depth, static_kernel=static_kernel)
-    # a SignatureKernel object, which works as a callable for computing the signature kernel matrix
-    lr_sig_kernel.fit(X)
-    K_XX = lr_sig_kernel(X)  # K_XX has shape (10, 10)
-    K_XY = lr_sig_kernel(X, Y)
-    K_YY = lr_sig_kernel(Y)
-    m = K_XX.shape[0]
-    diag_X = np.diagonal(K_XX)
-    diag_Y = np.diagonal(K_YY)
-
-    Kt_XX_sums = K_XX.sum(axis=1) - diag_X
-    Kt_YY_sums = K_YY.sum(axis=1) - diag_Y
-    K_XY_sums_0 = K_XY.sum(axis=0)
-
-    Kt_XX_sum = Kt_XX_sums.sum()
-    Kt_YY_sum = Kt_YY_sums.sum()
-    K_XY_sum = K_XY_sums_0.sum()
-    mmd2 = (Kt_XX_sum + Kt_YY_sum) / (m * (m-1))
-    mmd2 -= 2 * K_XY_sum / (m * m)
-
-    return torch.tensor(mmd2)
-
-
-class Sig_MMD_loss(Loss):
-    def __init__(self, x_real, depth, **kwargs):
-        super(Sig_MMD_loss, self).__init__(**kwargs)
-        self.x_real = x_real
-        self.depth = depth
-
-    def compute(self, x_fake):
-        return Sig_mmd(self.x_real, x_fake, self.depth)
-
 
 class Predictive_FID(Loss):
 
@@ -671,140 +765,6 @@ class Predictive_KID(Loss):
 
     def compute(self, x_fake):
         return KID_score(self.model, self.x_real, x_fake)
-
-
-class cross_correlation(Loss):
-    def __init__(self, x_real, **kwargs):
-        super(cross_correlation).__init__(**kwargs)
-        self.x_real = x_real
-
-    def compute(self, x_fake):
-        fake_corre = torch.from_numpy(np.corrcoef(
-            x_fake.mean(1).permute(1, 0))).float()
-        real_corre = torch.from_numpy(np.corrcoef(
-            self.x_real.mean(1).permute(1, 0))).float()
-        return torch.abs(fake_corre-real_corre)
-
-
-def compute_expected_signature(x_path, depth: int, augmentations: Tuple, normalise: bool = True):
-    x_path_augmented = apply_augmentations(x_path, augmentations)
-    expected_signature = signatory.signature(
-        x_path_augmented, depth=depth).mean(0)
-    dim = x_path_augmented.shape[2]
-    count = 0
-    if normalise:
-        for i in range(depth):
-            expected_signature[count:count + dim**(
-                i+1)] = expected_signature[count:count + dim**(i+1)] * math.factorial(i+1)
-            count = count + dim**(i+1)
-    return expected_signature
-
-
-def rmse(x, y):
-    return (x - y).pow(2).sum().sqrt()
-
-
-class SigW1Metric:
-    def __init__(self, depth: int, x_real: torch.Tensor, augmentations: Optional[Tuple] = (Scale(),), normalise: bool = True):
-        assert len(x_real.shape) == 3, \
-            'Path needs to be 3-dimensional. Received %s dimension(s).' % (
-                len(x_real.shape),)
-
-        self.augmentations = augmentations
-        self.depth = depth
-        self.n_lags = x_real.shape[1]
-
-        self.normalise = normalise
-        self.expected_signature_mu = compute_expected_signature(
-            x_real, depth, augmentations, normalise)
-
-    def __call__(self, x_path_nu: torch.Tensor):
-        """ Computes the SigW1 metric."""
-        device = x_path_nu.device
-        batch_size = x_path_nu.shape[0]
-        expected_signature_nu = compute_expected_signature(
-            x_path_nu, self.depth, self.augmentations, self.normalise)
-        loss = rmse(self.expected_signature_mu.to(
-            device), expected_signature_nu)
-        return loss
-
-
-class SigW1Loss(Loss):
-    def __init__(self, x_real, depth, **kwargs):
-        name = kwargs.pop('name')
-        super(SigW1Loss, self).__init__(name=name)
-        self.sig_w1_metric = SigW1Metric(x_real=x_real, depth=depth, **kwargs)
-
-    def compute(self, x_fake):
-        loss = self.sig_w1_metric(x_fake)
-        return loss
-
-# W1 metric
-
-
-class W1(Loss):
-    def __init__(self, D, x_real, **kwargs):
-        name = kwargs.pop('name')
-        super(W1, self).__init__(name=name)
-        self.D = D
-        self.D_real = D(x_real).mean()
-
-    def compute(self, x_fake):
-        loss = self.D_real-self.D(x_fake).mean()
-        return loss
-
-
-def skew_torch(x, dim=(0, 1), dropdims=True):
-    x = x - x.mean(dim, keepdims=True)
-    x_3 = torch.pow(x, 3).mean(dim, keepdims=True)
-    x_std_3 = torch.pow(x.std(dim, unbiased=True, keepdims=True), 3)
-    skew = x_3 / x_std_3
-    if dropdims:
-        skew = skew[0, 0]
-    return skew
-
-
-def kurtosis_torch(x, dim=(0, 1), excess=True, dropdims=True):
-    x = x - x.mean(dim, keepdims=True)
-    x_4 = torch.pow(x, 4).mean(dim, keepdims=True)
-    x_var2 = torch.pow(torch.var(x, dim=dim, unbiased=False, keepdims=True), 2)
-    kurtosis = x_4 / x_var2
-    if excess:
-        kurtosis = kurtosis - 3
-    if dropdims:
-        kurtosis = kurtosis[0, 0]
-    return kurtosis
-
-
-def diff(x): return x[:, 1:] - x[:, :-1]
-
-
-test_metrics = {
-    'Sig_mmd': partial(Sig_MMD_loss, name='Sig_mmd', depth=4),
-    'SigW1': partial(SigW1Loss, name='SigW1', augmentations=[], normalise=False, depth=4),
-    'marginal_distribution': partial(HistoLoss, n_bins=50, name='marginal_distribution'),
-    'cross_correl': partial(CrossCorrelLoss, name='cross_correl'),
-    'covariance': partial(CovLoss, name='covariance'),
-    'auto_correl': partial(ACFLoss, name='auto_correl')}
-
-
-def is_multivariate(x: torch.Tensor):
-    """ Check if the path / tensor is multivariate. """
-    return True if x.shape[-1] > 1 else False
-
-
-def get_standard_test_metrics(x: torch.Tensor, **kwargs):
-    """ Initialise list of standard test metrics for evaluating the goodness of the generator. """
-    if 'model' in kwargs:
-        model = kwargs['model']
-    test_metrics_list = [test_metrics['Sig_mmd'](x),
-                         test_metrics['SigW1'](x),
-                         test_metrics['marginal_distribution'](x),
-                         test_metrics['cross_correl'](x),
-                         test_metrics['covariance'](x),
-                         test_metrics['auto_correl'](x)
-                         ]
-    return test_metrics_list
 
 
 def sig_mmd_permutation_test(X, Y, num_permutation) -> float:

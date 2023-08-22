@@ -51,15 +51,18 @@ class AddTime(BaseAugmentation):
 
 
 def AddTime(x):
+    """
+    Time augmentation for paths
+    Parameters
+    ----------
+    x: torch.tensor, [B, L, D]
+
+    Returns
+    -------
+    Time-augmented paths, torch.tensor, [B, L, D+1]
+    """
     t = get_time_vector(x.shape[0], x.shape[1]).to(x.device)
     return torch.cat([t, x], dim=-1)
-
-
-def sample_indices(dataset_size, batch_size):
-    indices = torch.from_numpy(np.random.choice(
-        dataset_size, size=batch_size, replace=False)).cuda()
-    # functions torch.-multinomial and torch.-choice are extremely slow -> back to numpy
-    return indices.long()
 
 
 def to_numpy(x):
@@ -106,6 +109,12 @@ def load_obj(filepath):
 
 
 def init_weights(m):
+    """
+    Initialize model weights
+    Parameters
+    ----------
+    m: torch.nn.module
+    """
     if isinstance(m, nn.Linear):
         nn.init.xavier_uniform_(
             m.weight.data, gain=nn.init.calculate_gain('relu'))
@@ -117,6 +126,7 @@ def init_weights(m):
 
 
 def get_experiment_dir(config):
+    """Creates local directory for model saving and assessment"""
     if config.model_type == 'VAE':
         exp_dir = './numerical_results/{dataset}/algo_{gan}_Model_{model}_n_lag_{n_lags}_{seed}'.format(
             dataset=config.dataset, gan=config.algo, model=config.model, n_lags=config.n_lags, seed=config.seed)
