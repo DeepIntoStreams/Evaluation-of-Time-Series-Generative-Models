@@ -247,7 +247,7 @@ def compare_acf_matrix(real_dl, fake_dl, config):
     plot_non_stationary_autocorrelation(acf_real, acf_fake, config)
 
 
-def visualization(real_dl, fake_dl, config, plot_show=False):
+def tsne_plot(real_dl, fake_dl, config, plot_show=False):
     real_X, fake_X = loader_to_tensor(real_dl), loader_to_tensor(fake_dl)
     # Analysis sample size (for faster computation)
     anal_sample_no = min([1000, len(real_X)])
