@@ -6,7 +6,7 @@ The main objective of the project is to summarize the evaluation metrics used in
 ## Test metrics
 We include the following test metric in our code pipeline:
 - Sig-W1 metric [1]: a generic metric for distribution induced by time series.  
-- Metrics on marginal distribution [1]: to measure the fitting of generative models in terms of the fitting of the marginal distribution.  
+- Metrics on marginal distribution [1]: to measure the fitting of generative models in terms of the marginal distribution.  
 - Metrics on dependency [1]: to measure the fitting of generative models in terms of correlation and autocorrelation.  
 - Discriminative score [2]: to train a classifier to distinguish whether the sample is from the true distribution or synthetic distribution. The smaller the discriminative score, the better generator.  
 - Predictive score [2]: train a sequence-to-sequence model to predict the latter part of a time series given the first part, using generated data, then evaluate the true data. Smaller losses, meaning the ability to predict, are better.  
