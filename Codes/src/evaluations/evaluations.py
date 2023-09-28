@@ -703,3 +703,55 @@ def full_evaluation(generator, real_train_dl, real_test_dl, config, **kwargs):
     wandb.run.summary['acf_loss_std'] = acf_std
     wandb.run.summary['permutation_test_power'] = power
     wandb.run.summary['permutation_test_type1_error'] = type1_error
+
+
+def full_eval_aggregation(generator, real_train_dl, real_test_dl, config, **kwargs):
+    for cfg_metric in config.TestMetrics:
+        if cfg_metric.enable:
+            eval_component(cfg_metric.name,generator, real_train_dl, real_test_dl, config, **kwargs)
+
+def eval_component(metric_name,generator, real_train_dl, real_test_dl, config, **kwargs):
+    """ evaluation for the synthetic generation, including.
+        discriminative score, predictive score, predictive_FID, predictive_KID
+        We compute the mean and std of evaluation scores
+        with 10000 samples and 10 repetitions
+    Args:
+        generator (_type_): torch.model
+        real_X (_type_): torch.tensor
+    """
+    sns.set()
+    d_scores = []
+    real_data = torch.cat([loader_to_tensor(real_train_dl),
+                          loader_to_tensor(real_test_dl)])
+    dim = real_data.shape[-1]
+
+    for i in tqdm(range(5)):
+        # take random 10000 samples from real dataset
+        idx = torch.randint(real_data.shape[0], (10000,))
+        real_train_dl = DataLoader(TensorDataset(
+            real_data[idx[:-2000]]), batch_size=128)
+        real_test_dl = DataLoader(TensorDataset(
+            real_data[idx[-2000:]]), batch_size=128)
+        if 'recovery' in kwargs:
+            recovery = kwargs['recovery']
+            fake_train_dl = fake_loader(generator, num_samples=8000,
+                                        n_lags=config.n_lags, batch_size=128, config=config, recovery=recovery)
+            fake_test_dl = fake_loader(generator, num_samples=2000,
+                                       n_lags=config.n_lags, batch_size=128, config=config, recovery=recovery
+                                       )
+        else:
+            fake_train_dl = fake_loader(generator, num_samples=8000,
+                                        n_lags=config.n_lags, batch_size=128, config=config)
+            fake_test_dl = fake_loader(generator, num_samples=2000,
+                                       n_lags=config.n_lags, batch_size=128, config=config
+                                       )
+
+        d_score_mean, d_score_std = compute_discriminative_score(
+            real_train_dl, real_test_dl, fake_train_dl, fake_test_dl, config, int(dim/2), 1, epochs=10, batch_size=128)
+        d_scores.append(d_score_mean)
+
+        d_mean, d_std = np.array(d_scores).mean(), np.array(d_scores).std()
+
+    print('discriminative score with mean:', d_mean, 'std:', d_std)
+    wandb.run.summary['discriminative_score_mean'] = d_mean
+    wandb.run.summary['discriminative_score_std'] = d_std
