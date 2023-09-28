@@ -6,8 +6,13 @@ version: test
 data_dir_X_train: test/X_train.pt
 data_dir_X_test: test/X_test.pt
 
-wandb_api: '34923b26ec845253d7e7f69ac79333ed299e4af4'
-wandb_mode: 'dryrun'
+WANDB:
+  wandb_mode: 'dryrun'
+  wandb_api: '34923b26ec845253d7e7f69ac79333ed299e4af4'
+  log:
+    root_dir: './numerical_results'
+    image: False
+
 train: True
 pretrained: False
 
@@ -17,7 +22,7 @@ n_lags: 50
 batch_size: 256
 steps: 10
 
-TimeGAN:
+TimeGANs:
   model_type: GAN
   algo: TimeGAN  
   generator: LSTM
@@ -29,7 +34,7 @@ TimeGAN:
   lr_D: 0.003
   D_steps_per_G_step: 3
   batch_size: 256
-  steps: 10
+  steps: 5
   #generator hyperparameter:
   G_input_dim: 5
   G_hidden_dim: 64 

@@ -62,13 +62,14 @@ class BaseTrainer:
                                         '_test'].append(loss)
         if step % 100 == 0:
 
-            self.plot_sample(x_real, x_fake[:config.batch_size], self.config)
-            wandb.log({'fake_samples': wandb.Image(
-                pt.join(self.config.exp_dir, 'x_fake.png'))}, step)
-            wandb.log({'real_samples': wandb.Image(
-                pt.join(self.config.exp_dir, 'x_real.png'))}, step)
-            torch.save(self.G.state_dict(),
-                       pt.join(wandb.run.dir, 'generator_state_dict.pt'))
+            torch.save(self.G.state_dict(),pt.join(wandb.run.dir, 'generator_state_dict.pt'))
+            
+            if self.config.WANDB.log.image:
+                self.plot_sample(x_real, x_fake[:config.batch_size], self.config)
+                wandb.log({'fake_samples': wandb.Image(
+                    pt.join(self.config.exp_dir, 'x_fake.png'))}, step)
+                wandb.log({'real_samples': wandb.Image(
+                    pt.join(self.config.exp_dir, 'x_real.png'))}, step)
 
     @staticmethod
     def plot_sample(real_X, fake_X, config):

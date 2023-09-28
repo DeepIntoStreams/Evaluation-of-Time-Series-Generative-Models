@@ -19,7 +19,7 @@ def get_test_default_config(test_config='test/test_config.yaml',model_type=None)
     config.algo = 'TimeGAN'
     config.dataset = 'GBM'
     os.environ['WANDB_START_METHOD']='thread'
-    config.steps = 10
+    config.steps = 5
 
     if model_type is not None:
         if model_type == 'TimeGAN' or model_type == 'TimeVAE':
@@ -29,13 +29,17 @@ def get_test_default_config(test_config='test/test_config.yaml',model_type=None)
             raise Exception("Model type not supported")
     return config
 
+def update_config(config, **kwargs):
+    for k,v in kwargs.items():
+        config[k] = v
+    return config
 
 def test_init(config=None):
     if config is None:
         config = get_test_default_config()
 
-    if config['wandb_api'] is not None:
-        os.environ["WANDB_API_KEY"] = config['wandb_api']
+    if config.WANDB.wandb_api is not None:
+        os.environ["WANDB_API_KEY"] = config.WANDB.wandb_api
         tags = [
         config.algo,
         config.dataset,
@@ -48,11 +52,10 @@ def test_init(config=None):
             tags=tags,
             group=config.dataset,
             name=config.algo,
-            mode=config.wandb_mode
+            mode=config.WANDB.wandb_mode
         )
         # config = wandb.config
         
-
         if (config.device == "cuda" and torch.cuda.is_available()):
             config.update({"device": "cuda:0"}, allow_val_change=True)
             if torch.cuda.is_available():
@@ -65,7 +68,7 @@ def test_init(config=None):
             config.update({"device": "cpu"}, allow_val_change=True)
             if config.seed is not None:
                 set_seed(config.seed)
-                
+
         return config
     # else:
     #     raise Exception("Wandb API key is not provided")
