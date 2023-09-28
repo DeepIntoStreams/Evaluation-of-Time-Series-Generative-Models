@@ -1,0 +1,80 @@
+device: cpu
+seed: 0
+gpu_id : '0'
+version: test
+
+data_dir_X_train: test/X_train.pt
+data_dir_X_test: test/X_test.pt
+
+wandb_api: '34923b26ec845253d7e7f69ac79333ed299e4af4'
+wandb_mode: 'dryrun'
+train: True
+pretrained: False
+
+dataset: GBM
+conditional: False
+n_lags: 50
+batch_size: 256
+steps: 10
+
+TimeGAN:
+  model_type: GAN
+  algo: TimeGAN  
+  generator: LSTM
+  discriminator: LSTM
+  # n_lags, length of the time series, STOCKs:20
+  n_lags: 50
+  #hyperparameters:
+  lr_G: 0.002
+  lr_D: 0.003
+  D_steps_per_G_step: 3
+  batch_size: 256
+  steps: 10
+  #generator hyperparameter:
+  G_input_dim: 5
+  G_hidden_dim: 64 
+  G_num_layers: 2
+  init_fixed: False
+  #discriminator hyperparameter:
+  D_hidden_dim: 64
+  D_num_layers: 3
+  D_out_dim: 5
+
+TimeVAE:
+  model_type: VAE
+  algo: TimeVAE
+  train: True
+  pretrained: False
+  model: TimeVAE
+  n_lags: 50
+  #hyperparameters:
+  lr_G: 0.002
+  batch_size: 256
+  steps: 10
+
+  #vae hyperparameter:
+  input_dim: 5
+  latent_dim: 64
+  reconstruction_wt: 3.0
+  hidden_layer_sizes: [64, 64]
+
+  #decoder hyperparameter:
+  trend_poly: 0
+  num_gen_seas: 0
+  custom_seas: 
+  use_scaler: False
+  use_residual_conn: True
+
+
+TestMetrics:
+    D_Score: 
+      enable: True
+      name: 'discriminative_score'
+      dscore_hidden_size: 32
+      dscore_epochs : 30
+      dscore_num_layers: 2
+
+
+comment: this is a test config for test.py
+
+
