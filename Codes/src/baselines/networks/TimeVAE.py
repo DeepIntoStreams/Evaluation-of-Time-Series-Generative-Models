@@ -174,10 +174,10 @@ def conv_length(init_length, number_of_layers, kernel=3, stride=2, padding=1):
 
 
 def inverse_conv_length(init_length, number_of_layers, kernel=3, stride=2, padding=1):
-    print(init_length)
+    # print(init_length)
     for i in range(number_of_layers):
         init_length = int(((init_length - 1) * stride - 2 * padding + kernel))
-        print(init_length)
+        # print(init_length)
     return init_length
 
 

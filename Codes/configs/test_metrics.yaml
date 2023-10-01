@@ -9,3 +9,55 @@ dscore_num_layers: 2
 pscore_hidden_size: 64
 pscore_epochs : 50
 pscore_num_layers: 3
+
+
+Metrics:
+  # General: # To replace with precise category
+  D_Score: 
+    enable: True
+    name: 'discriminative_score'
+    dscore_hidden_size: 32
+    dscore_epochs : 30
+    dscore_num_layers: 2
+  
+  P_Score: 
+    enable: True
+    name: 'predictive_score'
+    pscore_hidden_size: 64
+    pscore_epochs : 50
+    pscore_num_layers: 3
+
+  Sig_MMD: 
+    enable: True
+    depth: 5
+    name: 'sigmmd'
+  
+  Hist_Loss: 
+    enable: True
+    n_bins: 50
+    name: 'marginal_distribution'
+
+  Cross_Corr: 
+    enable: True
+    max_lag: 64
+    name: 'CrossCorrelation'
+
+  Cov_Loss: 
+    enable: True
+    name: 'covariance'
+
+  ACF_Loss: 
+    enable: True
+    name: 'auto_correlation'
+    max_lag: 64
+    stationary: True
+
+  SigW1_Loss: 
+    enable: True
+    depth: 2
+    name: 'sigw1'
+
+
+
+
+

@@ -58,8 +58,8 @@ def get_trainer(config, train_dl, test_dl):
             input_dim=config.G_input_dim, hidden_dim=config.G_hidden_dim, output_dim=config.input_dim, n_layers=config.G_num_layers, init_fixed=config.init_fixed)
         discriminator = DISCRIMINATORS[config.discriminator](
             input_dim=config.input_dim, hidden_dim=config.D_hidden_dim, out_dim=D_out_dim, n_layers=config.D_num_layers, return_seq=return_seq)
-        print('GENERATOR:', generator)
-        print('DISCRIMINATOR:', discriminator)
+        # print('GENERATOR:', generator)
+        # print('DISCRIMINATOR:', discriminator)
 
         trainer = {
             "ROUGH_RCGAN": RCGANTrainer(G=generator, D=discriminator,
@@ -103,7 +103,7 @@ def get_trainer(config, train_dl, test_dl):
                                  latent_dim=config.latent_dim,
                                  reconstruction_wt=config.reconstruction_wt)
 
-        print('VAE:', vae)
+        # print('VAE:', vae)
 
         trainer = {model_name: TimeVAETrainer(G=vae,
                                               test_metrics_train=test_metrics_train, test_metrics_test=test_metrics_test,

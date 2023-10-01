@@ -40,5 +40,13 @@ Lambda: 0
 add_time: True
 include_D: False
 
+
+WANDB: #TODO: switch to this part for wandb later
+  wandb_mode: 'online'
+  wandb_api: 
+  log:
+    root_dir: './numerical_results'
+    image: True
+
 comment: 
 
