@@ -13,7 +13,7 @@ import os
 from src.utils import set_seed
 
 
-def get_test_default_config(test_config='test/test_config.yaml',model_type=None):
+def get_test_default_config(test_config='unit_tests/test_config.yaml',model_type=None):
     with open(test_config) as file:
             config = ml_collections.ConfigDict(yaml.safe_load(file))
     config.algo = 'TimeGAN'

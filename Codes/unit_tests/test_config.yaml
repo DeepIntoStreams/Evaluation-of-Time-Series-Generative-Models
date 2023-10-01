@@ -3,12 +3,12 @@ seed: 0
 gpu_id : '0'
 version: test
 
-data_dir_X_train: test/X_train.pt
-data_dir_X_test: test/X_test.pt
+data_dir_X_train: unit_tests/X_train.pt
+data_dir_X_test: unit_tests/X_test.pt
 
 WANDB:
   wandb_mode: 'dryrun'
-  wandb_api: '34923b26ec845253d7e7f69ac79333ed299e4af4'
+  wandb_api: 'a0a43a4b820d0a581e3579b07d15bd9881f4b559'
   log:
     root_dir: './numerical_results'
     image: False
