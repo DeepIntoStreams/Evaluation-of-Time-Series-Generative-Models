@@ -14,6 +14,7 @@ def get_dataset(
     config: ml_collections.ConfigDict,
     num_workers: int = 4,
     data_root="./data",
+    shuffle: bool = True
 ) -> Tuple[dict, torch.utils.data.DataLoader]:
     """
     Create datasets loaders for the chosen datasets
@@ -43,13 +44,13 @@ def get_dataset(
     training_loader = DataLoader(
         training_set,
         batch_size=config.batch_size,
-        shuffle=True,
+        shuffle=shuffle,
         num_workers=num_workers,
     )
     test_loader = DataLoader(
         test_set,
         batch_size=config.batch_size,
-        shuffle=True,
+        shuffle=shuffle,
         num_workers=num_workers,
     )
     config.update({"n_lags": next(iter(test_loader))[

@@ -54,5 +54,12 @@ D_hidden_dim: 64
 D_num_layers: 3
 D_out_dim: 5
 
+WANDB: #TODO: switch to this part for wandb later
+  wandb_mode: 'online'
+  wandb_api: 
+  log:
+    root_dir: './numerical_results'
+    image: True
+
 comment: 
 
