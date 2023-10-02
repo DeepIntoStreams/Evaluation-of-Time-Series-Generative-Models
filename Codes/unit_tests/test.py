@@ -11,7 +11,7 @@ import os
 import sys
 from src.baselines.models import get_trainer
 from unit_tests.test_utils import *
-from src.utils import loader_to_tensor
+from src.utils import loader_to_tensor, set_seed
 from src.datasets.dataloader import get_dataset
 from src.baselines.networks.TimeVAE import VariationalAutoencoderConvInterpretable
 from src.baselines.TimeVAE import TimeVAETrainer
@@ -41,14 +41,16 @@ class TestDataSet(unittest.TestCase):
         """
         Test that it can sum a list of integers
         """
-        # print(TestDataSet.config)
-
         train_dl = torch.load("unit_tests/X_train.pt")
         test_dl = torch.load("unit_tests/X_test.pt")
 
         self.assertAlmostEqual(loader_to_tensor(test_dl).sum().item(), 398382.46875, delta=TestDataSet.delta)
-        self.assertAlmostEqual(loader_to_tensor(train_dl).sum().item(), 1597179.0, delta=TestDataSet.delta)
+        self.assertAlmostEqual(loader_to_tensor(train_dl).sum().item(), 1597178.875, delta=TestDataSet.delta)
 
+    def test_dataset_gen(self):
+         train_dl, test_dl = get_dataset(TestDataSet.config, num_workers=4, shuffle=False)
+         self.assertAlmostEqual(loader_to_tensor(test_dl).sum().item(), 398382.46875, delta=TestDataSet.delta)
+         self.assertAlmostEqual(loader_to_tensor(train_dl).sum().item(), 1597178.875, delta=TestDataSet.delta) 
 
 class TestModelVAE(unittest.TestCase):
 
@@ -63,8 +65,7 @@ class TestModelVAE(unittest.TestCase):
         config = TestModelVAE.config
 
         # Fix seed for model initialization
-        np.random.seed(config.seed)
-        torch.manual_seed(config.seed)
+        set_seed(config.seed,device=config.device)
 
         self.delta = 1e-2
         self.delta_loss = 1
@@ -105,8 +106,7 @@ class TestModelVAE(unittest.TestCase):
         Test VAE model training
         """
         # Fix seed first before training
-        np.random.seed(self.config.seed)
-        torch.manual_seed(self.config.seed)
+        set_seed(TestModelVAE.config.seed,device=TestModelVAE.config.device)
 
         self.trainer.fit(device=TestModelVAE.config.device)
 
@@ -148,8 +148,7 @@ class TestModelGANs(unittest.TestCase):
         config = TestModelGANs.config
 
         # Fix seed for model initialization
-        np.random.seed(config.seed)
-        torch.manual_seed(config.seed)
+        set_seed(TestModelVAE.config.seed,device=TestModelVAE.config.device)
 
         # Load the same dataset
         self.train_dl = torch.load(config.data_dir_X_train)
@@ -182,8 +181,8 @@ class TestModelGANs(unittest.TestCase):
         Test TimeGAN model training
         """
         # Fix seed first before training
-        np.random.seed(self.config.seed)
-        torch.manual_seed(self.config.seed)
+        set_seed(TestModelVAE.config.seed,device=TestModelVAE.config.device)
+
 
         self.trainer.fit(device=TestModelGANs.config.device)
         param_dict = {

@@ -74,11 +74,15 @@ def to_numpy(x):
     return x.detach().cpu().numpy()
 
 
-def set_seed(seed: int):
+def set_seed(seed: int, device='cpu'):
     """ Sets the seed to a specified value. Needed for reproducibility of experiments. """
     torch.manual_seed(seed)
     np.random.seed(seed)
 
+    if device.startswith('cuda'):
+        torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
 
 def save_obj(obj: object, filepath: str):
     """ Generic function to save an object with different methods. """
