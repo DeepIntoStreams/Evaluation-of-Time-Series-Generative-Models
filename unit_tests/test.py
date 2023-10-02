@@ -41,8 +41,8 @@ class TestDataSet(unittest.TestCase):
         """
         Test that it can sum a list of integers
         """
-        train_dl = torch.load("unit_tests/X_train.pt")
-        test_dl = torch.load("unit_tests/X_test.pt")
+        train_dl = torch.load(f"{TestDataSet.config.data_dir}/X_train.pt")
+        test_dl = torch.load(f"{TestDataSet.config.data_dir}/X_test.pt")
 
         self.assertAlmostEqual(loader_to_tensor(test_dl).sum().item(), 398382.46875, delta=TestDataSet.delta)
         self.assertAlmostEqual(loader_to_tensor(train_dl).sum().item(), 1597178.875, delta=TestDataSet.delta)
@@ -71,16 +71,16 @@ class TestModelVAE(unittest.TestCase):
         self.delta_loss = 1
 
         # Load the same dataset
-        self.train_dl = torch.load(config.data_dir_X_train)
-        self.test_dl = torch.load(config.data_dir_X_test)
+        self.train_dl = torch.load(f"{config.data_dir}/X_train.pt")
+        self.test_dl = torch.load(f"{config.data_dir}/X_test.pt")
 
-        self.x_real_train = loader_to_tensor(self.train_dl).to(config.device)
-        self.x_real_test = loader_to_tensor(self.test_dl).to(config.device)
+        # self.x_real_train = loader_to_tensor(self.train_dl).to(config.device)
+        # self.x_real_test = loader_to_tensor(self.test_dl).to(config.device)
 
-        config.input_dim = self.x_real_train.shape[-1]
+        # # config.input_dim = self.x_real_train.shape[-1]
 
-        self.test_metrics_train = get_standard_test_metrics(self.x_real_train)
-        self.test_metrics_test = get_standard_test_metrics(self.x_real_test)
+        # self.test_metrics_train = get_standard_test_metrics(self.x_real_train)
+        # self.test_metrics_test = get_standard_test_metrics(self.x_real_test)
 
         self.trainer = get_trainer(config, self.train_dl, self.test_dl)
         torch.backends.cudnn.benchmark = False
@@ -101,7 +101,7 @@ class TestModelVAE(unittest.TestCase):
             # print(k, "True: ", self.trainer.G.state_dict()[k].abs().sum().item(), "Test: ", v)
             self.assertAlmostEqual(self.trainer.G.state_dict()[k].abs().sum().item(), v, delta=self.delta)
 
-    def test_model_train(self):
+    def test_model_train(self,save=False):
         """
         Test VAE model training
         """
@@ -129,11 +129,32 @@ class TestModelVAE(unittest.TestCase):
 
         # # Test whether the loss has decreased
         # self.assertLess(final_loss, initial_loss)
+        if save:
+            save_dir = lambda filename: pt.join(self.__class__.config.data_dir, filename)
+            save_obj(self.trainer.G.encoder.state_dict(), save_dir('vae_encoder_state_dict.pt'))
+            save_obj(self.trainer.G.decoder.state_dict(), save_dir('vae_decoder_state_dict.pt'))
+            save_obj(self.trainer.G, save_dir('vae_model_state_dict.pt'))
 
 
     def test_model_eval(self):
+        fn = lambda filename: pt.join(__class__.config.data_dir, filename)
         # load pre-trained model and test model
-        pass
+        print('********size check',loader_to_tensor(self.train_dl).shape, loader_to_tensor(self.test_dl).shape)
+
+        vae = torch.load(fn('vae_model_state_dict.pt'))
+        vae.encoder.load_state_dict(torch.load(fn('vae_encoder_state_dict.pt')), strict=True)
+        vae.decoder.load_state_dict(torch.load(fn('vae_decoder_state_dict.pt')), strict=True)
+        vae.eval()
+
+        # eval: TODO decompose according to config
+        full_evaluation(vae, self.train_dl, self.test_dl,__class__.config)
+
+        # check
+        for k in ['discriminative_score_mean',
+        'discriminative_score_std',]:
+            print(k, wandb.run.summary[k])
+
+        # pass
 
 
 class TestModelGANs(unittest.TestCase):
@@ -151,8 +172,8 @@ class TestModelGANs(unittest.TestCase):
         set_seed(TestModelVAE.config.seed,device=TestModelVAE.config.device)
 
         # Load the same dataset
-        self.train_dl = torch.load(config.data_dir_X_train)
-        self.test_dl = torch.load(config.data_dir_X_test)
+        self.train_dl = torch.load(f"{config.data_dir}/X_train.pt")
+        self.test_dl = torch.load(f"{config.data_dir}/X_test.pt")
 
         self.x_real_train = loader_to_tensor(self.train_dl).to(config.device)
         self.x_real_test = loader_to_tensor(self.test_dl).to(config.device)
@@ -176,7 +197,7 @@ class TestModelGANs(unittest.TestCase):
             self.assertAlmostEqual(self.trainer.G.state_dict()[k].abs().sum().item(), v, delta=self.delta)
 
 
-    def test_model_train(self):
+    def test_model_train(self,save=False):
         """
         Test TimeGAN model training
         """
@@ -193,15 +214,63 @@ class TestModelGANs(unittest.TestCase):
         for k,v in param_dict.items():
             # print(k, "True: ", self.trainer.G.state_dict()[k].abs().sum().item(), "False: ", v)
             self.assertAlmostEqual(self.trainer.G.state_dict()[k].abs().sum().item(), v, delta=self.delta)
-
+        
 
 class TestMetrics(unittest.TestCase):
 
-    config = get_test_default_config()
+    config = copy.deepcopy(_config_default)
     delta = 1e-2
 
-    def test_metrics(self):
-        pass
+    # TODO decompose according to config
+    ref_val_map = {
+        'discriminative_score_mean': 0.067,
+        'discriminative_score_std': 0.10556,
+        'predictive_score_mean': 0.91824,
+        'predictive_score_std': 0.02692,
+        # 'sigw1_mean': 0.96064,
+        # 'sigw1_std': 0.03814,
+        # 'sig_mmd_mean':5.23808,
+        # 'sig_mmd_std': 1.57949,
+        'cross_corr_loss_mean':0.24941,
+        'cross_corr_loss_std': 0.01789,
+        'marginal_distribution_loss_mean': 0.2832,
+        'marginal_distribution_loss_std': 0.00889,
+        'cov_loss_mean': 0.08304,
+        'cov_loss_std': 0.00373,
+        # 'acf_loss_mean': np.nan,
+        # 'acf_loss_std': np.nan,
+        'permutation_test_power': 1.0,
+        'permutation_test_type1_error': 0.0
+    }
+
+    def __init__(self, methodName: str = "runTest") -> None:
+        super().__init__(methodName)
+        set_seed(__class__.config.seed,device=__class__.config.device)
+
+        self.train_dl = torch.load(pt.join(__class__.config.data_dir, 'X_train.pt'))
+        self.test_dl = torch.load(pt.join(__class__.config.data_dir, 'X_test.pt'))
+
+
+    def test_metric_vae(self):
+        # TODO: use vae as an example, will regroup metrics later
+        config = __class__.config
+        fn = lambda filename: pt.join(config.data_dir, filename)
+
+        # load pre-trained model
+        vae = torch.load(fn('vae_model_state_dict.pt'))
+        vae.encoder.load_state_dict(torch.load(fn('vae_encoder_state_dict.pt')), strict=True)
+        vae.decoder.load_state_dict(torch.load(fn('vae_decoder_state_dict.pt')), strict=True)
+        vae.eval()
+
+        # eval: TODO decompose according to config
+        set_seed(config.seed,device=config.device)
+        full_evaluation(vae, self.train_dl, self.test_dl, config, algo='TimeVAE')
+
+        # check
+        for k,val in self.__class__.ref_val_map.items():
+            # print(k,wandb.run.summary[k])
+            self.assertAlmostEqual(wandb.run.summary[k], val, delta=self.__class__.delta)
+        
 
 
 

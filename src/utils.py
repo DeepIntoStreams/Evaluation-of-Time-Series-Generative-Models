@@ -7,6 +7,7 @@ import pickle
 from dataclasses import dataclass
 from typing import List, Tuple
 import os
+import cupy
 
 
 def to_numpy(x):
@@ -78,6 +79,7 @@ def set_seed(seed: int, device='cpu'):
     """ Sets the seed to a specified value. Needed for reproducibility of experiments. """
     torch.manual_seed(seed)
     np.random.seed(seed)
+    # cupy.random.seed(seed)
 
     if device.startswith('cuda'):
         torch.cuda.manual_seed_all(seed)

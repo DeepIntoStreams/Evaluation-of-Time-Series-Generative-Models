@@ -1,10 +1,10 @@
-device: cpu
+device: cuda
 seed: 0
 gpu_id : '0'
 version: test
 
-data_dir_X_train: unit_tests/X_train.pt
-data_dir_X_test: unit_tests/X_test.pt
+data_dir: unit_tests/data
+data_dir: unit_tests/data
 
 WANDB:
   wandb_mode: 'dryrun'
@@ -78,6 +78,19 @@ TestMetrics:
       dscore_hidden_size: 32
       dscore_epochs : 30
       dscore_num_layers: 2
+
+
+# TODO: to merge into TestMetrics session after restructure full eval
+dscore_hidden_size: 32
+dscore_epochs : 30
+dscore_num_layers: 2
+pscore_hidden_size: 64
+pscore_epochs : 50
+pscore_num_layers: 3
+
+sample_size: 1000
+test_ratio: 0.2
+# batch_size: 32
 
 
 comment: this is a test config for test.py

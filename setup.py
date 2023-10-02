@@ -5,7 +5,7 @@ setup(
     version="0.0.1",
     author="DeepIntoStreams",
     description="Codebase for evaluation of time series generation ",
-    url="https://github.com/DeepIntoStreams/Evaluation-of-Time-Series-Generative-Models/tree/main/Codes",
+    url="https://github.com/DeepIntoStreams/Evaluation-of-Time-Series-Generative-Models/tree/main/",
     packages=find_packages(),
     python_requires='>=3.7',
     install_requires=['matplotlib == 3.5.2',

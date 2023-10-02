@@ -35,7 +35,7 @@ We implement some popular models for time series generation including:
 - Recurrent Conditional GAN (RCGAN) [3];
 - Time-VAE [4].
 
-For detailed instructions on repository structure and usage, refer to [Codes/README.md](Codes/README.md).
+For detailed instructions on repository structure and usage, refer to [src/README.md](src/README.md).
 ## Reference
 [1] Ni, H., Szpruch, L., Wiese, M., Liao, S. and Xiao, B., 2021. Sig-Wasserstein GANs for Time Series Generation.  
 [2] Yoon, J., Jarrett, D. and Van der Schaar, M., 2019. Time-series generative adversarial networks. Advances in neural information processing systems, 32.  

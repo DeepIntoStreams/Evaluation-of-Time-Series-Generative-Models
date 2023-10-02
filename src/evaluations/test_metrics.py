@@ -15,7 +15,7 @@ from scipy import linalg
 from sklearn.metrics.pairwise import polynomial_kernel
 # import signatory
 import ksig
-from src.utils import AddTime
+from src.utils import AddTime, set_seed
 import signatory
 
 
@@ -67,7 +67,8 @@ def non_stationary_acf_torch(X, symmetric=False):
 
     for i in range(D):
         # Compute the correlation between X_{t, d} and X_{t-tau, d}
-        correlations[:, :, i] = torch.corrcoef(X[:, :, i].t())
+        # correlations[:, :, i] = torch.corrcoef(X[:, :, i].t())
+        correlations[:, :, i] = torch.from_numpy(np.corrcoef(to_numpy(X[:, :, i]).T))
 
     if not symmetric:
         # Loop through each time step from lag to T-1
@@ -380,12 +381,12 @@ def Sig_mmd(X, Y, depth):
     X = to_numpy(AddTime(X))
     Y = to_numpy(AddTime(Y))
     n_components = 20
+
     static_kernel = ksig.static.kernels.RBFKernel()
     # an RBF base kernel for vector-valued data which is lifted to a kernel for sequences
     static_feat = ksig.static.features.NystroemFeatures(
         static_kernel, n_components=n_components)
     # Nystroem features with an RBF base kernel
-
     proj = ksig.projections.CountSketchRandomProjection(
         n_components=n_components)
     # a CountSketch random projection
