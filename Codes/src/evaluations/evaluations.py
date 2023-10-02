@@ -10,17 +10,30 @@ from os import path as pt
 import seaborn as sns
 from src.evaluations.test_metrics import Sig_mmd, SigW1Loss, CrossCorrelLoss, HistoLoss, CovLoss, ACFLoss, sig_mmd_permutation_test
 import numpy as np
-from sklearn.manifold import TSNE
 import os
 import signatory
 
 
 def _train_classifier(model, train_loader, test_loader, config, epochs=100):
+    """
+    Train a NN-based classifier to obtain the discriminative score
+    Parameters
+    ----------
+    model: torch.nn.module
+    train_loader: torch.utils.data DataLoader: dataset for training
+    test_loader: torch.utils.data DataLoader: dataset for testing
+    config: configuration file
+    epochs: number of epochs for training
+
+    Returns
+    -------
+    test_acc: model's accuracy in test dataset
+    test_loss: model's cross-entropy loss in test dataset
+    """
     # Training parameter
     device = config.device
     # clip = config.clip
     # iterate over epochs
-    print(model)
 
     optimizer = torch.optim.Adam(
         model.parameters(),
@@ -33,8 +46,8 @@ def _train_classifier(model, train_loader, test_loader, config, epochs=100):
     criterion = torch.nn.CrossEntropyLoss()
     # wandb.watch(model, criterion, log="all", log_freq=1)
     for epoch in range(epochs):
-        print("Epoch {}/{}".format(epoch + 1, epochs))
-        print("-" * 30)
+        # print("Epoch {}/{}".format(epoch + 1, epochs))
+        # print("-" * 30)
         for phase in ["train", "validation"]:
             if phase == "train":
                 model.train()
@@ -70,27 +83,23 @@ def _train_classifier(model, train_loader, test_loader, config, epochs=100):
                 # statistics of the epoch
             epoch_loss = running_loss / total
             epoch_acc = running_corrects / total
-            print("{} Loss: {:.4f} Acc: {:.4f}".format(
-                phase, epoch_loss, epoch_acc))
+            # print("{} Loss: {:.4f} Acc: {:.4f}".format(
+            #     phase, epoch_loss, epoch_acc))
 
             if phase == "validation" and epoch_acc >= best_acc:
-
                 # Updates to the weights will not happen if the accuracy is equal but loss does not diminish
                 if (epoch_acc == best_acc) and (epoch_loss > best_loss):
                     pass
                 else:
                     best_acc = epoch_acc
                     best_loss = epoch_loss
-
                     best_model_wts = copy.deepcopy(model.state_dict())
-
-                    # Log best results so far and the weights of the model.
 
                     # Clean CUDA Memory
                     del inputs, outputs, labels
                     torch.cuda.empty_cache()
 
-    print("Best Val Acc: {:.4f}".format(best_acc))
+    # print("Best Val Acc: {:.4f}".format(best_acc))
     # Load best model weights
     model.load_state_dict(best_model_wts)
     test_acc, test_loss = _test_classifier(
@@ -99,6 +108,19 @@ def _train_classifier(model, train_loader, test_loader, config, epochs=100):
 
 
 def _test_classifier(model, test_loader, config):
+    """
+    Computes the test metric for trained classifier
+    Parameters
+    ----------
+    model: torch.nn.module, trained model
+    test_loader:  torch.utils.data DataLoader: dataset for testing
+    config: configuration file
+
+    Returns
+    -------
+    test_acc: model's accuracy in test dataset
+    test_loss: model's cross-entropy loss in test dataset
+    """
     # send model to device
     device = config.device
 
@@ -131,17 +153,25 @@ def _test_classifier(model, test_loader, config):
     # Print results
     test_acc = correct / total
     test_loss = running_loss / total
-    print(
-        "Accuracy of the network on the {} test samples: {}".format(
-            total, (100 * test_acc)
-        )
-    )
+    print("Accuracy of the network on the {} test samples: {}".format(total, (100 * test_acc)))
     return test_acc, test_loss
 
 
-def _train_regressor(
-    model, train_loader, test_loader, config, epochs=100
-):
+def _train_regressor(model, train_loader, test_loader, config, epochs=100):
+    """
+    Training a predictive model to obtain the predictive score
+    Parameters
+    ----------
+    model: torch.nn.module
+    train_loader: torch.utils.data DataLoader: dataset for training
+    test_loader: torch.utils.data DataLoader: dataset for testing
+    config: configuration file
+    epochs: number of epochs for training
+
+    Returns
+    -------
+
+    """
     # Training parameter
     device = config.device
     # clip = config.clip
@@ -156,11 +186,10 @@ def _train_regressor(
     best_loss = 999
     dataloader = {'train': train_loader, 'validation': test_loader}
     criterion = torch.nn.L1Loss()
-    # wandb.watch(model, criterion, log="all", log_freq=1)
-    # wandb.watch(model, criterion, log="all", log_freq=1)
+
     for epoch in range(epochs):
-        print("Epoch {}/{}".format(epoch + 1, epochs))
-        print("-" * 30)
+        # print("Epoch {}/{}".format(epoch + 1, epochs))
+        # print("-" * 30)
         for phase in ["train", "validation"]:
             if phase == "train":
                 model.train()
@@ -188,31 +217,38 @@ def _train_regressor(
                 running_loss += loss.item() * inputs.size(0)
                 total += labels.size(0)
             epoch_loss = running_loss / total
-            print("{} Loss: {:.4f}".format(
-                phase, epoch_loss))
+            # print("{} Loss: {:.4f}".format(phase, epoch_loss))
+
         if phase == "validation" and epoch_loss <= best_loss:
 
-            # Updates to the weights will not happen if the accuracy is equal but loss does not diminish
-
             best_loss = epoch_loss
-
             best_model_wts = copy.deepcopy(model.state_dict())
-
-            # Log best results so far and the weights of the model.
 
             # Clean CUDA Memory
             del inputs, outputs, labels
             torch.cuda.empty_cache()
-    print("Best Val MSE: {:.4f}".format(best_loss))
+    # print("Best Val MSE: {:.4f}".format(best_loss))
     # Load best model weights
-    # model.load_state_dict(best_model_wts)
-    epoch_loss = _test_regressor(
+    model.load_state_dict(best_model_wts)
+    test_loss = _test_regressor(
         model, test_loader, config)
 
-    return epoch_loss
+    return test_loss
 
 
 def _test_regressor(model, test_loader, config):
+    """
+    Computes the test metric for trained classifier
+    Parameters
+    ----------
+    model: torch.nn.module, trained model
+    test_loader:  torch.utils.data DataLoader: dataset for testing
+    config: configuration file
+
+    Returns
+    -------
+    test_loss: L1 loss between the real and predicted paths by the model in test dataset
+    """
     # send model to device
     device = config.device
 
@@ -236,31 +272,42 @@ def _test_regressor(model, test_loader, config):
 
             total += labels.size(0)
 
-    # Print results
     test_loss = running_loss / total
-
     return test_loss
 
 
 def fake_loader(generator, num_samples, n_lags, batch_size, config, **kwargs):
-    if 'recovery' in kwargs:
-        recovery = kwargs['recovery']
+    """
+    Helper function that transforms the generated data into dataloader, adapted from different generative models
+    Parameters
+    ----------
+    generator: nn.module, trained generative model
+    num_samples: int,  number of paths to be generated
+    n_lags: int, the length of path to be generated
+    batch_size: int, batch size for dataloader
+    config: configuration file
+    kwargs
+
+    Returns
+    Dataload of generated data
+    -------
+
+    """
     with torch.no_grad():
         if config.algo == 'TimeGAN':
             fake_data = generator(batch_size=num_samples,
                                   n_lags=n_lags, device='cpu')
-            fake_data = recovery(fake_data)
+            if 'recovery' in kwargs:
+                recovery = kwargs['recovery']
+                fake_data = recovery(fake_data)
         elif config.algo == 'TimeVAE':
             condition = None
             fake_data = generator(num_samples, n_lags,
                                   device='cpu', condition=condition).permute([0, 2, 1])
-            print(fake_data.shape)
-
         else:
             condition = None
             fake_data = generator(num_samples, n_lags,
                                   device='cpu', condition=condition)
-            print(fake_data.shape)
         tensor_x = torch.Tensor(fake_data)
     return DataLoader(TensorDataset(tensor_x), batch_size=batch_size)
 
@@ -305,25 +352,6 @@ def compute_discriminative_score(real_train_dl, real_test_dl, fake_train_dl, fak
     mean_acc = np.mean(np.array(test_acc_list))
     std_acc = np.std(np.array(test_acc_list))
     return abs(mean_acc-0.5), std_acc
-
-
-def plot_samples1(real_dl, fake_dl, config):
-    sns.set()
-    real_X, fake_X = loader_to_tensor(real_dl), loader_to_tensor(fake_dl)
-    x_real_dim = real_X.shape[-1]
-    for i in range(x_real_dim):
-        random_indices = torch.randint(0, real_X.shape[0], (100,))
-        plt.plot(to_numpy(fake_X[:100, :, i]).T, 'C%s' % i, alpha=0.1)
-        plt.plot(
-            to_numpy(real_X[random_indices, :, i]).T, 'C%s' % i, alpha=0.1)
-        plt.savefig(pt.join(config.exp_dir, 'sample_plot{}.png'.format(i)))
-        plt.close()
-
-
-def set_style(ax):
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
-    ax.spines['bottom'].set_visible(False)
 
 
 def compute_classfication_score(real_train_dl, fake_train_dl, config,
@@ -390,57 +418,6 @@ def compute_predictive_score(real_train_dl, real_test_dl, fake_train_dl, fake_te
     mean_loss = np.mean(np.array(test_loss_list))
     std_loss = np.std(np.array(test_loss_list))
     return mean_loss, std_loss
-
-
-def visualization(real_dl, fake_dl, config, plot_show=False):
-    real_X, fake_X = loader_to_tensor(real_dl), loader_to_tensor(fake_dl)
-    # Analysis sample size (for faster computation)
-    anal_sample_no = min([1000, len(real_X)])
-    idx = np.random.permutation(len(real_X))[:anal_sample_no]
-
-  # Data preprocessing
-    ori_data = real_X.cpu().numpy()
-    generated_data = fake_X.cpu().numpy()
-
-    ori_data = ori_data[idx]
-    generated_data = generated_data[idx]
-    no, seq_len, dim = ori_data.shape
-    for i in range(anal_sample_no):
-        if (i == 0):
-            prep_data = np.reshape(np.mean(ori_data[0, :, :], 1), [1, seq_len])
-            prep_data_hat = np.reshape(
-                np.mean(generated_data[0, :, :], 1), [1, seq_len])
-        else:
-            prep_data = np.concatenate((prep_data,
-                                        np.reshape(np.mean(ori_data[i, :, :], 1), [1, seq_len])))
-            prep_data_hat = np.concatenate((prep_data_hat,
-                                            np.reshape(np.mean(generated_data[i, :, :], 1), [1, seq_len])))
-        # Do t-SNE Analysis together
-    prep_data_final = np.concatenate((prep_data, prep_data_hat), axis=0)
-    colors = ["red" for i in range(anal_sample_no)] + \
-        ["blue" for i in range(anal_sample_no)]
-    # TSNE anlaysis
-    tsne = TSNE(n_components=2, verbose=1, perplexity=40, n_iter=300)
-    tsne_results = tsne.fit_transform(prep_data_final)
-
-    # Plotting
-    f, ax = plt.subplots(1)
-
-    plt.scatter(tsne_results[:anal_sample_no, 0], tsne_results[:anal_sample_no, 1],
-                c=colors[:anal_sample_no], alpha=0.2, label="Original")
-    plt.scatter(tsne_results[anal_sample_no:, 0], tsne_results[anal_sample_no:, 1],
-                c=colors[anal_sample_no:], alpha=0.2, label="Synthetic")
-
-    ax.legend()
-
-    plt.title('t-SNE plot')
-    plt.xlabel('x-tsne')
-    plt.ylabel('y_tsne')
-    if plot_show:
-        plt.show()
-    else:
-        plt.savefig(pt.join(config.exp_dir, 't-SNE.png'))
-    plt.close()
 
 
 # def FID_score()
@@ -529,14 +506,14 @@ def train_predictive_FID_model(real_train_dl, real_test_dl, config,
 
 def sig_fid_model(X: torch.tensor, config):
     """
+    Parameters
+    ----------
+    X: torch.tensor, [N,T,C]
+    config: configuration file
 
-    Args:
-        X (torch.tensor): time series tensor N,T,C
-    Raises:
-        ValueError: _description_
-
-    Returns:
-        _type_: _description_
+    Returns
+    -------
+    Trained model that minimized the L1 loss between the real and inferred signatures
     """
     Y = signatory.signature(X, 3)
     N = X.shape[0]
@@ -567,13 +544,22 @@ def sig_fid_model(X: torch.tensor, config):
 
 
 def full_evaluation(generator, real_train_dl, real_test_dl, config, **kwargs):
-    """ evaluation for the synthetic generation, including.
-        discriminative score, predictive score, predictive_FID, predictive_KID
-        We compute the mean and std of evaluation scores
-        with 10000 samples and 10 repetitions
-    Args:
-        generator (_type_): torch.model
-        real_X (_type_): torch.tensor
+    """
+    Evaluation for the synthetic generation, including:
+    1) Stylized facts: marginal distribution, cross-correlation, autocorrelation, covariance scores.
+    2) Implicit scores: discriminative score, predictive score, predictive_FID.
+    3) Rough path scores: SigW1 metric, Signature MMD.
+    We compute the mean and std of evaluation scores with 10000 samples and 10 repetitions
+    Parameters
+    ----------
+    real_train_dl: torch.utils.data DataLoader: dataset for training
+    real_test_dl: torch.utils.data DataLoader: dataset for testing
+    config: configuration file
+    kwargs
+    Returns
+    -------
+    Results will be logged in wandb
+
     """
     sns.set()
     d_scores = []

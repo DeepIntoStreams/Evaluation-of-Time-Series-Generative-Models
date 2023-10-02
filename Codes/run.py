@@ -8,21 +8,26 @@ import yaml
 import os
 
 from os import path as pt
-from src.evaluations.evaluations import compute_discriminative_score, fake_loader, compute_classfication_score, \
-    full_evaluation
+import numpy as np
+from src.evaluations.evaluations import fake_loader, full_evaluation
 from src.evaluations.plot import plot_summary, compare_acf_matrix
 import torch
-from src.utils import get_experiment_dir, save_obj
+from src.utils import get_experiment_dir, save_obj, set_seed
 from torch import nn
 import argparse
 
 
 def main(config):
+    """
+    Main interface, provides model the model training with target datasets and final assessment of trained model
+    Parameters
+    ----------
+    config: configuration file
+    """
     os.environ["CUDA_VISIBLE_DEVICES"] = config.gpu_id
     print(os.environ["CUDA_VISIBLE_DEVICES"])
     # Set the seed
-    # torch.manual_seed(config.seed)
-    # np.random.seed(config.seed)
+    set_seed(config.seed)
 
     # initialize weight and bias
     # Place here your API key.
@@ -56,13 +61,6 @@ def main(config):
     from src.baselines.models import get_trainer
     trainer = get_trainer(config, train_dl, test_dl)
 
-    # Define transforms and create dataloaders
-
-    # WandB – wan
-    # from src.datasets.dataloader import db.watch() automatically fetches all layer dimensions, gradients, model parameters and logs them automatically to your dashboard.
-    # Using log="all" log histograms of parameter values in addition to gradients
-    # wandb.watch(model, log="all", log_freq=200) # -> There was a wandb bug that made runs in Sweeps crash
-
     # Create model directory and instantiate config.path
     get_experiment_dir(config)
 
@@ -92,8 +90,7 @@ def main(config):
     elif config.pretrained:
         pass
 
-        # Select test function
-        #_test_CIFAR10(model, test_loader, config)
+    # Create the generative model, load the parameters and do evaluation
     from src.baselines.models import GENERATORS, VAES
     if config.algo == 'TimeGAN':
         generator = GENERATORS[config.generator](
@@ -151,6 +148,7 @@ def main(config):
                                    )
         full_evaluation(generator, train_dl, test_dl, config)
 
+    # Plot the summary
     plot_summary(fake_test_dl, test_dl, config)
     # For non-stationary data, we plot the acf matrix
     if config.dataset == 'GBM' or config.dataset == 'ROUGH':

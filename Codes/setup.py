@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="Evalation-of-time-series-generation",
+    name="Evaluation-of-time-series-generation",
     version="0.0.1",
     author="DeepIntoStreams",
     description="Codebase for evaluation of time series generation ",

@@ -2,8 +2,9 @@ from random import shuffle
 import torch
 import numpy as np
 from tqdm import tqdm
-from torch.utils.data import DataLoader
 import pandas as pd
+from src.datasets.GBM import get_GBM_paths
+from src.datasets.AR1 import AROne
 from src.evaluations.test_metrics import Sig_mmd
 from src.evaluations.evaluations import compute_discriminative_score, compute_predictive_score, sig_fid_model
 from torch.utils.data import DataLoader, TensorDataset
@@ -46,43 +47,6 @@ def sig_mmd_permutation_test(X, X1, Y, num_permutation) -> float:
     type1_error = 1 - (t0 > torch.tensor(statistics).cpu(
     ).detach().numpy()).sum()/num_permutation
     return power, type1_error
-
-
-def get_gbm(size, n_lags, d=1, drift=0., scale=0.1, h=1):
-    x_real = torch.ones(size, n_lags, d)
-    x_real[:, 1:, :] = torch.exp(
-        (drift-scale**2/2)*h + (scale*np.sqrt(h)*torch.randn(size, n_lags-1, d)))
-    x_real = x_real.cumprod(1)
-    return x_real
-
-
-class AROne:
-    '''
-    :param D: dimension of x
-    :param T: sequence length
-    :param phi: parameters for AR model
-    :param s: parameter that controls the magnitude of covariance matrix
-    '''
-
-    def __init__(self, D, T, phi, s, burn=10):
-        self.D = D
-        self.T = T
-        self.phi = phi
-        self.Sig = np.eye(D) * (1 - s) + s
-        self.chol = np.linalg.cholesky(self.Sig)
-        self.burn = burn
-
-    def batch(self, N):
-        x0 = np.random.randn(N, self.D)
-        x = np.zeros((self.T + self.burn, N, self.D))
-        x[0, :, :] = x0
-        for i in range(1, self.T + self.burn):
-            x[i, ...] = self.phi * x[i - 1] + \
-                np.random.randn(N, self.D) @ self.chol.T
-
-        x = x[-self.T:, :, :]
-        x = np.swapaxes(x, 0, 1)
-        return x.astype("float32")
 
 
 class Compare_test_metrics:
@@ -195,8 +159,8 @@ if __name__ == '__main__':
         Y = torch.FloatTensor(
             AROne(D=5, T=30, phi=np.linspace(0.6, 1, 5), s=0.5).batch(50000))
     if config.dataset == 'GBM':
-        X = get_gbm(50000, 30, 5, drift=0.02, scale=0.1)
-        Y = get_gbm(50000, 30, 5, drift=0.04, scale=0.1)
+        X = get_GBM_paths(size=50000, n_lags=30, dim=5, drift=0.02, scale=0.1)
+        Y = get_GBM_paths(size=50000, n_lags=30, dim=5, drift=0.04, scale=0.1)
     df = Compare_test_metrics(X, Y, config).run_montontic_test(
         num_run=3, distubance_level=4, sample_size=10000)
     df.to_csv('numerical_results/test_metrics_test_' +
