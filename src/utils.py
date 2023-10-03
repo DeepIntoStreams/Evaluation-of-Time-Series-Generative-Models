@@ -159,3 +159,6 @@ def loader_to_cond_tensor(dl, config):
         tensor.append(y)
 
     return one_hot(torch.cat(tensor), config.num_classes).unsqueeze(1).repeat(1, config.n_lags, 1)
+
+def combine_dls(dls):
+    return torch.cat([loader_to_tensor(dl) for dl in dls])

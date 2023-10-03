@@ -767,7 +767,7 @@ class Predictive_KID(Loss):
     def compute(self, x_fake):
         return KID_score(self.model, self.x_real, x_fake)
 
-def permutation_test(test_func_arg_tuple, X, Y, num_permutation) -> float:
+def permutation_test(test_func_arg_tuple, X, Y, n_permutation) -> float:
     ''' two sample permutation test general 
     test_func (function): 
         - function inputs: two batch of test samples, 
@@ -786,17 +786,17 @@ def permutation_test(test_func_arg_tuple, X, Y, num_permutation) -> float:
         combined = torch.cat([X, Y])
 
         statistics = []
-        for i in range(num_permutation):
+        for i in range(n_permutation):
             idx1 = torch.randperm(n+m)
             stat = test_func(combined[idx1[:n]], combined[idx1[n:]],**kwargs)
             statistics.append(stat)
 
-    power = (t1 > to_numpy(torch.tensor(statistics))).sum()/num_permutation
-    type1_error = 1 - (t0 > to_numpy(torch.tensor(statistics))).sum()/num_permutation
+    power = (t1 > to_numpy(torch.tensor(statistics))).sum()/n_permutation
+    type1_error = 1 - (t0 > to_numpy(torch.tensor(statistics))).sum()/n_permutation
 
     return power, type1_error
 
-def sig_mmd_permutation_test(X, Y, num_permutation) -> float:
+def sig_mmd_permutation_test(X, Y, n_permutation) -> float:
     test_func_arg_tuple = (Sig_mmd,{'depth':5})
     return permutation_test(
-        test_func_arg_tuple, X, Y, num_permutation)
+        test_func_arg_tuple, X, Y, n_permutation)

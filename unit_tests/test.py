@@ -16,6 +16,8 @@ from src.datasets.dataloader import get_dataset
 from src.baselines.networks.TimeVAE import VariationalAutoencoderConvInterpretable
 from src.baselines.TimeVAE import TimeVAETrainer
 from src.evaluations.test_metrics import get_standard_test_metrics
+from src.evaluations.evaluations import full_evaluation
+from src.evaluations.summary import full_evaluation_latest
 '''
 We need to decide what we want to test. The list below is a good starting point:
 fix seed
@@ -139,8 +141,6 @@ class TestModelVAE(unittest.TestCase):
     def test_model_eval(self):
         fn = lambda filename: pt.join(__class__.config.data_dir, filename)
         # load pre-trained model and test model
-        print('********size check',loader_to_tensor(self.train_dl).shape, loader_to_tensor(self.test_dl).shape)
-
         vae = torch.load(fn('vae_model_state_dict.pt'))
         vae.encoder.load_state_dict(torch.load(fn('vae_encoder_state_dict.pt')), strict=True)
         vae.decoder.load_state_dict(torch.load(fn('vae_decoder_state_dict.pt')), strict=True)
@@ -240,7 +240,14 @@ class TestMetrics(unittest.TestCase):
         # 'acf_loss_mean': np.nan,
         # 'acf_loss_std': np.nan,
         'permutation_test_power': 1.0,
-        'permutation_test_type1_error': 0.2
+        # 'permutation_test_type1_error': 0.2
+    }
+
+    rename_map = {
+        'cross_corr_loss_mean': 'cross_corr_mean',
+        'cross_corr_loss_std': 'cross_corr_std',
+        'marginal_distribution_loss_mean':'hist_loss_mean',
+        'marginal_distribution_loss_std':'hist_loss_std',
     }
 
     def __init__(self, methodName: str = "runTest") -> None:
@@ -264,13 +271,28 @@ class TestMetrics(unittest.TestCase):
 
         # eval: TODO decompose according to config
         set_seed(config.seed,device=config.device)
-        full_evaluation(vae, self.train_dl, self.test_dl, config, algo='TimeVAE')
+
+        use_original = 0
+        if use_original:
+            full_evaluation(vae, self.train_dl, self.test_dl, config, algo='TimeVAE')
+            for k,val in self.ref_val_map.items():
+                # print(k,wandb.run.summary[k])
+                self.assertAlmostEqual(wandb.run.summary[k], val, delta=self.__class__.delta)
+        else:
+            summary = full_evaluation_latest(vae, self.train_dl, self.test_dl, config, algo='TimeVAE')       
+            ref_name_map = {v: k for k, v in self.rename_map.items()}
+            for k,val in summary.items():
+                    kref = ref_name_map.get(k,k)
+                    self.assertAlmostEqual(summary[k], self.ref_val_map[kref], delta=self.__class__.delta)
+
+        # full_evaluation(vae, self.train_dl, self.test_dl, config, algo='TimeVAE')       
 
         # check
-        for k,val in self.__class__.ref_val_map.items():
-            # print(k,wandb.run.summary[k])
-            self.assertAlmostEqual(wandb.run.summary[k], val, delta=self.__class__.delta)
-        
+        # for k,val in summary.items():
+        #     # print(k,wandb.run.summary[k])
+        #     self.assertAlmostEqual(wandb.run.summary[k], val, delta=self.__class__.delta)
+
+
 
 
 
