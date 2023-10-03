@@ -39,4 +39,14 @@ For detailed instructions on repository structure and usage, refer to [Codes/REA
 [4] Desai A., Freeman C., Wang, Z.H., Beaver I., 2021 TimeVAE: A Variational Auto-Encoder For Multivariate Time Series Generation. arXiv preprint arXiv:2111.08095.  
 [5] Zhang S., Guo B., Dong A., He J., Xu Z., and Chen S.X., 2017, Cautionary tales on air-quality improvement in Beijing. Proceedings of the Royal Society A: Mathematical, Physical and Engineering Sciences.
 
+## Citation
+Please use the following to cite our work if you find it useful.
 
+```
+@Misc{EvalTimeseriesGen2023,
+author =   {Hang Lou, Jiajie Tao, Xin Dong, Baoren Xiao, Lei Jiang, and Hao Ni},
+title =    {Evaluation of Time Series Generative Models},
+howpublished = {https://github.com/DeepIntoStreams/Evaluation-of-Time-Series-Generative-Models.git},
+year = {2023}
+}
+```
