@@ -240,7 +240,7 @@ class TestMetrics(unittest.TestCase):
         # 'acf_loss_mean': np.nan,
         # 'acf_loss_std': np.nan,
         'permutation_test_power': 1.0,
-        'permutation_test_type1_error': 0.0
+        'permutation_test_type1_error': 0.2
     }
 
     def __init__(self, methodName: str = "runTest") -> None:

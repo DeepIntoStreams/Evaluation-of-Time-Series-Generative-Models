@@ -767,45 +767,36 @@ class Predictive_KID(Loss):
     def compute(self, x_fake):
         return KID_score(self.model, self.x_real, x_fake)
 
+def permutation_test(test_func_arg_tuple, X, Y, num_permutation) -> float:
+    ''' two sample permutation test general 
+    test_func (function): 
+        - function inputs: two batch of test samples, 
+        - output: statistic
+    '''
+    test_func, kwargs = test_func_arg_tuple
 
-def sig_mmd_permutation_test(X, Y, num_permutation) -> float:
-    """two sample permutation test
-    Args:
-        test_func (function): function inputs: two batch of test samples, output: statistic
-        X (torch.tensor): batch of samples (N,C) or (N,T,C)
-        Y (torch.tensor): batch of samples (N,C) or (N,T,C)
-        num_permutation (int):
-    Returns:
-        float: test power
-    """
-    # compute H1 statistics
-    # test_func.eval()
-
-    # We first split the data X into two subsets
     idx = torch.randint(X.shape[0], (X.shape[0],))
-
     X1 = X[idx[-int(X.shape[0]//2):]]
     X = X[idx[:-int(X.shape[0]//2)]]
-
     with torch.no_grad():
+        t0 = to_numpy(test_func(X, X1,**kwargs))
+        t1 = to_numpy(test_func(X, Y,**kwargs))
 
-        t0 = Sig_mmd(X, X1, depth=5).cpu().detach().numpy()
-        t1 = Sig_mmd(X, Y, depth=5).cpu().detach().numpy()
-        print(t1)
         n, m = X.shape[0], Y.shape[0]
         combined = torch.cat([X, Y])
 
         statistics = []
-
         for i in range(num_permutation):
             idx1 = torch.randperm(n+m)
+            stat = test_func(combined[idx1[:n]], combined[idx1[n:]],**kwargs)
+            statistics.append(stat)
 
-            statistics.append(
-                Sig_mmd(combined[idx1[:n]], combined[idx1[n:]], depth=5))
-            # print(statistics)
-        # print(np.array(statistics))
-    power = (t1 > torch.tensor(statistics).cpu(
-    ).detach().numpy()).sum()/num_permutation
-    type1_error = 1 - (t0 > torch.tensor(statistics).cpu(
-    ).detach().numpy()).sum()/num_permutation
+    power = (t1 > to_numpy(torch.tensor(statistics))).sum()/num_permutation
+    type1_error = 1 - (t0 > to_numpy(torch.tensor(statistics))).sum()/num_permutation
+
     return power, type1_error
+
+def sig_mmd_permutation_test(X, Y, num_permutation) -> float:
+    test_func_arg_tuple = (Sig_mmd,{'depth':5})
+    return permutation_test(
+        test_func_arg_tuple, X, Y, num_permutation)
