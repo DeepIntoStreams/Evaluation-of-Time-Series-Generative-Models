@@ -8,7 +8,8 @@ from src.utils import loader_to_tensor, to_numpy, save_obj, combine_dls
 import matplotlib.pyplot as plt
 from os import path as pt
 import seaborn as sns
-from src.evaluations.test_metrics import Sig_mmd, SigW1Loss, CrossCorrelLoss, HistoLoss, CovLoss, ACFLoss, sig_mmd_permutation_test
+from src.evaluations.loss import Sig_mmd, SigW1Loss, CrossCorrelLoss, HistoLoss, CovLoss, ACFLoss
+from src.evaluations.loss import sig_mmd_permutation_test #TODO: move to another file
 import numpy as np
 import os
 import signatory

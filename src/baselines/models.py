@@ -5,7 +5,7 @@ from src.baselines.networks.discriminators import LSTMDiscriminator
 from src.baselines.networks.generators import LSTMGenerator
 from src.baselines.networks.TimeVAE import VariationalAutoencoderConvInterpretable
 import torch
-from src.evaluations.test_metrics import get_standard_test_metrics
+from src.evaluations.loss import get_standard_test_metrics
 from src.utils import loader_to_tensor, loader_to_cond_tensor
 GENERATORS = {'LSTM': LSTMGenerator}
 VAES = {'TimeVAE': VariationalAutoencoderConvInterpretable}

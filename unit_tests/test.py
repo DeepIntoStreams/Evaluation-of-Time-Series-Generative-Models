@@ -15,7 +15,7 @@ from src.utils import loader_to_tensor, set_seed
 from src.datasets.dataloader import get_dataset
 from src.baselines.networks.TimeVAE import VariationalAutoencoderConvInterpretable
 from src.baselines.TimeVAE import TimeVAETrainer
-from src.evaluations.test_metrics import get_standard_test_metrics
+from src.evaluations.loss import get_standard_test_metrics
 from src.evaluations.evaluations import full_evaluation
 from src.evaluations.summary import full_evaluation_latest
 '''

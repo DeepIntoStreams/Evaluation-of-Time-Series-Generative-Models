@@ -162,3 +162,8 @@ def loader_to_cond_tensor(dl, config):
 
 def combine_dls(dls):
     return torch.cat([loader_to_tensor(dl) for dl in dls])
+
+
+def is_multivariate(x: torch.Tensor):
+    """ Check if the path / tensor is multivariate. """
+    return True if x.shape[-1] > 1 else False
