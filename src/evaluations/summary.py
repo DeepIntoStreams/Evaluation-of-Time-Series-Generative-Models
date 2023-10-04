@@ -1,10 +1,51 @@
 from src.evaluations.evaluations import *
+from dataclasses import dataclass, fields
+from typing import Optional
 
 def full_evaluation_latest(generator, real_train_dl, real_test_dl, config, **kwargs):
     ec = EvaluationComponent(config, generator, real_train_dl, real_test_dl, **kwargs)
-    return ec.eval_summary()
+    summary_dict = ec.eval_summary()
+    es = EvaluationSummary()
+    es.set_values(summary_dict)
+    return es
+
+@dataclass
+class EvaluationSummary:    
+    '''
+    Store evaluation summary
+    '''
+    cross_corr_mean: Optional[float] = None
+    cross_corr_std: Optional[float] = None
+    hist_loss_mean: Optional[float] = None
+    hist_loss_std: Optional[float] = None
+    cov_loss_mean: Optional[float] = None
+    cov_loss_std: Optional[float] = None
+    acf_loss_mean: Optional[float] = None
+    acf_loss_std: Optional[float] = None
+    sigw1_mean: Optional[float] = None
+    sigw1_std: Optional[float] = None
+    sig_mmd_mean: Optional[float] = None
+    sig_mmd_std: Optional[float] = None
+    discriminative_score_mean: Optional[float] = None
+    discriminative_score_std: Optional[float] = None
+    predictive_score_mean: Optional[float] = None
+    predictive_score_std: Optional[float] = None
+    permutation_test_power: Optional[float] = None
+    permutation_test_type1_error: Optional[float] = None
+
+    def set_values(self, summary: dict):
+        for k,v in summary.items():
+            setattr(self, k, v)
+
+    def get_attrs(self):
+        return [f.name for f in fields(self)]
+    
+
 
 class EvaluationComponent(object):
+    '''
+    Evaluation component for evaluation metrics according to config
+    '''
     def __init__(self, config, generator, real_train_dl, real_test_dl, **kwargs):
         self.config = config
         self.generator = generator
@@ -82,6 +123,7 @@ class EvaluationComponent(object):
 
                 for metric in metrics_in_group:
                     print(f'---- evaluation metric = {metric} in group = {grp} ----')
+                  
                     # create eval function by metric name
                     eval_func = getattr(self, metric)
 

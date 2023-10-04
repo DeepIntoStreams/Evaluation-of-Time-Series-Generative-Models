@@ -138,6 +138,3 @@ class SigW1Metric:
         loss = eval.rmse(self.expected_signature_mu.to(
             device), expected_signature_nu)
         return loss
-
-
-

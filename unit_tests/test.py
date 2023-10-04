@@ -272,30 +272,20 @@ class TestMetrics(unittest.TestCase):
         # eval: TODO decompose according to config
         set_seed(config.seed,device=config.device)
 
-        use_original = 0
+        use_original = 1
         if use_original:
             full_evaluation(vae, self.train_dl, self.test_dl, config, algo='TimeVAE')
             for k,val in self.ref_val_map.items():
                 # print(k,wandb.run.summary[k])
                 self.assertAlmostEqual(wandb.run.summary[k], val, delta=self.__class__.delta)
         else:
-            summary = full_evaluation_latest(vae, self.train_dl, self.test_dl, config, algo='TimeVAE')       
+            summary = full_evaluation_latest(vae, self.train_dl, self.test_dl, config, algo='TimeVAE')
             ref_name_map = {v: k for k, v in self.rename_map.items()}
-            for k,val in summary.items():
+            for k in summary.get_attrs():
+                val = getattr(summary,k)
+                if val is not None:
                     kref = ref_name_map.get(k,k)
-                    self.assertAlmostEqual(summary[k], self.ref_val_map[kref], delta=self.__class__.delta)
-
-        # full_evaluation(vae, self.train_dl, self.test_dl, config, algo='TimeVAE')       
-
-        # check
-        # for k,val in summary.items():
-        #     # print(k,wandb.run.summary[k])
-        #     self.assertAlmostEqual(wandb.run.summary[k], val, delta=self.__class__.delta)
-
-
-
-
-
+                    self.assertAlmostEqual(getattr(summary,k), self.ref_val_map[kref], delta=self.__class__.delta)
 
 
 if __name__ == '__main__':
