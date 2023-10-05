@@ -100,7 +100,7 @@ def ICD(x_fake):
     ICD = 2 * (MSE_X_Y).sum()
     return ICD / (batch ** 2)
 
-def Sig_mmd(X, Y, depth):
+def Sig_mmd(X, Y, depth,seed=None):
     """
     Compute the signature MMD between two distributions
     Parameters
@@ -127,10 +127,10 @@ def Sig_mmd(X, Y, depth):
     static_kernel = ksig.static.kernels.RBFKernel()
     # an RBF base kernel for vector-valued data which is lifted to a kernel for sequences
     static_feat = ksig.static.features.NystroemFeatures(
-        static_kernel, n_components=n_components)
+        static_kernel, n_components=n_components,random_state=seed)
     # Nystroem features with an RBF base kernel
     proj = ksig.projections.CountSketchRandomProjection(
-        n_components=n_components)
+        n_components=n_components,random_state=seed)
     # a CountSketch random projection
 
     lr_sig_kernel = ksig.kernels.LowRankSignatureKernel(

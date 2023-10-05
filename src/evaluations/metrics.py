@@ -79,6 +79,22 @@ class CrossCorrelationMetric(Metric):
     def measure(self,data,lags,dim=(0, 1)):
         return eval.cacf_torch(self.transform(data),lags,dim)
     
+
+class MeanAbsDiffMetric(Metric):
+    def __init__(self,transform=lambda x: x):
+        self.transform = transform
+    
+    @property
+    def name(self):
+        return 'MeanAbsDiffMetric' 
+
+    def measure(self,data):
+        x1, x2 = self.transform(data)
+        return eval.mean_abs_diff(x1,x2)
+
+
+
+
 ########################## Signature Metric ##########################
 
 class SigExpMetric(Metric):

@@ -218,8 +218,11 @@ class TestModelGANs(unittest.TestCase):
 
 class TestMetrics(unittest.TestCase):
 
+    dummy_test = 0
+    use_original = 1
+
     config = copy.deepcopy(_config_default)
-    delta = 1e-2
+    delta = 100 if dummy_test else 1e-2
 
     # TODO decompose according to config
     ref_val_map = {
@@ -227,10 +230,10 @@ class TestMetrics(unittest.TestCase):
         'discriminative_score_std': 0.10556,
         'predictive_score_mean': 0.91824,
         'predictive_score_std': 0.02692,
-        # 'sigw1_mean': 0.96064,
-        # 'sigw1_std': 0.03814,
-        # 'sig_mmd_mean':5.23808,
-        # 'sig_mmd_std': 1.57949,
+        'sigw1_mean': 0.98041,
+        'sigw1_std': 0.03056,
+        'sig_mmd_mean':50.02236,
+        'sig_mmd_std': 35.94821,
         'cross_corr_loss_mean':0.24941,
         'cross_corr_loss_std': 0.01789,
         'marginal_distribution_loss_mean': 0.2832,
@@ -272,8 +275,7 @@ class TestMetrics(unittest.TestCase):
         # eval: TODO decompose according to config
         set_seed(config.seed,device=config.device)
 
-        use_original = 1
-        if use_original:
+        if __class__.use_original:
             full_evaluation(vae, self.train_dl, self.test_dl, config, algo='TimeVAE')
             for k,val in self.ref_val_map.items():
                 # print(k,wandb.run.summary[k])

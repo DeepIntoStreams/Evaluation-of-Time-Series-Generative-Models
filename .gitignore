@@ -164,4 +164,5 @@ wandb
 data/*
 !data/.gitkeep
 numerical_results/*
-tmp.ipynb
+tmp*.ipynb
+note*.md

@@ -78,8 +78,8 @@ Evaluation:
   metrics_enabled: [
     # 'discriminative_score',
     # 'predictive_score',
-    # 'sig_mmd',
-    # 'sigw1_loss',
+    'sig_mmd',
+    'sigw1',
     # 'hist_loss',
     # 'acf_loss',
     # 'cov_loss',

@@ -22,8 +22,8 @@ class EvaluationSummary:
     cov_loss_std: Optional[float] = None
     acf_loss_mean: Optional[float] = None
     acf_loss_std: Optional[float] = None
-    sigw1_mean: Optional[float] = None
-    sigw1_std: Optional[float] = None
+    sigw1_loss_mean: Optional[float] = None
+    sigw1_loss_std: Optional[float] = None
     sig_mmd_mean: Optional[float] = None
     sig_mmd_std: Optional[float] = None
     discriminative_score_mean: Optional[float] = None
@@ -54,6 +54,13 @@ class EvaluationComponent(object):
         self.kwargs = kwargs
         self.n_eval = self.config.Evaluation.n_eval
         self.algo = self.kwargs['algo'] if 'algo' in self.kwargs else self.config.algo
+        
+        if 'seed' in kwargs:
+            self.seed = kwargs['seed']
+        elif 'seed' in config:
+            self.seed = config.seed
+        else:
+            self.seed = None
 
         self.real_data = combine_dls([real_train_dl,real_test_dl]) 
         self.dim = self.real_data.shape[-1]
@@ -105,7 +112,6 @@ class EvaluationComponent(object):
                 'fake_test_dl':fake_test_dl
                 }
             })
-    
         return data
     
     def eval_summary(self,log_wandb=True):
@@ -183,16 +189,16 @@ class EvaluationComponent(object):
             num_layers=ecfg.pscore_num_layers, epochs=ecfg.pscore_epochs, batch_size=ecfg.pscore_batch_size)
         return p_score_mean
 
-    def sigw1_loss(self,real,fake):
+    def sigw1(self,real,fake):
         ecfg = self.config.Evaluation.TestMetrics.sigw1_loss
         loss = to_numpy(SigW1Loss(x_real=real, depth=ecfg.depth, name='sigw1')(fake))
         return loss
 
     def sig_mmd(self,real,fake):
         ecfg = self.config.Evaluation.TestMetrics.sig_mmd
-        sig_mmd = Sig_mmd(real, fake, depth=ecfg.depth)
+        sig_mmd = Sig_mmd(real, fake, depth=ecfg.depth, seed=self.seed)
         while sig_mmd > 1e3:
-            sig_mmd = Sig_mmd(real, fake, depth=ecfg.depth)
+            sig_mmd = Sig_mmd(real, fake, depth=ecfg.depth, seed=self.seed)
         return sig_mmd     
 
     def cross_corr(self,real,fake):

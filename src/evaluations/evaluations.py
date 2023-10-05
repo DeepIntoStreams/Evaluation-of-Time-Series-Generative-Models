@@ -583,6 +583,8 @@ def full_evaluation(generator, real_train_dl, real_test_dl, config, **kwargs):
     else:
         algo = config.algo
 
+    cupy_seed = config.seed if 'seed' in config.keys() else None
+
     before_update_metrics_config = 'sample_size' in config.keys()
     sample_size = int(config.sample_size) if before_update_metrics_config else 10000
     test_size = int(sample_size * config.test_ratio) if before_update_metrics_config else 2000
@@ -631,9 +633,9 @@ def full_evaluation(generator, real_train_dl, real_test_dl, config, **kwargs):
 
         sigw1_losses.append(
             to_numpy(SigW1Loss(x_real=real, depth=2, name='sigw1')(fake)))
-        sig_mmd = Sig_mmd(real, fake, depth=5)
+        sig_mmd = Sig_mmd(real, fake, depth=5,seed=cupy_seed)
         while sig_mmd > 1e3:
-            sig_mmd = Sig_mmd(real, fake, depth=5)
+            sig_mmd = Sig_mmd(real, fake, depth=5,seed=cupy_seed)
         Sig_MMDs.append(sig_mmd)
         cross_corrs.append(to_numpy(CrossCorrelLoss(
             real, name='cross_correlation')(fake)))

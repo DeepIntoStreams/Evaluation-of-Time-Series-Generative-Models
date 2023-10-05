@@ -129,3 +129,5 @@ def compute_expected_signature(x_path, depth: int, augmentations: Tuple, normali
 def rmse(x, y):
     return (x - y).pow(2).sum().sqrt()
 
+def mean_abs_diff(den1: torch.Tensor,den2: torch.Tensor):
+    return torch.mean(torch.abs(den1-den2),0)
