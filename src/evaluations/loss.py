@@ -18,7 +18,7 @@ def cc_diff(x): return torch.abs(x).sum(0)
 def cov_diff(x): return torch.abs(x).mean()
 
 class Loss(nn.Module):
-    def __init__(self, name, reg=1.0, transform=lambda x: x, threshold=10., backward=False, norm_foo=lambda x: x):
+    def __init__(self, name, reg=1.0, transform=lambda x: x, threshold=10., backward=False, norm_foo=lambda x: x, seed=None):
         super(Loss, self).__init__()
         self.name = name
         self.reg = reg
@@ -26,6 +26,7 @@ class Loss(nn.Module):
         self.threshold = threshold
         self.backward = backward
         self.norm_foo = norm_foo
+        self.seed = seed
 
     def forward(self, x_fake):
         self.loss_componentwise = self.compute(x_fake)
@@ -33,7 +34,7 @@ class Loss(nn.Module):
 
     def compute(self, x_fake):
         raise NotImplementedError()
-
+    
     @property
     def success(self):
         return torch.all(self.loss_componentwise <= self.threshold)
@@ -173,19 +174,20 @@ class CovLoss(Loss):
         return loss
 
 
-class Sig_MMD_loss(Loss):
+class SigMMDLoss(Loss):
     """
     Signature MMD Loss
     """
     def __init__(self, x_real, depth, **kwargs):
-        super(Sig_MMD_loss, self).__init__(**kwargs)
+        super(SigMMDLoss, self).__init__(**kwargs)
         self.x_real = x_real
         self.depth = depth
+        self.seed = kwargs.get('seed',None)
 
     def compute(self, x_fake):
-        return Sig_mmd(self.x_real, x_fake, self.depth)
-
-
+        m = SigMMDMetric(self.transform)
+        return m.measure((self.x_real, x_fake), self.depth, seed=self.seed)
+    
 class SigW1Loss(Loss):
     def __init__(self, x_real, depth, **kwargs):
         name = kwargs.pop('name')
@@ -195,7 +197,7 @@ class SigW1Loss(Loss):
     def compute(self, x_fake):
         loss = self.sig_w1_metric(x_fake)
         return loss
-    
+
 
 class Predictive_FID(Loss):
 
@@ -236,7 +238,7 @@ class W1(Loss):
 #################### Standard Metrics ####################
 
 test_metrics = {
-    'Sig_mmd': partial(Sig_MMD_loss, name='Sig_mmd', depth=4),
+    'Sig_mmd': partial(SigMMDLoss, name='Sig_mmd', depth=4),
     'SigW1': partial(SigW1Loss, name='SigW1', augmentations=[], normalise=False, depth=4),
     'marginal_distribution': partial(HistoLoss, n_bins=50, name='marginal_distribution'),
     'cross_correl': partial(CrossCorrelLoss, name='cross_correl'),

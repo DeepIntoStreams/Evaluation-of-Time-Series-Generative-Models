@@ -93,6 +93,17 @@ class MeanAbsDiffMetric(Metric):
         return eval.mean_abs_diff(x1,x2)
 
 
+class MMDMetric(Metric):
+    def __init__(self,transform=lambda x: x):
+        self.transform = transform
+    
+    @property
+    def name(self):
+        return 'MMDMetric' 
+
+    def measure(self,data):
+        x1, x2 = self.transform(data)
+        return eval.mmd(x1,x2)
 
 
 ########################## Signature Metric ##########################
@@ -113,6 +124,62 @@ class SigExpMetric(Metric):
         expected_signature = eval.compute_expected_signature(
             data, depth, augmentations, normalise)
         return expected_signature
+
+
+class SigMMDMetric(Metric):
+        # TODO: make MMD metric
+        def __init__(self,transform=lambda x: x):
+            self.transform = transform
+    
+        @property
+        def name(self):
+            return 'SigMMDMetric'
+        
+        def measure(self,data: Tuple[torch.Tensor,torch.Tensor], depth, seed = None):
+            X, Y = data
+            # convert torch tensor to numpy
+            N, L, C = X.shape
+            N1, _, C1 = Y.shape
+            X = torch.cat(
+                [torch.zeros((N, 1, C)).to(X.device), X], dim=1)
+            Y = torch.cat(
+                [torch.zeros((N1, 1, C1)).to(X.device), Y], dim=1)
+            X = to_numpy(AddTime(X))
+            Y = to_numpy(AddTime(Y))
+            n_components = 20
+
+            static_kernel = ksig.static.kernels.RBFKernel()
+            # an RBF base kernel for vector-valued data which is lifted to a kernel for sequences
+            static_feat = ksig.static.features.NystroemFeatures(
+                static_kernel, n_components=n_components,random_state=seed)
+            # Nystroem features with an RBF base kernel
+            proj = ksig.projections.CountSketchRandomProjection(
+                n_components=n_components,random_state=seed)
+            # a CountSketch random projection
+
+            lr_sig_kernel = ksig.kernels.LowRankSignatureKernel(
+                n_levels=depth, static_features=static_feat, projection=proj)
+            # sig_kernel = ksig.kernels.SignatureKernel(
+            #   n_levels=depth, static_kernel=static_kernel)
+            # a SignatureKernel object, which works as a callable for computing the signature kernel matrix
+            lr_sig_kernel.fit(X)
+            K_XX = lr_sig_kernel(X)  # K_XX has shape (10, 10)
+            K_XY = lr_sig_kernel(X, Y)
+            K_YY = lr_sig_kernel(Y)
+            m = K_XX.shape[0]
+            diag_X = np.diagonal(K_XX)
+            diag_Y = np.diagonal(K_YY)
+
+            Kt_XX_sums = K_XX.sum(axis=1) - diag_X
+            Kt_YY_sums = K_YY.sum(axis=1) - diag_Y
+            K_XY_sums_0 = K_XY.sum(axis=0)
+
+            Kt_XX_sum = Kt_XX_sums.sum()
+            Kt_YY_sum = Kt_YY_sums.sum()
+            K_XY_sum = K_XY_sums_0.sum()
+            mmd2 = (Kt_XX_sum + Kt_YY_sum) / (m * (m-1)) - 2 * K_XY_sum / (m * m)
+            return torch.tensor(mmd2)
+
 
 class SigW1Metric2(Metric):
 

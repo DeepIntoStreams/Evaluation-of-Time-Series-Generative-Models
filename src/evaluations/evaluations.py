@@ -8,7 +8,7 @@ from src.utils import loader_to_tensor, to_numpy, save_obj, combine_dls
 import matplotlib.pyplot as plt
 from os import path as pt
 import seaborn as sns
-from src.evaluations.loss import Sig_mmd, SigW1Loss, CrossCorrelLoss, HistoLoss, CovLoss, ACFLoss
+from src.evaluations.loss import Sig_mmd, SigMMDLoss, SigW1Loss, CrossCorrelLoss, HistoLoss, CovLoss, ACFLoss
 from src.evaluations.loss import sig_mmd_permutation_test #TODO: move to another file
 import numpy as np
 import os
@@ -633,9 +633,14 @@ def full_evaluation(generator, real_train_dl, real_test_dl, config, **kwargs):
 
         sigw1_losses.append(
             to_numpy(SigW1Loss(x_real=real, depth=2, name='sigw1')(fake)))
-        sig_mmd = Sig_mmd(real, fake, depth=5,seed=cupy_seed)
-        while sig_mmd > 1e3:
+        if False:
             sig_mmd = Sig_mmd(real, fake, depth=5,seed=cupy_seed)
+            while sig_mmd > 1e3:
+                sig_mmd = Sig_mmd(real, fake, depth=5,seed=cupy_seed)
+        sig_mmd = to_numpy(SigMMDLoss(x_real=real, depth=5, seed=cupy_seed, name='sigmmd')(fake))
+        while sig_mmd > 1e3:
+            sig_mmd = to_numpy(SigMMDLoss(x_real=real, depth=5, seed=cupy_seed, name='sigmmd')(fake))
+
         Sig_MMDs.append(sig_mmd)
         cross_corrs.append(to_numpy(CrossCorrelLoss(
             real, name='cross_correlation')(fake)))

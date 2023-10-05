@@ -1,6 +1,8 @@
 from src.evaluations.evaluations import *
 from dataclasses import dataclass, fields
 from typing import Optional
+from src.evaluations.metrics import *
+from src.evaluations.loss import *
 
 def full_evaluation_latest(generator, real_train_dl, real_test_dl, config, **kwargs):
     ec = EvaluationComponent(config, generator, real_train_dl, real_test_dl, **kwargs)
@@ -196,10 +198,11 @@ class EvaluationComponent(object):
 
     def sig_mmd(self,real,fake):
         ecfg = self.config.Evaluation.TestMetrics.sig_mmd
-        sig_mmd = Sig_mmd(real, fake, depth=ecfg.depth, seed=self.seed)
-        while sig_mmd > 1e3:
-            sig_mmd = Sig_mmd(real, fake, depth=ecfg.depth, seed=self.seed)
-        return sig_mmd     
+        if False:
+            metric = SigMMDMetric()
+            sig_mmd = metric.measure((real,fake),depth=ecfg.depth,seed=self.seed)
+        loss = to_numpy(SigMMDLoss(x_real=real, depth=ecfg.depth, seed=self.seed, name='sigmmd')(fake))
+        return loss     
 
     def cross_corr(self,real,fake):
         cross_corr = to_numpy(CrossCorrelLoss(real, name='cross_corr')(fake))
