@@ -7,7 +7,7 @@ import pickle
 from dataclasses import dataclass
 from typing import List, Tuple
 import os
-import cupy
+# import cupy
 
 
 def to_numpy(x):

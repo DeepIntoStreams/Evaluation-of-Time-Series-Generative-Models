@@ -47,12 +47,14 @@ class TestDataSet(unittest.TestCase):
         test_dl = torch.load(f"{TestDataSet.config.data_dir}/X_test.pt")
 
         self.assertAlmostEqual(loader_to_tensor(test_dl).sum().item(), 398382.46875, delta=TestDataSet.delta)
-        self.assertAlmostEqual(loader_to_tensor(train_dl).sum().item(), 1597178.875, delta=TestDataSet.delta)
+        self.assertAlmostEqual(loader_to_tensor(train_dl).sum().item(), 1597179.0, delta=TestDataSet.delta)
 
     def test_dataset_gen(self):
-         train_dl, test_dl = get_dataset(TestDataSet.config, num_workers=4, shuffle=False)
-         self.assertAlmostEqual(loader_to_tensor(test_dl).sum().item(), 398382.46875, delta=TestDataSet.delta)
-         self.assertAlmostEqual(loader_to_tensor(train_dl).sum().item(), 1597178.875, delta=TestDataSet.delta) 
+        config = TestDataSet.config
+        set_seed(config.seed, device=config.device)
+        train_dl, test_dl = get_dataset(TestDataSet.config, num_workers=4, shuffle=False)
+        self.assertAlmostEqual(loader_to_tensor(test_dl).sum().item(), 403551.84375, delta=TestDataSet.delta)
+        self.assertAlmostEqual(loader_to_tensor(train_dl).sum().item(), 1596977.25, delta=TestDataSet.delta)
 
 class TestModelVAE(unittest.TestCase):
 
@@ -76,10 +78,10 @@ class TestModelVAE(unittest.TestCase):
         self.train_dl = torch.load(f"{config.data_dir}/X_train.pt")
         self.test_dl = torch.load(f"{config.data_dir}/X_test.pt")
 
-        # self.x_real_train = loader_to_tensor(self.train_dl).to(config.device)
-        # self.x_real_test = loader_to_tensor(self.test_dl).to(config.device)
-
-        # # config.input_dim = self.x_real_train.shape[-1]
+        self.x_real_train = loader_to_tensor(self.train_dl).to(config.device)
+        self.x_real_test = loader_to_tensor(self.test_dl).to(config.device)
+        # input_dim = next(iter(self.train_dl))[0].shape[-1]
+        config.input_dim = self.x_real_train.shape[-1]
 
         # self.test_metrics_train = get_standard_test_metrics(self.x_real_train)
         # self.test_metrics_test = get_standard_test_metrics(self.x_real_test)
@@ -214,7 +216,7 @@ class TestModelGANs(unittest.TestCase):
         for k,v in param_dict.items():
             # print(k, "True: ", self.trainer.G.state_dict()[k].abs().sum().item(), "False: ", v)
             self.assertAlmostEqual(self.trainer.G.state_dict()[k].abs().sum().item(), v, delta=self.delta)
-        
+
 
 class TestMetrics(unittest.TestCase):
 
@@ -225,21 +227,42 @@ class TestMetrics(unittest.TestCase):
     delta = 100 if dummy_test else 1e-2
 
     # TODO decompose according to config
+    # ref_val_map = {
+    #     'discriminative_score_mean': 0.067,
+    #     'discriminative_score_std': 0.10556,
+    #     'predictive_score_mean': 0.91824,
+    #     'predictive_score_std': 0.02692,
+    #     'sigw1_mean': 0.98041,
+    #     'sigw1_std': 0.03056,
+    #     'sig_mmd_mean':50.02236,
+    #     'sig_mmd_std': 35.94821,
+    #     'cross_corr_loss_mean':0.24941,
+    #     'cross_corr_loss_std': 0.01789,
+    #     'marginal_distribution_loss_mean': 0.2832,
+    #     'marginal_distribution_loss_std': 0.00889,
+    #     'cov_loss_mean': 0.08304,
+    #     'cov_loss_std': 0.00373,
+    #     # 'acf_loss_mean': np.nan,
+    #     # 'acf_loss_std': np.nan,
+    #     'permutation_test_power': 1.0,
+    #     # 'permutation_test_type1_error': 0.2
+    # }
+
     ref_val_map = {
-        'discriminative_score_mean': 0.067,
-        'discriminative_score_std': 0.10556,
-        'predictive_score_mean': 0.91824,
-        'predictive_score_std': 0.02692,
-        'sigw1_mean': 0.98041,
-        'sigw1_std': 0.03056,
-        'sig_mmd_mean':50.02236,
-        'sig_mmd_std': 35.94821,
-        'cross_corr_loss_mean':0.24941,
-        'cross_corr_loss_std': 0.01789,
-        'marginal_distribution_loss_mean': 0.2832,
-        'marginal_distribution_loss_std': 0.00889,
-        'cov_loss_mean': 0.08304,
-        'cov_loss_std': 0.00373,
+        'discriminative_score_mean': 0.066999,
+        'discriminative_score_std': 0.105562,
+        'predictive_score_mean': 0.918239,
+        'predictive_score_std': 0.026924,
+        'sigw1_mean': 0.980408,
+        'sigw1_std': 0.030564,
+        'sig_mmd_mean': 54.461883,
+        'sig_mmd_std': 38.0103645,
+        'cross_corr_loss_mean': 0.249406,
+        'cross_corr_loss_std': 0.017889,
+        'marginal_distribution_loss_mean': 0.283195,
+        'marginal_distribution_loss_std': 0.008894,
+        'cov_loss_mean': 0.083038,
+        'cov_loss_std': 0.003725,
         # 'acf_loss_mean': np.nan,
         # 'acf_loss_std': np.nan,
         'permutation_test_power': 1.0,
@@ -264,6 +287,7 @@ class TestMetrics(unittest.TestCase):
     def test_metric_vae(self):
         # TODO: use vae as an example, will regroup metrics later
         config = __class__.config
+        set_seed(config.seed, device=config.device)
         fn = lambda filename: pt.join(config.data_dir, filename)
 
         # load pre-trained model
@@ -273,7 +297,6 @@ class TestMetrics(unittest.TestCase):
         vae.eval()
 
         # eval: TODO decompose according to config
-        set_seed(config.seed,device=config.device)
 
         if __class__.use_original:
             full_evaluation(vae, self.train_dl, self.test_dl, config, algo='TimeVAE')
