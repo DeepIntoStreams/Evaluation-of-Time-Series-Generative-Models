@@ -4,15 +4,16 @@ import wandb
 from tqdm import tqdm
 from torch.utils.data import DataLoader, TensorDataset
 import copy
-from src.utils import loader_to_tensor, to_numpy, save_obj
+from src.utils import loader_to_tensor, to_numpy, save_obj, combine_dls
 import matplotlib.pyplot as plt
 from os import path as pt
 import seaborn as sns
-from src.evaluations.test_metrics import Sig_mmd, SigW1Loss, CrossCorrelLoss, HistoLoss, CovLoss, ACFLoss, sig_mmd_permutation_test
+from src.evaluations.loss import Sig_mmd, SigMMDLoss, SigW1Loss, CrossCorrelLoss, HistoLoss, CovLoss, ACFLoss
+from src.evaluations.loss import sig_mmd_permutation_test #TODO: move to another file
 import numpy as np
 import os
 import signatory
-
+from src.utils import set_seed
 
 def _train_classifier(model, train_loader, test_loader, config, epochs=100):
     """
@@ -276,7 +277,7 @@ def _test_regressor(model, test_loader, config):
     return test_loss
 
 
-def fake_loader(generator, num_samples, n_lags, batch_size, config, **kwargs):
+def fake_loader(generator, num_samples, n_lags, batch_size, algo, **kwargs):
     """
     Helper function that transforms the generated data into dataloader, adapted from different generative models
     Parameters
@@ -294,13 +295,13 @@ def fake_loader(generator, num_samples, n_lags, batch_size, config, **kwargs):
 
     """
     with torch.no_grad():
-        if config.algo == 'TimeGAN':
+        if algo == 'TimeGAN':
             fake_data = generator(batch_size=num_samples,
                                   n_lags=n_lags, device='cpu')
             if 'recovery' in kwargs:
                 recovery = kwargs['recovery']
                 fake_data = recovery(fake_data)
-        elif config.algo == 'TimeVAE':
+        elif algo == 'TimeVAE':
             condition = None
             fake_data = generator(num_samples, n_lags,
                                   device='cpu', condition=condition).permute([0, 2, 1])
@@ -327,6 +328,7 @@ def compute_discriminative_score(real_train_dl, real_test_dl, fake_train_dl, fak
         idx = torch.randperm(x.shape[0])
 
         return DataLoader(TensorDataset(x[idx].view(x.size()), y[idx].view(y.size())), batch_size=batch_size)
+
     train_dl = create_dl(real_train_dl, fake_train_dl, batch_size)
     test_dl = create_dl(real_test_dl, fake_test_dl, batch_size)
 
@@ -575,29 +577,49 @@ def full_evaluation(generator, real_train_dl, real_test_dl, config, **kwargs):
                           loader_to_tensor(real_test_dl)])
     dim = real_data.shape[-1]
 
-    for i in tqdm(range(5)):
+    # TODO: improve (make full eval test_metrics dependent instead of main config)
+    if 'algo' in kwargs:
+        algo = kwargs['algo']
+    else:
+        algo = config.algo
+
+    cupy_seed = config.seed if 'seed' in config.keys() else None
+
+    before_update_metrics_config = 'sample_size' in config.keys()
+    sample_size = int(config.sample_size) if before_update_metrics_config else 10000
+    test_size = int(sample_size * config.test_ratio) if before_update_metrics_config else 2000
+    train_size = sample_size - test_size
+    batch_size = int(config.batch_size) if before_update_metrics_config else 256
+
+    n = 5
+    idx_all = torch.randint(real_data.shape[0], (sample_size*n,)) 
+
+    for i in tqdm(range(n)):
         # take random 10000 samples from real dataset
-        idx = torch.randint(real_data.shape[0], (10000,))
+        # TODO: to update/merge test config later
+        idx = idx_all[i*sample_size:(i+1)*sample_size]
+        # idx = torch.randint(real_data.shape[0], (sample_size,))
         real_train_dl = DataLoader(TensorDataset(
-            real_data[idx[:-2000]]), batch_size=128)
+            real_data[idx[:-test_size]]), batch_size=batch_size)
         real_test_dl = DataLoader(TensorDataset(
-            real_data[idx[-2000:]]), batch_size=128)
+            real_data[idx[-test_size:]]), batch_size=batch_size)
         if 'recovery' in kwargs:
             recovery = kwargs['recovery']
-            fake_train_dl = fake_loader(generator, num_samples=8000,
-                                        n_lags=config.n_lags, batch_size=128, config=config, recovery=recovery)
-            fake_test_dl = fake_loader(generator, num_samples=2000,
-                                       n_lags=config.n_lags, batch_size=128, config=config, recovery=recovery
+            fake_train_dl = fake_loader(generator, num_samples=train_size,
+                                        n_lags=config.n_lags, batch_size=batch_size, algo=algo, recovery=recovery)
+            fake_test_dl = fake_loader(generator, num_samples=test_size,
+                                       n_lags=config.n_lags, batch_size=batch_size, algo=algo, recovery=recovery
                                        )
         else:
-            fake_train_dl = fake_loader(generator, num_samples=8000,
-                                        n_lags=config.n_lags, batch_size=128, config=config)
-            fake_test_dl = fake_loader(generator, num_samples=2000,
-                                       n_lags=config.n_lags, batch_size=128, config=config
+            fake_train_dl = fake_loader(generator, num_samples=train_size,
+                                        n_lags=config.n_lags, batch_size=batch_size, algo=algo)
+            fake_test_dl = fake_loader(generator, num_samples=test_size,
+                                       n_lags=config.n_lags, batch_size=batch_size, algo=algo
                                        )
 
         d_score_mean, d_score_std = compute_discriminative_score(
             real_train_dl, real_test_dl, fake_train_dl, fake_test_dl, config, int(dim/2), 1, epochs=10, batch_size=128)
+        
         d_scores.append(d_score_mean)
         p_score_mean, p_score_std = compute_predictive_score(
             real_train_dl, real_test_dl, fake_train_dl, fake_test_dl, config, 32, 2, epochs=10, batch_size=128)
@@ -611,9 +633,14 @@ def full_evaluation(generator, real_train_dl, real_test_dl, config, **kwargs):
 
         sigw1_losses.append(
             to_numpy(SigW1Loss(x_real=real, depth=2, name='sigw1')(fake)))
-        sig_mmd = Sig_mmd(real, fake, depth=5)
+        if False:
+            sig_mmd = Sig_mmd(real, fake, depth=5,seed=cupy_seed)
+            while sig_mmd > 1e3:
+                sig_mmd = Sig_mmd(real, fake, depth=5,seed=cupy_seed)
+        sig_mmd = to_numpy(SigMMDLoss(x_real=real, depth=5, seed=cupy_seed, name='sigmmd')(fake))
         while sig_mmd > 1e3:
-            sig_mmd = Sig_mmd(real, fake, depth=5)
+            sig_mmd = to_numpy(SigMMDLoss(x_real=real, depth=5, seed=cupy_seed, name='sigmmd')(fake))
+
         Sig_MMDs.append(sig_mmd)
         cross_corrs.append(to_numpy(CrossCorrelLoss(
             real, name='cross_correlation')(fake)))
@@ -624,12 +651,12 @@ def full_evaluation(generator, real_train_dl, real_test_dl, config, **kwargs):
             # Compute the autocorrelation matrix
             print('compute the autocorrelation matrix')
             acf_losses.append(
-                to_numpy(ACFLoss(real, name='auto_correlation', stationary=False)(fake)))
+                to_numpy(ACFLoss(real, name='acf_loss', stationary=False)(fake)))
         else:
             hist_losses.append(
                 to_numpy(HistoLoss(real, n_bins=50, name='marginal_distribution')(fake)))
             acf_losses.append(
-                to_numpy(ACFLoss(real, name='auto_correlation')(fake)))
+                to_numpy(ACFLoss(real, name='acf_loss')(fake)))
 
         cov_losses.append(to_numpy(CovLoss(real, name='covariance')(fake)))
         # FIDs.append(predictive_fid)
@@ -655,10 +682,10 @@ def full_evaluation(generator, real_train_dl, real_test_dl, config, **kwargs):
     if 'recovery' in kwargs:
         recovery = kwargs['recovery']
         fake_data = loader_to_tensor(fake_loader(generator, num_samples=int(
-            real_data.shape[0]//2), n_lags=config.n_lags, batch_size=128, config=config, recovery=recovery))
+            real_data.shape[0]//2), n_lags=config.n_lags, batch_size=128, algo=algo, recovery=recovery))
     else:
         fake_data = loader_to_tensor(fake_loader(generator, num_samples=int(
-            real_data.shape[0]//2), n_lags=config.n_lags, batch_size=128, config=config))
+            real_data.shape[0]//2), n_lags=config.n_lags, batch_size=128, algo=algo))
     power, type1_error = sig_mmd_permutation_test(real_data, fake_data, 5)
 
     print('discriminative score with mean:', d_mean, 'std:', d_std)
@@ -689,55 +716,3 @@ def full_evaluation(generator, real_train_dl, real_test_dl, config, **kwargs):
     wandb.run.summary['acf_loss_std'] = acf_std
     wandb.run.summary['permutation_test_power'] = power
     wandb.run.summary['permutation_test_type1_error'] = type1_error
-
-
-def full_eval_aggregation(generator, real_train_dl, real_test_dl, config, **kwargs):
-    for cfg_metric in config.TestMetrics:
-        if cfg_metric.enable:
-            eval_component(cfg_metric.name,generator, real_train_dl, real_test_dl, config, **kwargs)
-
-def eval_component(metric_name,generator, real_train_dl, real_test_dl, config, **kwargs):
-    """ evaluation for the synthetic generation, including.
-        discriminative score, predictive score, predictive_FID, predictive_KID
-        We compute the mean and std of evaluation scores
-        with 10000 samples and 10 repetitions
-    Args:
-        generator (_type_): torch.model
-        real_X (_type_): torch.tensor
-    """
-    sns.set()
-    d_scores = []
-    real_data = torch.cat([loader_to_tensor(real_train_dl),
-                          loader_to_tensor(real_test_dl)])
-    dim = real_data.shape[-1]
-
-    for i in tqdm(range(5)):
-        # take random 10000 samples from real dataset
-        idx = torch.randint(real_data.shape[0], (10000,))
-        real_train_dl = DataLoader(TensorDataset(
-            real_data[idx[:-2000]]), batch_size=128)
-        real_test_dl = DataLoader(TensorDataset(
-            real_data[idx[-2000:]]), batch_size=128)
-        if 'recovery' in kwargs:
-            recovery = kwargs['recovery']
-            fake_train_dl = fake_loader(generator, num_samples=8000,
-                                        n_lags=config.n_lags, batch_size=128, config=config, recovery=recovery)
-            fake_test_dl = fake_loader(generator, num_samples=2000,
-                                       n_lags=config.n_lags, batch_size=128, config=config, recovery=recovery
-                                       )
-        else:
-            fake_train_dl = fake_loader(generator, num_samples=8000,
-                                        n_lags=config.n_lags, batch_size=128, config=config)
-            fake_test_dl = fake_loader(generator, num_samples=2000,
-                                       n_lags=config.n_lags, batch_size=128, config=config
-                                       )
-
-        d_score_mean, d_score_std = compute_discriminative_score(
-            real_train_dl, real_test_dl, fake_train_dl, fake_test_dl, config, int(dim/2), 1, epochs=10, batch_size=128)
-        d_scores.append(d_score_mean)
-
-        d_mean, d_std = np.array(d_scores).mean(), np.array(d_scores).std()
-
-    print('discriminative score with mean:', d_mean, 'std:', d_std)
-    wandb.run.summary['discriminative_score_mean'] = d_mean
-    wandb.run.summary['discriminative_score_std'] = d_std

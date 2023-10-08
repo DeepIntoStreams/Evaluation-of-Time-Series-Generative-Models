@@ -1,6 +1,5 @@
 from os import path as pt
-from src.evaluations.evaluations import compute_discriminative_score, fake_loader, compute_classfication_score, \
-    full_evaluation
+from src.evaluations.evaluations import compute_discriminative_score, fake_loader, compute_classfication_score
 from src.evaluations.plot import plot_summary, compare_acf_matrix
 import torch
 from src.utils import get_experiment_dir, save_obj

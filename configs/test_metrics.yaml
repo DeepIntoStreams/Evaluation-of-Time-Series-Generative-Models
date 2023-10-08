@@ -10,6 +10,9 @@ pscore_hidden_size: 64
 pscore_epochs : 50
 pscore_num_layers: 3
 
+sample_size: 100
+test_ratio: 0.2
+batch_size: 128
 
 Metrics:
   # General: # To replace with precise category

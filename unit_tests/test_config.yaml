@@ -1,10 +1,10 @@
-device: cpu
+device: cuda
 seed: 0
 gpu_id : '0'
 version: test
 
-data_dir_X_train: unit_tests/X_train.pt
-data_dir_X_test: unit_tests/X_test.pt
+data_dir: unit_tests/data
+data_dir: unit_tests/data
 
 WANDB:
   wandb_mode: 'dryrun'
@@ -70,16 +70,67 @@ TimeVAE:
   use_scaler: False
   use_residual_conn: True
 
+Evaluation:
+  sample_size: 1000
+  test_ratio: 0.2
+  n_eval: 5
+  batch_size: 256
+  metrics_enabled: [
+    # 'discriminative_score',
+    # 'predictive_score',
+    'sig_mmd',
+    'sigw1',
+    # 'hist_loss',
+    # 'acf_loss',
+    # 'cov_loss',
+    'cross_corr',
+    # 'permutation_test'
+    ]
 
-TestMetrics:
-    D_Score: 
-      enable: True
-      name: 'discriminative_score'
-      dscore_hidden_size: 32
-      dscore_epochs : 30
-      dscore_num_layers: 2
+  TestMetrics:
+      discriminative_score: 
+        dscore_hidden_size: 32
+        dscore_epochs : 10
+        dscore_num_layers: 1
+        dscore_batch_size: 128
 
+      predictive_score: 
+        pscore_hidden_size: 64
+        pscore_epochs : 10
+        pscore_hidden_size: 32
+        pscore_num_layers: 2
+        pscore_batch_size: 128
 
+      sig_mmd: 
+        depth: 5
+
+      sigw1_loss: 
+        depth: 2
+
+      hist_loss: 
+        n_bins: 50
+      
+      cross_corr: None
+
+      acf_loss: 
+        stationary: True # False, depend on dataset
+
+      cov_loss: None
+
+      permutation_test:
+        n_permutation: 5
+
+dscore_hidden_size: 32
+dscore_epochs : 30
+dscore_num_layers: 2
+pscore_hidden_size: 64
+pscore_epochs : 50
+pscore_num_layers: 3
+
+# for old implementation
+sample_size: 1000
+test_ratio: 0.2
+batch_size: 256
 comment: this is a test config for test.py
 
 

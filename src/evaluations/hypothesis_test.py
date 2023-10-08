@@ -12,43 +12,6 @@ from src.evaluations.test_metrics import Predictive_FID, Predictive_KID
 from src.utils import to_numpy
 
 
-def sig_mmd_permutation_test(X, X1, Y, num_permutation) -> float:
-    """two sample permutation test 
-
-    Args:
-        test_func (function): function inputs: two batch of test samples, output: statistic
-        X (torch.tensor): batch of samples (N,C) or (N,T,C)
-        Y (torch.tensor): batch of samples (N,C) or (N,T,C)
-        num_permutation (int): 
-    Returns:
-        float: test power
-    """
-    # compute H1 statistics
-    # test_func.eval()
-    with torch.no_grad():
-
-        t0 = Sig_mmd(X, X1, depth=5).cpu().detach().numpy()
-        t1 = Sig_mmd(X, Y, depth=5).cpu().detach().numpy()
-        print(t1)
-        n, m = X.shape[0], Y.shape[0]
-        combined = torch.cat([X, Y])
-
-        statistics = []
-
-        for i in range(num_permutation):
-            idx1 = torch.randperm(n+m)
-
-            statistics.append(
-                Sig_mmd(combined[idx1[:n]], combined[idx1[n:]], depth=5))
-            # print(statistics)
-        # print(np.array(statistics))
-    power = (t1 > torch.tensor(statistics).cpu(
-    ).detach().numpy()).sum()/num_permutation
-    type1_error = 1 - (t0 > torch.tensor(statistics).cpu(
-    ).detach().numpy()).sum()/num_permutation
-    return power, type1_error
-
-
 class Compare_test_metrics:
 
     def __init__(self, X, Y, config):

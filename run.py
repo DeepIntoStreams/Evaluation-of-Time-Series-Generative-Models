@@ -110,7 +110,7 @@ def main(config):
 
         generator.eval()
         fake_test_dl = fake_loader(generator, num_samples=len(test_dl.dataset),
-                                   n_lags=config.n_lags, batch_size=128, config=config, recovery=recovery
+                                   n_lags=config.n_lags, batch_size=128, algo=config.algo, recovery=recovery
                                    )
 
         full_evaluation(generator, train_dl, test_dl,
@@ -134,7 +134,7 @@ def main(config):
         vae.eval()
 
         fake_test_dl = fake_loader(vae, num_samples=len(test_dl.dataset),
-                                   n_lags=config.n_lags, batch_size=128, config=config)
+                                   n_lags=config.n_lags, batch_size=128, algo=config.algo)
         full_evaluation(vae, train_dl, test_dl, config)
 
     else:
@@ -144,7 +144,7 @@ def main(config):
             config.exp_dir, 'generator_state_dict.pt')))
 
         fake_test_dl = fake_loader(generator, num_samples=len(test_dl.dataset),
-                                   n_lags=config.n_lags, batch_size=test_dl.batch_size, config=config
+                                   n_lags=config.n_lags, batch_size=test_dl.batch_size, algo=config.algo
                                    )
         full_evaluation(generator, train_dl, test_dl, config)
 
