@@ -55,8 +55,10 @@ def non_stationary_acf_torch(X, symmetric=False):
 
     for i in range(D):
         # Compute the correlation between X_{t, d} and X_{t-tau, d}
-        # correlations[:, :, i] = torch.corrcoef(X[:, :, i].t())
-        correlations[:, :, i] = torch.from_numpy(np.corrcoef(to_numpy(X[:, :, i]).T))
+        if hasattr(torch,'corrcoef'): # version >= torch2.0
+            correlations[:, :, i] = torch.corrcoef(X[:, :, i].t())
+        else: #TODO: test and fix
+            correlations[:, :, i] = torch.from_numpy(np.corrcoef(to_numpy(X[:, :, i]).T))
 
     if not symmetric:
         # Loop through each time step from lag to T-1
@@ -131,3 +133,7 @@ def rmse(x, y):
 
 def mean_abs_diff(den1: torch.Tensor,den2: torch.Tensor):
     return torch.mean(torch.abs(den1-den2),0)
+
+
+def mmd(x,y):
+    pass
