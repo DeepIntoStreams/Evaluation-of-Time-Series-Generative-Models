@@ -89,10 +89,10 @@ Evaluation:
 
   TestMetrics:
       discriminative_score: 
-        dscore_hidden_size: 32
-        dscore_epochs : 10
-        dscore_num_layers: 1
-        dscore_batch_size: 128
+        hidden_size: 32
+        epochs : 10
+        num_layers: 1
+        batch_size: 128
 
       predictive_score: 
         pscore_hidden_size: 64
@@ -100,6 +100,7 @@ Evaluation:
         pscore_hidden_size: 32
         pscore_num_layers: 2
         pscore_batch_size: 128
+        batch_size: 256
 
       sig_mmd: 
         depth: 5
@@ -120,6 +121,7 @@ Evaluation:
       permutation_test:
         n_permutation: 5
 
+## old structure related
 dscore_hidden_size: 32
 dscore_epochs : 30
 dscore_num_layers: 2
