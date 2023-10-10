@@ -45,4 +45,14 @@ For detailed instructions on repository structure and usage, refer to [src/READM
 [6] Anonymous authors, 2022. SOK: The Great GAN Bake Off, An Extensive Systematic Evaluation Of Generative Adversarial Network Architectures For Time Series.  
 [7] Chevyrev I. and Oberhauser H., 2022. Signature moments to characterize laws of stochastic processes.  
 
+## Citation
+Please use the following to cite our work if you find it useful.
 
+```
+@Misc{EvalTimeseriesGen2023,
+author =   {Hang Lou, Jiajie Tao, Xin Dong, Baoren Xiao, Lei Jiang, and Hao Ni},
+title =    {Evaluation of Time Series Generative Models},
+howpublished = {https://github.com/DeepIntoStreams/Evaluation-of-Time-Series-Generative-Models.git},
+year = {2023}
+}
+```
