@@ -143,33 +143,27 @@ def mmd(x,y):
     pass
 
 class TrainValidateTestModel:
-    def __init__(self,model=None,optimizer=None,criterion=None,epoch=0,device=None):
-        self.model = model
-        self.device = device
-        self.optimizer = optimizer
+    def __init__(self,model=None,optimizer=None,criterion=None,epochs=None,device=None):
+        self.model = model 
+        self.device = device if device is not None else torch.device('cuda')
+        self.optimizer = optimizer if optimizer is not None else torch.optim.Adam(
+                            model.parameters(),
+                            lr=1e-3)
         self.criterion = criterion
-        self.epoch = epoch
-        
-    def train(self,dataloader):
-        if self.model is not None:
-            return self.train_model(self.model,self.optimizer,self.criterion,dataloader,self.epochs,self.device)
-        else:
-            raise ValueError('validate: model is None!')
-
-    def validate(self,dataloader):
-        if self.model is not None:
-            return self.validate_model(self.model,self.criterion,dataloader,self.epochs,self.device)
-        else:
-            raise ValueError('validate: model is None!')
-        
-    def test(self,dataloader):
-        if self.model is not None:
-            return self.test_model(self.model,self.criterion,dataloader,self.device)
-        else:
-            raise ValueError('validate: model is None!')
+        self.epochs = epochs if epochs is not None else 100
 
     @staticmethod
-    def update(model,optimizer,criterion,dataloader,device,mode): 
+    def update_per_epoch(model,optimizer,criterion,
+                         dataloader,device,mode,
+                         calc_acc
+                         ): 
+        '''
+        mode: train, validate, test
+        calc_acc: True for classification, False for regression
+        return:
+            model, loss, acc
+        '''
+
         model = model.to(device)
         # training
         running_loss = 0
@@ -178,9 +172,7 @@ class TrainValidateTestModel:
 
         if mode == 'train':
             cxt_manager = torch.set_grad_enabled(True)
-        elif mode == 'validate':
-            cxt_manager = torch.set_grad_enabled(False)
-        elif mode == 'test':
+        elif mode in ['test','validate']:
             cxt_manager = torch.no_grad()
         else:
             raise ValueError('mode must be either train, validate or test')
@@ -200,95 +192,119 @@ class TrainValidateTestModel:
                     loss.backward()
                     optimizer.step()
 
-            _, preds = torch.max(outputs, 1)
-            running_corrects += (preds == labels).sum().item()
+            if calc_acc:
+                _, preds = torch.max(outputs, 1)
+                running_corrects += (preds == labels).sum().item()
+
             running_loss += loss.item() * inputs.size(0)
             total += labels.size(0)
 
             # statistics of the epoch
         loss = running_loss / total
-        acc = running_corrects / total 
+        acc = running_corrects / total if calc_acc else None
         return model, loss, acc
 
     @staticmethod
-    def train_model(model,optimizer,criterion,dataloader,epochs,device):
-        for epoch in range(epochs):
-            model.train()
-            model, loss, acc = __class__.update(model, optimizer, criterion,dataloader,device,mode='train')
-            print(f'Epoch {epoch+1}/{epochs} | Loss: {loss:.4f} | Acc: {acc:.4f}')
-        return model, loss, acc
-
-
-    @staticmethod
-    def validate_model(model,criterion,dataloader,epochs,device):
+    def train_model(model,optimizer,criterion,epochs,device,calc_acc,
+                    train_dl, validate_dl=DataLoader(),
+                    valid_condition=None,
+                    ):
+        
         best_acc = 0.0
-        best_loss = 999
+        best_loss = 99
 
-        model.eval()
         for epoch in range(epochs):
-            model, loss, acc = __class__.update(model, None, criterion,dataloader,device,mode='validate')
+            # train
+            model.train()
+            model, loss, acc = __class__.update_per_epoch(model, optimizer, criterion,train_dl,device,mode='train',calc_acc=calc_acc)
+            best_model_state_dict = copy.deepcopy(model.state_dict())
+            print(f'Epoch {epoch+1}/{epochs} | Loss: {loss:.4f} | Acc: {acc:.4f}')
 
-            if acc >= best_acc:
-                # Updates to the weights will not happen if the accuracy is equal but loss does not diminish
-                if (acc == best_acc) and (loss > best_loss):
-                    pass
-                else:
+            # validate if condition is not None
+            if valid_condition is not None:
+
+                model.eval()
+                model, loss, acc = __class__.update_per_epoch(model, None, criterion,validate_dl,device,mode='validate',calc_acc=calc_acc)
+                
+                if valid_condition(loss,acc,best_acc,best_loss):
                     best_acc = acc
                     best_loss = loss
-                    model_state_dict = copy.deepcopy(model.state_dict())
+                    best_model_state_dict = copy.deepcopy(model.state_dict())
+                    print(f'Validation | Loss: {loss:.4f} | Acc: {acc:.4f}')
 
                     # Clean CUDA Memory
                     # del inputs, outputs, labels
                     torch.cuda.empty_cache()
 
-            print(f'Validation | Loss: {loss:.4f} | Acc: {acc:.4f}')
-        model.load_state_dict(model_state_dict)
+        model.load_state_dict(best_model_state_dict)
         return model, loss, acc
 
+
     @staticmethod
-    def test_model(model, criterion,dataloader,device):
+    def test_model(model, criterion,dataloader,device,calc_acc):
         model.eval()
         model.to(device)
-        model, loss, acc = __class__.update(model, None, criterion,dataloader,device,mode='test')
+        model, loss, acc = __class__.update_per_epoch(model, None, criterion,dataloader,device,mode='test',calc_acc=calc_acc)
         return loss, acc
 
-def classification(train_dl,test_dl,model,epoch,device,train=True):
-    criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(),lr=1e-3)
-    pm = TrainValidateTestModel(
-        model=model,
-        optimizer=optimizer,
-        criterion=criterion,
-        epoch=epoch,
-        device=device
-        )
-    if train:
-        model, _, _ = pm.train(train_dl)
-        model, _, _ = pm.validate(test_dl)
-    test_loss, test_acc = pm.test(test_dl)
-    return model, test_loss, test_acc
+    def test_classification(self,train_dl,test_dl,model,train=True,validate=True):
+        criterion = torch.nn.CrossEntropyLoss()
+        optimizer = torch.optim.Adam(model.parameters(),lr=1e-3)
+        if train:
+            valid_condition = lambda loss,acc,best_acc,best_loss: (acc == best_acc) and (loss <= best_loss) or (acc > best_acc)
+            model, _, _ = self.train_model(
+                model=model,
+                optimizer=optimizer,
+                criterion=criterion,
+                epochs=self.epochs,
+                device=self.device,
+                calc_acc=True,
+                train_dl=train_dl,
+                validate_dl=test_dl, # Question: why validate using test_dl?
+                valid_condition=valid_condition
+                )
+        test_loss, test_acc = self.test_model(model,criterion,test_dl,self.device,calc_acc=True)
+        return model, test_loss, test_acc
 
-def create_dl(real_dl, fake_dl, batch_size):
-    train_x, train_y = [], []
-    for data in real_dl:
-        train_x.append(data[0])
-        train_y.append(torch.ones(data[0].shape[0], ))
-    for data in fake_dl:
-        train_x.append(data[0])
-        train_y.append(torch.zeros(data[0].shape[0], ))
-    x, y = torch.cat(train_x), torch.cat(train_y).long()
+    def test_regressor(self,train_dl,test_dl,model,train=True,validate=True):
+        criterion = torch.nn.L1Loss()
+        optimizer = torch.optim.Adam(model.parameters(),lr=1e-3)
+        if train:
+            valid_condition = lambda loss,acc,best_acc,best_loss: loss < best_loss
+            model, _, _ = self.train_model(
+                model=model,
+                optimizer=optimizer,
+                criterion=criterion,
+                epochs=self.epochs,
+                device=self.device,
+                calc_acc=False,
+                train_dl=train_dl,
+                validate_dl=test_dl,
+                valid_condition=valid_condition
+                )
+        test_loss, _ = self.test_model(model,criterion,test_dl,self.device,calc_acc=False)
+        return model, test_loss
+
+def create_dl(dl1, dl2, batch_size,cutoff=False):
+    x, y = [], []
+
+    if cutoff:
+        _, T, C = next(iter(dl1))[0].shape
+        T_cutoff = int(T/10) if cutoff else 1
+        for data in dl1:
+            x.append(data[0][:, :-T_cutoff])
+            y.append(data[0][:, -T_cutoff:].reshape(data[0].shape[0], -1))
+        for data in dl2:
+            x.append(data[0][:, :-T_cutoff])
+            y.append(data[0][:, -T_cutoff:].reshape(data[0].shape[0], -1))
+    else:
+        for data in dl1:
+            x.append(data[0])
+            y.append(torch.ones(data[0].shape[0], ))
+        for data in dl2:
+            x.append(data[0])
+            y.append(torch.zeros(data[0].shape[0], ))
+
+    x, y = torch.cat(x), torch.cat(y).long()
     idx = torch.randperm(x.shape[0])
     return DataLoader(TensorDataset(x[idx].view(x.size()), y[idx].view(y.size())), batch_size=batch_size)
-
-def get_discriminative_score(real_train_dl, real_test_dl, fake_train_dl, fake_test_dl, config):
-    train_dl = create_dl(real_train_dl, fake_train_dl, config.batch_size)
-    test_dl = create_dl(real_test_dl, fake_test_dl, config.batch_size)
-    test_acc_list = []
-    for i in range(1):
-        model = Discriminator(train_dl.dataset[0][0].shape[-1], config.hidden_size, config.num_layers)
-        test_acc, _ = classification(train_dl,test_dl,model,config.epoch,config.device,train=True)
-        test_acc_list.append(test_acc)
-    mean_acc = np.mean(np.array(test_acc_list))
-    std_acc = np.std(np.array(test_acc_list))
-    return abs(mean_acc-0.5), std_acc
-

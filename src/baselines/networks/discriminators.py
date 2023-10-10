@@ -20,15 +20,3 @@ class LSTMDiscriminator(nn.Module):
             h = self.lstm(x)[0][:, -1:]
         x = self.linear(h)
         return x
-
-
-class Discriminator(nn.Module):
-    def __init__(self, input_size, hidden_size, num_layers, out_size=2):
-        super(Discriminator, self).__init__()
-        self.rnn = nn.GRU(input_size=input_size, num_layers=num_layers,
-                            hidden_size=hidden_size, batch_first=True)
-        self.linear = nn.Linear(hidden_size, out_size)
-
-    def forward(self, x):
-        x = self.rnn(x)[0][:, -1]
-        return self.linear(x)
