@@ -95,12 +95,11 @@ Evaluation:
         batch_size: 128
 
       predictive_score: 
-        pscore_hidden_size: 64
-        pscore_epochs : 10
-        pscore_hidden_size: 32
-        pscore_num_layers: 2
-        pscore_batch_size: 128
-        batch_size: 256
+        hidden_size: 64
+        epochs : 10
+        hidden_size: 32
+        num_layers: 2
+        batch_size: 128
 
       sig_mmd: 
         depth: 5
@@ -120,6 +119,7 @@ Evaluation:
 
       permutation_test:
         n_permutation: 5
+
 
 ## old structure related
 dscore_hidden_size: 32

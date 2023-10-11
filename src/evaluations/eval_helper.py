@@ -8,8 +8,8 @@ import signatory
 import math
 from torch.utils.data import DataLoader, TensorDataset
 import copy
-from src.baselines.networks.discriminators import Discriminator
-
+# from src.baselines.networks.discriminators import Discriminator
+from dataclasses import dataclass
 
 def cov_torch(x):
     """Estimates covariance matrix like numpy.cov"""
@@ -142,13 +142,18 @@ def mean_abs_diff(den1: torch.Tensor,den2: torch.Tensor):
 def mmd(x,y):
     pass
 
+@dataclass
+class ModelSetup:
+    model: nn.Module
+    optimizer: torch.optim
+    criterion: nn.Module
+    epochs: int
+
 class TrainValidateTestModel:
     def __init__(self,model=None,optimizer=None,criterion=None,epochs=None,device=None):
         self.model = model 
         self.device = device if device is not None else torch.device('cuda')
-        self.optimizer = optimizer if optimizer is not None else torch.optim.Adam(
-                            model.parameters(),
-                            lr=1e-3)
+        self.optimizer = optimizer
         self.criterion = criterion
         self.epochs = epochs if epochs is not None else 100
 
@@ -199,14 +204,19 @@ class TrainValidateTestModel:
             running_loss += loss.item() * inputs.size(0)
             total += labels.size(0)
 
-            # statistics of the epoch
+        # statistics of the epoch
         loss = running_loss / total
         acc = running_corrects / total if calc_acc else None
+        
+        # Clean CUDA Memory
+        del inputs, outputs, labels
+        torch.cuda.empty_cache()
+        
         return model, loss, acc
 
     @staticmethod
     def train_model(model,optimizer,criterion,epochs,device,calc_acc,
-                    train_dl, validate_dl=DataLoader(),
+                    train_dl, validate_dl=None,
                     valid_condition=None,
                     ):
         
@@ -218,7 +228,9 @@ class TrainValidateTestModel:
             model.train()
             model, loss, acc = __class__.update_per_epoch(model, optimizer, criterion,train_dl,device,mode='train',calc_acc=calc_acc)
             best_model_state_dict = copy.deepcopy(model.state_dict())
-            print(f'Epoch {epoch+1}/{epochs} | Loss: {loss:.4f} | Acc: {acc:.4f}')
+            info = f'Epoch {epoch+1}/{epochs} | Loss: {loss:.4f}'
+            info += f' | Acc: {acc:.4f}' if calc_acc else ''
+            print(info)
 
             # validate if condition is not None
             if valid_condition is not None:
@@ -230,14 +242,11 @@ class TrainValidateTestModel:
                     best_acc = acc
                     best_loss = loss
                     best_model_state_dict = copy.deepcopy(model.state_dict())
-                    print(f'Validation | Loss: {loss:.4f} | Acc: {acc:.4f}')
-
-                    # Clean CUDA Memory
-                    # del inputs, outputs, labels
-                    torch.cuda.empty_cache()
+                    # print(f'Validation | Loss: {loss:.4f} | Acc: {acc:.4f}')
 
         model.load_state_dict(best_model_state_dict)
-        return model, loss, acc
+        model_setup = ModelSetup(model=model,optimizer=optimizer,criterion=criterion,epochs=epochs)
+        return model_setup, loss, acc
 
 
     @staticmethod
@@ -252,7 +261,7 @@ class TrainValidateTestModel:
         optimizer = torch.optim.Adam(model.parameters(),lr=1e-3)
         if train:
             valid_condition = lambda loss,acc,best_acc,best_loss: (acc == best_acc) and (loss <= best_loss) or (acc > best_acc)
-            model, _, _ = self.train_model(
+            model_setup, _, _ = self.train_model(
                 model=model,
                 optimizer=optimizer,
                 criterion=criterion,
@@ -263,15 +272,15 @@ class TrainValidateTestModel:
                 validate_dl=test_dl, # Question: why validate using test_dl?
                 valid_condition=valid_condition
                 )
-        test_loss, test_acc = self.test_model(model,criterion,test_dl,self.device,calc_acc=True)
-        return model, test_loss, test_acc
+        test_loss, test_acc = self.test_model(model_setup.model,criterion,test_dl,self.device,calc_acc=True)
+        return model_setup, test_loss, test_acc
 
     def test_regressor(self,train_dl,test_dl,model,train=True,validate=True):
         criterion = torch.nn.L1Loss()
         optimizer = torch.optim.Adam(model.parameters(),lr=1e-3)
         if train:
-            valid_condition = lambda loss,acc,best_acc,best_loss: loss < best_loss
-            model, _, _ = self.train_model(
+            valid_condition = lambda loss,acc,best_acc,best_loss: loss <= best_loss
+            model_setup, _, _ = self.train_model(
                 model=model,
                 optimizer=optimizer,
                 criterion=criterion,
@@ -282,7 +291,7 @@ class TrainValidateTestModel:
                 validate_dl=test_dl,
                 valid_condition=valid_condition
                 )
-        test_loss, _ = self.test_model(model,criterion,test_dl,self.device,calc_acc=False)
+        test_loss, _ = self.test_model(model_setup.model,criterion,test_dl,self.device,calc_acc=False)
         return model, test_loss
 
 def create_dl(dl1, dl2, batch_size,cutoff=False):
@@ -290,13 +299,14 @@ def create_dl(dl1, dl2, batch_size,cutoff=False):
 
     if cutoff:
         _, T, C = next(iter(dl1))[0].shape
-        T_cutoff = int(T/10) if cutoff else 1
+        T_cutoff = int(T/10)
         for data in dl1:
             x.append(data[0][:, :-T_cutoff])
             y.append(data[0][:, -T_cutoff:].reshape(data[0].shape[0], -1))
         for data in dl2:
             x.append(data[0][:, :-T_cutoff])
             y.append(data[0][:, -T_cutoff:].reshape(data[0].shape[0], -1))
+        x, y = torch.cat(x), torch.cat(y)
     else:
         for data in dl1:
             x.append(data[0])
@@ -304,7 +314,6 @@ def create_dl(dl1, dl2, batch_size,cutoff=False):
         for data in dl2:
             x.append(data[0])
             y.append(torch.zeros(data[0].shape[0], ))
-
-    x, y = torch.cat(x), torch.cat(y).long()
+        x, y = torch.cat(x), torch.cat(y).long()
     idx = torch.randperm(x.shape[0])
     return DataLoader(TensorDataset(x[idx].view(x.size()), y[idx].view(y.size())), batch_size=batch_size)
