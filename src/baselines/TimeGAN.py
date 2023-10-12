@@ -6,6 +6,8 @@ from tqdm import tqdm
 import wandb
 import torch.nn as nn
 from src.utils import init_weights
+from os import path as pt
+from src.utils import save_obj
 import torch.optim.swa_utils as swa_utils
 
 
@@ -80,8 +82,8 @@ class TIMEGANTrainer(BaseTrainer):
         #wandb.watch(models=self.D, log='all', log_freq=10, log_graph=False)
 
     def train_Embedder(self, device):
-        toggle_grad(self.embedder, True)
-        toggle_grad(self.recovery, True)
+        self.toggle_grad(self.embedder, True)
+        self.toggle_grad(self.recovery, True)
         for i in tqdm(range(self.n_gradient_steps)):
 
             X = next(iter(self.train_dl))[0].to(device)
@@ -95,13 +97,13 @@ class TIMEGANTrainer(BaseTrainer):
             E_loss0.backward(retain_graph=True)
             self.embedder_optimizer.step()
             self.recovery_optimizer.step()
-        toggle_grad(self.embedder, False)
-        toggle_grad(self.recovery, False)
+        self.toggle_grad(self.embedder, False)
+        self.toggle_grad(self.recovery, False)
 
     def train_supervisor(self, device):
 
-        toggle_grad(self.G, True)
-        toggle_grad(self.supervisor, True)
+        self.toggle_grad(self.G, True)
+        self.toggle_grad(self.supervisor, True)
         self.G.train()
         self.supervisor.train()
         for i in tqdm(range(self.n_gradient_steps)):
@@ -119,8 +121,8 @@ class TIMEGANTrainer(BaseTrainer):
             G_loss_S.backward(retain_graph=True)
             self.G_optimizer.step()
             self.supervisor_optimizer.step()
-        toggle_grad(self.G, False)
-        toggle_grad(self.supervisor, False)
+        self.toggle_grad(self.G, False)
+        self.toggle_grad(self.supervisor, False)
 
     def joint_train(self, device):
         self.G.train()
@@ -130,8 +132,8 @@ class TIMEGANTrainer(BaseTrainer):
         self.recovery.train()
         for i in tqdm(range(self.n_gradient_steps)):
             for kk in range(2):
-                toggle_grad(self.G, True)
-                toggle_grad(self.supervisor, True)
+                self.toggle_grad(self.G, True)
+                self.toggle_grad(self.supervisor, True)
                 # generator
                 X = next(iter(self.train_dl))[0].to(device)
                 X.requires_grad_()
@@ -175,10 +177,10 @@ class TIMEGANTrainer(BaseTrainer):
                 G_loss.backward()
                 self.G_optimizer.step()
                 self.supervisor_optimizer.step()
-                toggle_grad(self.G, False)
-                toggle_grad(self.supervisor, False)
-                toggle_grad(self.embedder, True)
-                toggle_grad(self.recovery, True)
+                self.toggle_grad(self.G, False)
+                self.toggle_grad(self.supervisor, False)
+                self.toggle_grad(self.embedder, True)
+                self.toggle_grad(self.recovery, True)
                 H = self.embedder(X)
                 X_tilde = self.recovery(H)
                 H_hat_supervise = self.supervisor(H)
@@ -196,10 +198,10 @@ class TIMEGANTrainer(BaseTrainer):
                 E_loss.backward()
                 self.embedder_optimizer.step()
                 self.recovery_optimizer.step()
-                toggle_grad(self.embedder, False)
-                toggle_grad(self.recovery, False)
+                self.toggle_grad(self.embedder, False)
+                self.toggle_grad(self.recovery, False)
             # discriminator
-            toggle_grad(self.D, True)
+            self.toggle_grad(self.D, True)
             X = next(iter(self.train_dl))[0].to(device)
             E_hat = self.G(batch_size=self.batch_size,
                            n_lags=self.config.n_lags, condition=None, device=device)
@@ -223,7 +225,7 @@ class TIMEGANTrainer(BaseTrainer):
             D_loss.backward(retain_graph=True)
             # Step discriminator params
             self.D_optimizer.step()
-            toggle_grad(self.D, False)
+            self.toggle_grad(self.D, False)
             self.evaluate(X_hat, X, i, self.config)
             wandb.log({'G_loss': G_loss}, i)
             wandb.log({'D_loss': D_loss}, i)
@@ -235,7 +237,16 @@ class TIMEGANTrainer(BaseTrainer):
         loss = torch.nn.BCELoss()(torch.nn.Sigmoid()(d_out), targets)
         return loss
 
+    def save_model_dict(self):
+        save_obj(self.G.state_dict(), pt.join(
+            self.config.exp_dir, 'generator_state_dict.pt'))
+        save_obj(self.embedder.state_dict(), pt.join(
+            self.config.exp_dir, 'embedder_state_dict.pt'))
+        save_obj(self.recovery.state_dict(), pt.join(
+            self.config.exp_dir, 'recovery_state_dict.pt'))
+        save_obj(self.supervisor.state_dict(), pt.join(
+            self.config.exp_dir, 'supervisor_state_dict.pt'))
 
-def toggle_grad(model, requires_grad):
-    for p in model.parameters():
-        p.requires_grad_(requires_grad)
+        if self.config.include_D:
+            save_obj(self.D.state_dict(), pt.join(
+                self.config.exp_dir, 'discriminator_state_dict.pt'))

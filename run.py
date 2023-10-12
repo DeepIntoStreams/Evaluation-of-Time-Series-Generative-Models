@@ -12,7 +12,7 @@ import numpy as np
 from src.evaluations.evaluations import fake_loader, full_evaluation
 from src.evaluations.plot import plot_summary, compare_acf_matrix
 import torch
-from src.utils import get_experiment_dir, save_obj, set_seed
+from src.utils import get_experiment_dir, set_seed, convert_config_to_dict
 from torch import nn
 import argparse
 
@@ -29,22 +29,31 @@ def main(config):
     # Set the seed
     set_seed(config.seed)
 
+    # Flat the config file by reading the model config
+    for k,v in config.Model[config.algo].items():
+        config[k] = v
+
+    del config.Model
+
     # initialize weight and bias
     # Place here your API key.
     # setup own api key in the config
-    os.environ["WANDB_API_KEY"] = config.wandb_api
+    os.environ["WANDB_API_KEY"] = config.WANDB.wandb_api
     tags = [
         config.algo,
         config.dataset,
     ]
 
+    config = convert_config_to_dict(copy.deepcopy(dict(config)))
+
     wandb.init(
         project='Generative_model_evaluation',
-        config=copy.deepcopy(dict(config)),
+        config=config,
         entity="deepintostreams",
         tags=tags,
-        group=config.dataset,
-        name=config.algo
+        group=config['dataset'],
+        name=config['algo'],
+        mode=config['WANDB']['wandb_mode']
         # save_code=True,
         # job_type=config.function,
     )
@@ -73,19 +82,20 @@ def main(config):
 
         print(datetime.datetime.now())
         trainer.fit(config.device)
-        if config.algo == 'TimeVAE':
-            save_obj(trainer.G.encoder.state_dict(), pt.join(
-                config.exp_dir, 'encoder_state_dict.pt'))
-            save_obj(trainer.G.decoder.state_dict(), pt.join(
-                config.exp_dir, 'decoder_state_dict.pt'))
-        elif config.algo == 'TimeGAN':
-            save_obj(trainer.recovery.state_dict(), pt.join(
-                config.exp_dir, 'recovery_state_dict.pt'))
-            save_obj(trainer.supervisor.state_dict(), pt.join(
-                config.exp_dir, 'supervisor_state_dict.pt'))
-        else:
-            save_obj(trainer.G.state_dict(), pt.join(
-                config.exp_dir, 'generator_state_dict.pt'))
+        trainer.save_model_dict()
+        # if config.algo == 'TimeVAE':
+        #     save_obj(trainer.G.encoder.state_dict(), pt.join(
+        #         config.exp_dir, 'encoder_state_dict.pt'))
+        #     save_obj(trainer.G.decoder.state_dict(), pt.join(
+        #         config.exp_dir, 'decoder_state_dict.pt'))
+        # elif config.algo == 'TimeGAN':
+        #     save_obj(trainer.recovery.state_dict(), pt.join(
+        #         config.exp_dir, 'recovery_state_dict.pt'))
+        #     save_obj(trainer.supervisor.state_dict(), pt.join(
+        #         config.exp_dir, 'supervisor_state_dict.pt'))
+        # else:
+        #     save_obj(trainer.G.state_dict(), pt.join(
+        #         config.exp_dir, 'generator_state_dict.pt'))
 
     elif config.pretrained:
         pass
@@ -165,11 +175,13 @@ if __name__ == '__main__':
     parser.add_argument('--dataset', type=str, default='AR1',
                         help='choose from AR1, ROUGH, GBM,STOCK,Air_Quality')
     args = parser.parse_args()
-    if args.algo == 'TimeVAE':
-        config_dir = 'configs/' + 'train_vae.yaml'
+    # if args.algo == 'TimeVAE':
+    #     config_dir = 'configs/' + 'train_vae.yaml'
+    #
+    # else:
+    #     config_dir = 'configs/' + 'train_gan.yaml'
 
-    else:
-        config_dir = 'configs/' + 'train_gan.yaml'
+    config_dir = 'configs/config.yaml'
 
     with open(config_dir) as file:
         config = ml_collections.ConfigDict(yaml.safe_load(file))

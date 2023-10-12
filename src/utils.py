@@ -7,6 +7,7 @@ import pickle
 from dataclasses import dataclass
 from typing import List, Tuple
 import os
+from ml_collections.config_dict import ConfigDict
 # import cupy
 
 
@@ -167,3 +168,15 @@ def combine_dls(dls):
 def is_multivariate(x: torch.Tensor):
     """ Check if the path / tensor is multivariate. """
     return True if x.shape[-1] > 1 else False
+
+def convert_config_to_dict(config):
+    """
+    Conert nested ConfigDicts into dicts
+    Parameters
+    """
+    if isinstance(config, ConfigDict):
+        config = dict(config)
+    if isinstance(config, dict):
+        for key, value in config.items():
+            config[key] = convert_config_to_dict(value)
+    return config

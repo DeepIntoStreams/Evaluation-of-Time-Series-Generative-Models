@@ -2,6 +2,8 @@ import torch
 from src.baselines.base import BaseTrainer
 from tqdm import tqdm
 import wandb
+from os import path as pt
+from src.utils import save_obj
 
 
 class TimeVAETrainer(BaseTrainer):
@@ -46,7 +48,7 @@ class TimeVAETrainer(BaseTrainer):
     def G_trainstep(self, device, x_real, step):
 
         latent_z, mean, log_var = self.G.encoder(x_real)
-        toggle_grad(self.G, True)
+        self.toggle_grad(self.G, True)
         self.G.encoder.train()
         self.G.decoder.train()
         self.G_optimizer.zero_grad()
@@ -70,7 +72,8 @@ class TimeVAETrainer(BaseTrainer):
         reconstruction_loss = torch.norm(x_real - x_fake, dim=0).mean()
         return reconstruction_loss, latent_loss
 
-
-def toggle_grad(model, requires_grad):
-    for p in model.parameters():
-        p.requires_grad_(requires_grad)
+    def save_model_dict(self):
+        save_obj(self.G.encoder.state_dict(), pt.join(
+            self.config.exp_dir, 'encoder_state_dict.pt'))
+        save_obj(self.G.decoder.state_dict(), pt.join(
+            self.config.exp_dir, 'decoder_state_dict.pt'))

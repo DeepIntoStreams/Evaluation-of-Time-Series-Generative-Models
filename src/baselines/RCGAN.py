@@ -5,6 +5,8 @@ from src.baselines.base import BaseTrainer
 from tqdm import tqdm
 from torch.nn.functional import one_hot
 import wandb
+from os import path as pt
+from src.utils import save_obj
 import torch.nn.functional as F
 
 
@@ -74,7 +76,7 @@ class RCGANTrainer(BaseTrainer):
             condition = None
         x_fake = self.G(batch_size=self.batch_size,
                         n_lags=self.config.n_lags, condition=condition, device=device)
-        toggle_grad(self.G, True)
+        self.toggle_grad(self.G, True)
         self.G.train()
         self.G_optimizer.zero_grad()
         d_fake = self.D(x_fake)
@@ -90,7 +92,7 @@ class RCGANTrainer(BaseTrainer):
         return G_loss.item()
 
     def D_trainstep(self, x_fake, x_real):
-        toggle_grad(self.D, True)
+        self.toggle_grad(self.D, True)
         self.D.train()
         self.D_optimizer.zero_grad()
 
@@ -114,7 +116,7 @@ class RCGANTrainer(BaseTrainer):
         self.D_optimizer.step()
 
         # Toggle gradient to False
-        toggle_grad(self.D, False)
+        self.toggle_grad(self.D, False)
 
         return dloss_real.item(), dloss_fake.item()
 
@@ -134,10 +136,13 @@ class RCGANTrainer(BaseTrainer):
         reg = (compute_grad2(d_out, x_interp).sqrt() - center).pow(2).mean()
         return reg
 
+    def save_model_dict(self):
+        save_obj(self.G.state_dict(), pt.join(
+            self.config.exp_dir, 'generator_state_dict.pt'))
 
-def toggle_grad(model, requires_grad):
-    for p in model.parameters():
-        p.requires_grad_(requires_grad)
+        if self.config.include_D:
+            save_obj(self.D.state_dict(), pt.join(
+                self.config.exp_dir, 'discriminator_state_dict.pt'))
 
 
 def compute_grad2(d_out, x_in):

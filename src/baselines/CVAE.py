@@ -28,7 +28,7 @@ class CVAETrainer(BaseTrainer):
 
         if self.conditional:
             data = next(iter(self.train_dl))
-            x = data[0].to(device)
+            x_real = data[0].to(device)
             condition = data[1].to(device)
             # condition = one_hot(
             #     data[1], self.config.num_classes).unsqueeze(1).repeat(1, data[0].shape[1], 1).to(device)
@@ -41,7 +41,7 @@ class CVAETrainer(BaseTrainer):
         G_loss = self.G_trainstep(device, x_real, condition, step)
         wandb.log({'G_loss': G_loss}, step)
 
-    def G_trainstep(self, device, x_real, step):
+    def G_trainstep(self, device, x_real_batch, step):
 
         latent_z, mean, log_var = self.G.encoder(x_real_batch, device=device)
         toggle_grad(self.G, True)

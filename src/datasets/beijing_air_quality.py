@@ -17,8 +17,12 @@ class Beijing_air_quality(torch.utils.data.TensorDataset):
     ):
         self.root = pathlib.Path('data')
 
-        data_loc = pathlib.Path(
-            'data/air_quality/processed_data')
+        if 'n_lags' in kwargs:
+            data_loc = pathlib.Path(
+                'data/air_quality/processed_data_{}'.format(kwargs['n_lags']))
+        else:
+            data_loc = pathlib.Path(
+                'data/air_quality/processed_data')
 
         if os.path.exists(data_loc):
             pass

@@ -7,6 +7,8 @@ from tqdm import tqdm
 from torch.nn.functional import one_hot
 import wandb
 import torch.optim.swa_utils as swa_utils
+from os import path as pt
+from src.utils import save_obj
 
 
 class COTGANTrainer(BaseTrainer):
@@ -89,7 +91,7 @@ class COTGANTrainer(BaseTrainer):
         x_fake_p = self.G(batch_size=self.batch_size,
                           n_lags=self.config.n_lags, condition=condition, device=device)
 
-        toggle_grad(self.G, True)
+        self.toggle_grad(self.G, True)
         self.G.train()
         self.G_optimizer.zero_grad()
         h_real_p, h_fake, h_fake_p = self.D_h(
@@ -113,8 +115,8 @@ class COTGANTrainer(BaseTrainer):
         return G_loss.item()
 
     def D_trainstep(self, x_fake, x_fake_p, x_real, x_real_p):
-        toggle_grad(self.D_m, True)
-        toggle_grad(self.D_h, True)
+        self.toggle_grad(self.D_m, True)
+        self.toggle_grad(self.D_h, True)
         self.D_m.train()
         self.D_h.train()
         self.D_m_optimizer.zero_grad()
@@ -148,15 +150,20 @@ class COTGANTrainer(BaseTrainer):
         self.D_h_optimizer.step()
 
         # Toggle gradient to False
-        toggle_grad(self.D_m, False)
-        toggle_grad(self.D_h, False)
+        self.toggle_grad(self.D_m, False)
+        self.toggle_grad(self.D_h, False)
 
         return dloss.item()
 
+    def save_model_dict(self):
+        save_obj(self.G.state_dict(), pt.join(
+            self.config.exp_dir, 'generator_state_dict.pt'))
 
-def toggle_grad(model, requires_grad):
-    for p in model.parameters():
-        p.requires_grad_(requires_grad)
+        if self.config.include_D:
+            save_obj(self.D_h.state_dict(), pt.join(
+                self.config.exp_dir, 'discriminator_h_state_dict.pt'))
+            save_obj(self.D_m.state_dict(), pt.join(
+                self.config.exp_dir, 'discriminator_m_state_dict.pt'))
 
 
 def cost_matrix(x, y, p=2):

@@ -13,7 +13,6 @@ from src.datasets.GBM import GBM
 def get_dataset(
     config: ml_collections.ConfigDict,
     num_workers: int = 4,
-    data_root="./data",
     shuffle: bool = True
 ) -> Tuple[dict, torch.utils.data.DataLoader]:
     """
@@ -22,7 +21,7 @@ def get_dataset(
     """
     dataset = {
         "ROUGH": Rough_S,
-        "MNIST": MNIST,
+        # "MNIST": MNIST,
         "STOCK": Stock,
         "Air_Quality": Beijing_air_quality,
         # "BerkeleyMHAD": BerkeleyMHAD,
@@ -32,13 +31,17 @@ def get_dataset(
 
     }[config.dataset]
 
+    data_dir = config.data_dir + config.dataset + '/processed_data_{}'.format(config.n_lags)
+
     training_set = dataset(
         partition="train",
         n_lags=config.n_lags,
+        data_dir=data_dir
     )
     test_set = dataset(
         partition="test",
         n_lags=config.n_lags,
+        data_dir=data_dir
     )
 
     training_loader = DataLoader(
