@@ -3,6 +3,7 @@ from dataclasses import dataclass, fields
 from typing import Optional
 from src.evaluations.metrics import *
 from src.evaluations.loss import *
+from src.evaluations.scores import get_discriminative_score, get_predictive_score
 
 def full_evaluation_latest(generator, real_train_dl, real_test_dl, config, **kwargs):
     ec = EvaluationComponent(config, generator, real_train_dl, real_test_dl, **kwargs)
@@ -178,17 +179,16 @@ class EvaluationComponent(object):
         
     def discriminative_score(self,real_train_dl, real_test_dl, fake_train_dl, fake_test_dl):
         ecfg = self.config.Evaluation.TestMetrics.discriminative_score
-        d_score_mean, d_score_std = compute_discriminative_score(
+        d_score_mean, _ = get_discriminative_score(
             real_train_dl, real_test_dl, fake_train_dl, fake_test_dl, 
-            self.config, hidden_size=ecfg.hidden_size, num_layers=ecfg.num_layers, epochs=ecfg.epochs, batch_size=ecfg.batch_size)
+            self.config)
         return d_score_mean
 
     def predictive_score(self,real_train_dl, real_test_dl, fake_train_dl, fake_test_dl):
         ecfg = self.config.Evaluation.TestMetrics.predictive_score
-        p_score_mean, p_score_std = compute_predictive_score(
+        p_score_mean, _ = get_predictive_score(
             real_train_dl, real_test_dl, fake_train_dl, fake_test_dl, 
-            self.config, hidden_size=ecfg.hidden_size, 
-            num_layers=ecfg.num_layers, epochs=ecfg.epochs, batch_size=ecfg.batch_size)
+            self.config)
         return p_score_mean
 
     def sigw1(self,real,fake):

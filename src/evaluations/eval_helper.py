@@ -291,7 +291,13 @@ class TrainValidateTestModel:
                 validate_dl=test_dl,
                 valid_condition=valid_condition
                 )
-        test_loss, _ = self.test_model(model_setup.model,criterion,test_dl,self.device,calc_acc=False)
+        test_loss, _ = self.test_model(
+            model=model_setup.model,
+            criterion=criterion,
+            dataloader=test_dl,
+            device=self.device,
+            calc_acc=False
+            )
         return model, test_loss
 
 def create_dl(dl1, dl2, batch_size,cutoff=False):

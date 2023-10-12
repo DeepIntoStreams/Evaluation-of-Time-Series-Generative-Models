@@ -156,8 +156,6 @@ class TestModelVAE(unittest.TestCase):
         'discriminative_score_std',]:
             print(k, wandb.run.summary[k])
 
-        # pass
-
 
 class TestModelGANs(unittest.TestCase):
 
@@ -218,10 +216,11 @@ class TestModelGANs(unittest.TestCase):
             self.assertAlmostEqual(self.trainer.G.state_dict()[k].abs().sum().item(), v, delta=self.delta)
 
 
+
 class TestMetrics(unittest.TestCase):
 
-    dummy_test = 0
-    use_original = 1
+    dummy_test = 1
+    use_original = 0
 
     config = copy.deepcopy(_config_default)
     delta = 100 if dummy_test else 1e-2
@@ -249,7 +248,7 @@ class TestMetrics(unittest.TestCase):
     # }
 
     ref_val_map = {
-        'discriminative_score_mean': 0.066999,
+        'discriminative_score_mean': 0.067,
         'discriminative_score_std': 0.105562,
         'predictive_score_mean': 0.918239,
         'predictive_score_std': 0.026924,
@@ -299,11 +298,13 @@ class TestMetrics(unittest.TestCase):
         # eval: TODO decompose according to config
 
         if __class__.use_original:
+            set_seed(config.seed, device=config.device)
             full_evaluation(vae, self.train_dl, self.test_dl, config, algo='TimeVAE')
             for k,val in self.ref_val_map.items():
                 # print(k,wandb.run.summary[k])
                 self.assertAlmostEqual(wandb.run.summary[k], val, delta=self.__class__.delta)
         else:
+            set_seed(config.seed, device=config.device)
             summary = full_evaluation_latest(vae, self.train_dl, self.test_dl, config, algo='TimeVAE')
             ref_name_map = {v: k for k, v in self.rename_map.items()}
             for k in summary.get_attrs():

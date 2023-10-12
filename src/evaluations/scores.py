@@ -26,7 +26,6 @@ def get_discriminative_score(real_train_dl, real_test_dl, fake_train_dl, fake_te
         test_acc_list.append(test_acc)
     mean_acc = np.mean(np.array(test_acc_list))
     std_acc = np.std(np.array(test_acc_list))
-    print('mean_acc=',mean_acc)
     return abs(mean_acc-0.5), std_acc
 
 
