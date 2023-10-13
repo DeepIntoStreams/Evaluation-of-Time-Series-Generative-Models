@@ -2,6 +2,7 @@
 Procedure for calibrating generative models using the unconditional Sig-Wasserstein metric.
 """
 import ml_collections
+from ml_collections import ConfigDict
 import copy
 import wandb
 import yaml
@@ -73,6 +74,9 @@ def main(config):
     # Create model directory and instantiate config.path
     get_experiment_dir(config)
 
+    """
+    Model training
+    """
     # Train the model
     if config.train:
         # Print arguments (Sanity check)
@@ -100,6 +104,11 @@ def main(config):
     elif config.pretrained:
         pass
 
+    """
+    Model Evaluation
+    """
+    # Convert back to ConfigDict for dot-based access
+    config = ConfigDict(wandb.config)
     # Create the generative model, load the parameters and do evaluation
     from src.baselines.models import GENERATORS, VAES
     if config.algo == 'TimeGAN':
