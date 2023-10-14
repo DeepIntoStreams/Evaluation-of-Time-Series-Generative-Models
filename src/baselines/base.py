@@ -28,6 +28,7 @@ class BaseTrainer:
         #self.best_G = copy.deepcopy(G.state_dict())
         self.best_G_loss = None
         #self.best_G = copy.deepcopy(self.G.state_dict())
+        self.config = None
 
     def evaluate(self, x_fake, x_real, step, config):
         self.losses_history['time'].append(time.time() - self.init_time)
@@ -64,7 +65,7 @@ class BaseTrainer:
 
             torch.save(self.G.state_dict(),pt.join(wandb.run.dir, 'generator_state_dict.pt'))
             
-            if self.config.WANDB.log.image:
+            if self.config.WANDB['log']['image']:
                 self.plot_sample(x_real, x_fake[:config.batch_size], self.config)
                 wandb.log({'fake_samples': wandb.Image(
                     pt.join(self.config.exp_dir, 'x_fake.png'))}, step)
@@ -87,3 +88,10 @@ class BaseTrainer:
                 to_numpy(real_X[random_indices, :, i]).T, 'C%s' % i, alpha=0.1)
         plt.savefig(pt.join(config.exp_dir, 'x_real.png'))
         plt.close()
+
+    def save_model_dict(self):
+        raise NotImplementedError('Model saving not implemented!')
+
+    def toggle_grad(self, model, requires_grad):
+        for p in model.parameters():
+            p.requires_grad_(requires_grad)

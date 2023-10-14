@@ -21,8 +21,12 @@ class Stock(torch.utils.data.TensorDataset):
         n_lags = kwargs["n_lags"]
         self.root = pathlib.Path('data')
 
-        data_loc = pathlib.Path(
-            'data/stock/processed_data')
+        if 'n_lags' in kwargs:
+            data_loc = pathlib.Path(
+                'data/stock/processed_data_{}'.format(kwargs['n_lags']))
+        else:
+            data_loc = pathlib.Path(
+                'data/stock/processed_data')
 
         if os.path.exists(data_loc):
             pass

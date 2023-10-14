@@ -55,9 +55,11 @@ def get_trainer(config, train_dl, test_dl):
             return_seq = True
 
         generator = GENERATORS[config.generator](
-            input_dim=config.G_input_dim, hidden_dim=config.G_hidden_dim, output_dim=config.input_dim, n_layers=config.G_num_layers, init_fixed=config.init_fixed)
+            input_dim=config.G_input_dim, hidden_dim=config.G_hidden_dim, output_dim=config.input_dim,
+            n_layers=config.G_num_layers, init_fixed=config.init_fixed)
         discriminator = DISCRIMINATORS[config.discriminator](
-            input_dim=config.input_dim, hidden_dim=config.D_hidden_dim, out_dim=D_out_dim, n_layers=config.D_num_layers, return_seq=return_seq)
+            input_dim=config.input_dim, hidden_dim=config.D_hidden_dim, out_dim=D_out_dim, n_layers=config.D_num_layers,
+            return_seq=return_seq)
         # print('GENERATOR:', generator)
         # print('DISCRIMINATOR:', discriminator)
 
@@ -66,48 +68,50 @@ def get_trainer(config, train_dl, test_dl):
                                         test_metrics_train=test_metrics_train, test_metrics_test=test_metrics_test,
                                         train_dl=train_dl, batch_size=config.batch_size, n_gradient_steps=config.steps,
                                         config=config),
-            "ROUGH_TimeGAN":  TIMEGANTrainer(G=generator, gamma=1,
-                                             test_metrics_train=test_metrics_train,
-                                             test_metrics_test=test_metrics_test,
-                                             train_dl=train_dl, batch_size=config.batch_size,
-                                             n_gradient_steps=config.steps, config=config),
+            "ROUGH_TimeGAN": TIMEGANTrainer(G=generator, gamma=1,
+                                            test_metrics_train=test_metrics_train,
+                                            test_metrics_test=test_metrics_test,
+                                            train_dl=train_dl, batch_size=config.batch_size,
+                                            n_gradient_steps=config.steps, config=config),
             "AR1_RCGAN": RCGANTrainer(G=generator, D=discriminator,
                                       test_metrics_train=test_metrics_train, test_metrics_test=test_metrics_test,
                                       train_dl=train_dl, batch_size=config.batch_size, n_gradient_steps=config.steps,
                                       config=config),
-            "AR1_TimeGAN":  TIMEGANTrainer(G=generator, gamma=1,
-                                           test_metrics_train=test_metrics_train,
-                                           test_metrics_test=test_metrics_test,
-                                           train_dl=train_dl, batch_size=config.batch_size,
-                                           n_gradient_steps=config.steps, config=config),
+            "AR1_TimeGAN": TIMEGANTrainer(G=generator, gamma=1,
+                                          test_metrics_train=test_metrics_train,
+                                          test_metrics_test=test_metrics_test,
+                                          train_dl=train_dl, batch_size=config.batch_size,
+                                          n_gradient_steps=config.steps, config=config),
             "GBM_RCGAN": RCGANTrainer(G=generator, D=discriminator,
                                       test_metrics_train=test_metrics_train, test_metrics_test=test_metrics_test,
                                       train_dl=train_dl, batch_size=config.batch_size, n_gradient_steps=config.steps,
                                       config=config),
-            "GBM_TimeGAN":  TIMEGANTrainer(G=generator, gamma=1,
-                                           test_metrics_train=test_metrics_train,
-                                           test_metrics_test=test_metrics_test,
-                                           train_dl=train_dl, batch_size=config.batch_size,
-                                           n_gradient_steps=config.steps, config=config)}[model_name]
+            "GBM_TimeGAN": TIMEGANTrainer(G=generator, gamma=1,
+                                          test_metrics_train=test_metrics_train,
+                                          test_metrics_test=test_metrics_test,
+                                          train_dl=train_dl, batch_size=config.batch_size,
+                                          n_gradient_steps=config.steps, config=config)}[model_name]
 
     elif config.model_type == "VAE":
 
-        vae = VAES[config.model](hidden_layer_sizes=config.hidden_layer_sizes,
-                                 trend_poly=config.trend_poly,
-                                 num_gen_seas=config.num_gen_seas,
-                                 custom_seas=config.custom_seas,
-                                 use_scaler=config.use_scaler,
-                                 use_residual_conn=config.use_residual_conn,
-                                 n_lags=config.n_lags,
-                                 input_dim=config.input_dim,
-                                 latent_dim=config.latent_dim,
-                                 reconstruction_wt=config.reconstruction_wt)
+        vae = VAES[config.algo](hidden_layer_sizes=config.hidden_layer_sizes,
+                                trend_poly=config.trend_poly,
+                                num_gen_seas=config.num_gen_seas,
+                                custom_seas=config.custom_seas,
+                                use_scaler=config.use_scaler,
+                                use_residual_conn=config.use_residual_conn,
+                                n_lags=config.n_lags,
+                                input_dim=config.input_dim,
+                                latent_dim=config.latent_dim,
+                                reconstruction_wt=config.reconstruction_wt)
 
         # print('VAE:', vae)
 
         trainer = {model_name: TimeVAETrainer(G=vae,
-                                              test_metrics_train=test_metrics_train, test_metrics_test=test_metrics_test,
-                                              train_dl=train_dl, batch_size=config.batch_size, n_gradient_steps=config.steps,
+                                              test_metrics_train=test_metrics_train,
+                                              test_metrics_test=test_metrics_test,
+                                              train_dl=train_dl, batch_size=config.batch_size,
+                                              n_gradient_steps=config.steps,
                                               config=config)}[model_name]
 
     else:

@@ -3,6 +3,7 @@ from dataclasses import dataclass, fields
 from typing import Optional
 from src.evaluations.metrics import *
 from src.evaluations.loss import *
+from src.evaluations.scores import get_discriminative_score, get_predictive_score
 
 def full_evaluation_latest(generator, real_train_dl, real_test_dl, config, **kwargs):
     ec = EvaluationComponent(config, generator, real_train_dl, real_test_dl, **kwargs)
@@ -73,7 +74,8 @@ class EvaluationComponent(object):
             'stylized_fact_scores':['hist_loss','cross_corr','cov_loss','acf_loss'],
             'implicit_scores':['discriminative_score','predictive_score','predictive_FID'],
             'sig_scores':['sigw1','sig_mmd'],
-            'permutation_test':['permutation_test']
+            'permutation_test':['permutation_test'],
+            'distance_based_metrics':['onnd','innd','icd']
         }
 
     def get_data(self,n=1):
@@ -150,7 +152,8 @@ class EvaluationComponent(object):
                             fake_train_dl = self.data_set[i]['fake_train_dl']
                             fake_test_dl = self.data_set[i]['fake_test_dl']
 
-                            if grp in ['stylized_fact_scores','sig_scores']:
+                            if grp in ['stylized_fact_scores','sig_scores','distance_based_metrics']:
+                                # TODO: should not include the training data
                                 real = combine_dls([real_train_dl,real_test_dl])
                                 fake = combine_dls([fake_train_dl,fake_test_dl]) 
                                 score = eval_func(real,fake)
@@ -178,17 +181,16 @@ class EvaluationComponent(object):
         
     def discriminative_score(self,real_train_dl, real_test_dl, fake_train_dl, fake_test_dl):
         ecfg = self.config.Evaluation.TestMetrics.discriminative_score
-        d_score_mean, d_score_std = compute_discriminative_score(
+        d_score_mean, _ = get_discriminative_score(
             real_train_dl, real_test_dl, fake_train_dl, fake_test_dl, 
-            self.config, hidden_size=int(self.dim/2), num_layers=ecfg.dscore_num_layers, epochs=ecfg.dscore_epochs, batch_size=ecfg.dscore_batch_size)
+            self.config)
         return d_score_mean
 
     def predictive_score(self,real_train_dl, real_test_dl, fake_train_dl, fake_test_dl):
         ecfg = self.config.Evaluation.TestMetrics.predictive_score
-        p_score_mean, p_score_std = compute_predictive_score(
+        p_score_mean, _ = get_predictive_score(
             real_train_dl, real_test_dl, fake_train_dl, fake_test_dl, 
-            self.config, hidden_size=ecfg.pscore_hidden_size, 
-            num_layers=ecfg.pscore_num_layers, epochs=ecfg.pscore_epochs, batch_size=ecfg.pscore_batch_size)
+            self.config)
         return p_score_mean
 
     def sigw1(self,real,fake):
@@ -248,4 +250,20 @@ class EvaluationComponent(object):
             )
         power, type1_error = sig_mmd_permutation_test(self.real_data, fake_data, ecfg.n_permutation)
         return power, type1_error
-    
+    def onnd(self, real, fake):
+        # ecfg = self.config.Evaluation.TestMetrics.onnd
+        metric = ONNDMetric()
+        loss = to_numpy(metric.measure((real, fake)))
+        return loss
+
+    def innd(self, real, fake):
+        # ecfg = self.config.Evaluation.TestMetrics.innd
+        metric = INNDMetric()
+        loss = to_numpy(metric.measure((real, fake)))
+        return loss
+
+    def icd(self, real, fake):
+        # ecfg = self.config.Evaluation.TestMetrics.icd
+        metric = ICDMetric()
+        loss = to_numpy(metric.measure(fake))
+        return loss

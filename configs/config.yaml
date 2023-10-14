@@ -1,0 +1,154 @@
+# General configutation
+device: cuda
+seed: 0
+gpu_id : "1"
+train: True
+pretrained: False
+# n_lags, length of the time series, STOCKs:20
+n_lags: 50
+conditional: False
+
+#Data:
+#  GBM:
+#    drift: 0.
+#    scale: 0.1
+#    dim: 2
+#    size: 10000
+#    h: 1
+#
+#  AR:
+# TODO: Customize all the datasets, abstract the dataset class and personalize the generation
+dataset: 'AR1' #GBM, AR1, Air_Quality, STOCK, MNIST, ROUGH
+data_dir: 'data/'
+
+
+# Weight and bias
+WANDB:
+  wandb_mode: 'dryrun'
+  wandb_api: 'a0a43a4b820d0a581e3579b07d15bd9881f4b559'
+  log:
+    root_dir: './numerical_results'
+    image: False
+
+Model:
+  TimeGAN:
+    model_type: GAN
+    algo: TimeGAN
+    generator: LSTM
+    discriminator: LSTM
+    include_D: False
+
+    #hyperparameters:
+    lr_G: 0.002
+    lr_D: 0.003
+    D_steps_per_G_step: 3
+    batch_size: 64
+    steps: 5 # Turn to 10**5 for better performance
+    #generator hyperparameter:
+    G_input_dim: 5 # Noise dimension
+    G_hidden_dim: 64
+    G_num_layers: 2
+    init_fixed: False
+    #discriminator hyperparameter:
+    D_hidden_dim: 32
+    D_num_layers: 3
+
+  RCGAN:
+    model_type: GAN
+    algo: RCGAN
+    generator: LSTM
+    discriminator: LSTM
+
+    #hyperparameters:
+    lr_G: 0.002
+    lr_D: 0.003
+    D_steps_per_G_step: 3
+    batch_size: 64
+    steps: 5 # Turn to 10**5 for better performance
+    #generator hyperparameter:
+    G_input_dim: 5 # Noise dimension
+    G_hidden_dim: 64
+    G_num_layers: 2
+    init_fixed: False
+    #discriminator hyperparameter:
+    D_hidden_dim: 32
+    D_num_layers: 3
+
+  TimeVAE:
+    model_type: VAE
+    algo: TimeVAE
+    #hyperparameters:
+    lr_G: 0.001
+    batch_size: 256
+    steps: 5 # Turn to 10**5 for better performance
+
+    #vae hyperparameter:
+    input_dim: 5
+    latent_dim: 64
+    reconstruction_wt: 3.0
+    hidden_layer_sizes: [32, 32]
+
+    #decoder hyperparameter:
+    trend_poly: 2
+    num_gen_seas: 2
+    custom_seas: None
+    use_scaler: False
+    use_residual_conn: True
+
+Evaluation:
+  sample_size: 1000
+  test_ratio: 0.2
+  n_eval: 5
+  batch_size: 256
+  metrics_enabled: [
+    'discriminative_score',
+    'predictive_score',
+    # 'sig_mmd',
+    # 'sigw1',
+    # 'hist_loss',
+    # 'acf_loss',
+    # 'cov_loss',
+    # 'cross_corr',
+    # 'permutation_test',
+    # 'onnd',
+    # 'innd',
+    # 'icd'
+    ]
+
+  TestMetrics:
+      discriminative_score:
+        hidden_size: 1
+        epochs : 10
+        num_layers: 1
+        batch_size: 128
+
+      predictive_score:
+        hidden_size: 32
+        epochs : 10
+        num_layers: 2
+        batch_size: 128
+
+      sig_mmd:
+        depth: 5
+
+      sigw1_loss:
+        depth: 2
+
+      hist_loss:
+        n_bins: 50
+
+      cross_corr: None
+
+      acf_loss:
+        stationary: True # False, depend on dataset
+
+      cov_loss: None
+
+      permutation_test:
+        n_permutation: 5
+
+      onnd: None
+
+      innd: None
+
+      icd : None

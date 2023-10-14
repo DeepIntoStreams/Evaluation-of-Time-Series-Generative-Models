@@ -108,7 +108,7 @@ class MMDMetric(Metric):
 
 ########################## Signature Metric ##########################
 
-class SigExpMetric(Metric):
+class ExpSigMetric(Metric):
 
     def __init__(self,transform=lambda x: x):
         self.transform = transform
@@ -192,7 +192,7 @@ class SigW1Metric2(Metric):
     
     def measure(self,data: Tuple[torch.Tensor,torch.Tensor], depth, augmentations: Optional[Tuple] = (Scale(),), normalise: bool = True):
         x_real, x_fake = data
-        m = SigExpMetric(self.transform)
+        m = ExpSigMetric(self.transform)
         exp_sig_real = m.measure(x_real,depth,augmentations,normalise)
         exp_sig_fake = m.measure(x_fake,depth,augmentations,normalise)
         res = eval.rmse(exp_sig_fake.to(exp_sig_real.device), exp_sig_real)
@@ -221,3 +221,113 @@ class SigW1Metric:
         loss = eval.rmse(self.expected_signature_mu.to(
             device), expected_signature_nu)
         return loss
+
+
+class ONNDMetric(Metric):
+
+    def __init__(self,transform=lambda x: x):
+        self.transform = transform
+
+    @property
+    def name(self):
+        return 'ONNDMetric'
+
+    def measure(self,data: Tuple[torch.Tensor,torch.Tensor]):
+        """
+        Calculates the Outgoing Nearest Neighbour Distance (ONND) to assess the diversity of the generated data
+        Parameters
+        ----------
+        x_real: torch.tensor, [B, L, D]
+        x_fake: torch.tensor, [B, L', D']
+
+        Returns
+        -------
+        ONND: float
+        """
+        x_real, x_fake = data
+        b1, t1, d1 = x_real.shape
+        b2, t2, d2 = x_fake.shape
+        assert t1 == t2, "Time length does not agree!"
+        assert d1 == d2, "Feature dimension does not agree!"
+
+        # Compute samplewise difference
+        x_real_repeated = x_real.repeat_interleave(b2, 0)
+        x_fake_repeated = x_fake.repeat([b1, 1, 1])
+        samplewise_diff = x_real_repeated - x_fake_repeated
+        # Compute samplewise MSE
+        MSE_X_Y = torch.norm(samplewise_diff, dim=2).mean(dim=1).reshape([b1, -1])
+        # For every sample in x_real, compute the minimum MSE and calculate the average among all the minimums
+        ONND = (torch.min(MSE_X_Y, dim=1)[0]).mean()
+        return ONND
+
+
+class INNDMetric(Metric):
+
+    def __init__(self, transform=lambda x: x):
+        self.transform = transform
+
+    @property
+    def name(self):
+        return 'INNDMetric'
+
+    def measure(self, data: Tuple[torch.Tensor, torch.Tensor]):
+        """
+        Calculates the Incoming Nearest Neighbour Distance (INND) to assess the authenticity of the generated data
+        Parameters
+        ----------
+        x_real: torch.tensor, [B, L, D]
+        x_fake: torch.tensor, [B, L', D']
+
+        Returns
+        -------
+        INND: float
+        """
+        x_real, x_fake = data
+        b1, t1, d1 = x_real.shape
+        b2, t2, d2 = x_fake.shape
+        assert t1 == t2, "Time length does not agree!"
+        assert d1 == d2, "Feature dimension does not agree!"
+
+        # Compute samplewise difference
+        x_fake_repeated = x_fake.repeat_interleave(b1, 0)
+        x_real_repeated = x_real.repeat([b2, 1, 1])
+        samplewise_diff = x_real_repeated - x_fake_repeated
+        # Compute samplewise MSE
+        MSE_X_Y = torch.norm(samplewise_diff, dim=2).mean(dim=1).reshape([b2, -1])
+        # For every sample in x_real, compute the minimum MSE and calculate the average among all the minimums
+        INND = (torch.min(MSE_X_Y, dim=1)[0]).mean()
+        return INND
+
+
+class ICDMetric(Metric):
+
+    def __init__(self, transform=lambda x: x):
+        self.transform = transform
+
+    @property
+    def name(self):
+        return 'INNDMetric'
+
+    def measure(self, data: torch.Tensor):
+        """
+        Calculates the Intra Class Distance (ICD) to detect a potential model collapse
+        Parameters
+        ----------
+        x_fake: torch.tensor, [B, L, D]
+
+        Returns
+        -------
+        ICD: float
+        """
+        x_fake = data
+        batch, _, _ = x_fake.shape
+
+        # Compute samplewise difference
+        x_fake_repeated_interleave = x_fake.repeat_interleave(batch, 0)
+        x_fake_repeated = x_fake.repeat([batch, 1, 1])
+        samplewise_diff = x_fake_repeated_interleave - x_fake_repeated
+        # Compute samplewise MSE
+        MSE_X_Y = torch.norm(samplewise_diff, dim=2).mean(dim=1).reshape([batch, -1])
+        # For every sample in x_real, compute the minimum MSE and calculate the average among all the minimums
+        ICD = 2 * (MSE_X_Y).sum()
+        return ICD / (batch ** 2)
