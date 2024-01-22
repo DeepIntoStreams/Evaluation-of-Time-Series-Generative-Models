@@ -1,5 +1,5 @@
 import torch
-from src.baselines.base import BaseTrainer
+from src.models.base import BaseTrainer
 from tqdm import tqdm
 import wandb
 from os import path as pt

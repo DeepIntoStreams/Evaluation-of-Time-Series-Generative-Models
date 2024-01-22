@@ -189,10 +189,10 @@ class SigMMDLoss(Loss):
         return m.measure((self.x_real, x_fake), self.depth, seed=self.seed)
     
 class SigW1Loss(Loss):
-    def __init__(self, x_real, depth, **kwargs):
+    def __init__(self, x_real, depth, normalise, **kwargs):
         name = kwargs.pop('name')
         super(SigW1Loss, self).__init__(name=name)
-        self.sig_w1_metric = SigW1Metric(x_real=x_real, depth=depth, **kwargs)
+        self.sig_w1_metric = SigW1Metric(x_real=x_real, depth=depth, normalise=normalise, **kwargs)
 
     def compute(self, x_fake):
         loss = self.sig_w1_metric(x_fake)

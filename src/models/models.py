@@ -1,9 +1,9 @@
-from src.baselines.RCGAN import RCGANTrainer
-from src.baselines.TimeGAN import TIMEGANTrainer
-from src.baselines.TimeVAE import TimeVAETrainer
-from src.baselines.networks.discriminators import LSTMDiscriminator
-from src.baselines.networks.generators import LSTMGenerator
-from src.baselines.networks.TimeVAE import VariationalAutoencoderConvInterpretable
+from src.models.RCGAN import RCGANTrainer
+from src.models.TimeGAN import TIMEGANTrainer
+from src.models.TimeVAE import TimeVAETrainer
+from src.models.networks.discriminators import LSTMDiscriminator
+from src.models.networks.generators import LSTMGenerator
+from src.models.networks.TimeVAE import VariationalAutoencoderConvInterpretable
 import torch
 from src.evaluations.loss import get_standard_test_metrics
 from src.utils import loader_to_tensor, loader_to_cond_tensor
@@ -64,6 +64,15 @@ def get_trainer(config, train_dl, test_dl):
         # print('DISCRIMINATOR:', discriminator)
 
         trainer = {
+            "RCGAN": RCGANTrainer(G=generator, D=discriminator,
+                                  test_metrics_train=test_metrics_train, test_metrics_test=test_metrics_test,
+                                  train_dl=train_dl, batch_size=config.batch_size, n_gradient_steps=config.steps,
+                                  config=config),
+            "TimeGAN": TIMEGANTrainer(G=generator, gamma=1,
+                                      test_metrics_train=test_metrics_train,
+                                      test_metrics_test=test_metrics_test,
+                                      train_dl=train_dl, batch_size=config.batch_size,
+                                      n_gradient_steps=config.steps, config=config),
             "ROUGH_RCGAN": RCGANTrainer(G=generator, D=discriminator,
                                         test_metrics_train=test_metrics_train, test_metrics_test=test_metrics_test,
                                         train_dl=train_dl, batch_size=config.batch_size, n_gradient_steps=config.steps,
@@ -90,7 +99,7 @@ def get_trainer(config, train_dl, test_dl):
                                           test_metrics_train=test_metrics_train,
                                           test_metrics_test=test_metrics_test,
                                           train_dl=train_dl, batch_size=config.batch_size,
-                                          n_gradient_steps=config.steps, config=config)}[model_name]
+                                          n_gradient_steps=config.steps, config=config)}[config.algo]
 
     elif config.model_type == "VAE":
 

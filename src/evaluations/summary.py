@@ -4,6 +4,7 @@ from typing import Optional
 from src.evaluations.metrics import *
 from src.evaluations.loss import *
 from src.evaluations.scores import get_discriminative_score, get_predictive_score
+import pandas as pd
 
 def full_evaluation_latest(generator, real_train_dl, real_test_dl, config, **kwargs):
     ec = EvaluationComponent(config, generator, real_train_dl, real_test_dl, **kwargs)
@@ -164,6 +165,7 @@ class EvaluationComponent(object):
                             else:
                                 raise NotImplementedError(f"metric {metric} not specified in any group {self.metrics_group.keys()}")
 
+                            print(metric, score)
                             # update scores
                             ss = scores[metric]
                             ss.append(score)
@@ -177,12 +179,16 @@ class EvaluationComponent(object):
                             wandb.run.summary[f'{metric}_std'] = summary[f'{metric}_std']
             else:
                 print(f' No metrics enabled in group = {grp}')
+
+        df = pd.DataFrame([summary])
+
+        df.to_csv(self.config.exp_dir + '/final_results.csv', index=True)
         return summary
         
     def discriminative_score(self,real_train_dl, real_test_dl, fake_train_dl, fake_test_dl):
         ecfg = self.config.Evaluation.TestMetrics.discriminative_score
         d_score_mean, _ = get_discriminative_score(
-            real_train_dl, real_test_dl, fake_train_dl, fake_test_dl, 
+            real_train_dl, real_test_dl, fake_train_dl, fake_test_dl,
             self.config)
         return d_score_mean
 
@@ -195,7 +201,7 @@ class EvaluationComponent(object):
 
     def sigw1(self,real,fake):
         ecfg = self.config.Evaluation.TestMetrics.sigw1_loss
-        loss = to_numpy(SigW1Loss(x_real=real, depth=ecfg.depth, name='sigw1')(fake))
+        loss = to_numpy(SigW1Loss(x_real=real, depth=ecfg.depth, name='sigw1', normalise=ecfg.normalise)(fake))
         return loss
 
     def sig_mmd(self,real,fake):
@@ -220,7 +226,7 @@ class EvaluationComponent(object):
     
     def acf_loss(self,real,fake):
         ecfg = self.config.Evaluation.TestMetrics.acf_loss
-        if self.config.dataset == 'GBM' or self.config.dataset == 'ROUGH':
+        if self.config.dataset == 'GBM' or self.config.dataset == 'ROUGH' or self.config.dataset == 'STOCK':
             loss = to_numpy(ACFLoss(real, name='acf_loss', stationary=False)(fake))
         else:
             loss = to_numpy(ACFLoss(real, name='acf_loss')(fake))
