@@ -251,7 +251,7 @@ class TrainValidateTestModel:
             best_model_state_dict = copy.deepcopy(model.state_dict())
             info = f'Epoch {epoch+1}/{epochs} | Loss: {tranining_loss:.4f}'
             info += f' | Acc: {training_acc:.4f}' if calc_acc else ''
-            print(info)
+            # print(info)
 
             # validate if condition is not None
             if valid_condition is not None:

@@ -45,7 +45,7 @@ class ACFLoss(Loss):
         self.max_lag = min(max_lag, x_real.shape[1])
         self.stationary = stationary
         self.metric = AutoCorrelationMetric(self.transform)
-        self.acf_calc = lambda x: self.metric.measure(x, max_lag, stationary,dim=(0, 1),symmetric=False)
+        self.acf_calc = lambda x: self.metric.measure(x, self.max_lag, stationary,dim=(0, 1),symmetric=False)
         self.acf_real = self.acf_calc(x_real)
 
     def compute(self, x_fake):
@@ -231,9 +231,60 @@ class W1(Loss):
     def compute(self, x_fake):
         loss = self.D_real-self.D(x_fake).mean()
         return loss
-    
 
 
+class VARLoss(Loss):
+    def __init__(self, x_real, alpha=0.05, **kwargs):
+        name = kwargs.pop('name')
+        super(VARLoss, self).__init__(name=name)
+        self.alpha = alpha
+        self.var = tail_metric(x=x_real, alpha=self.alpha, statistic='var')
+
+    def compute(self, x_fake):
+        loss = list()
+        var_fake = tail_metric(x=x_fake, alpha=self.alpha, statistic='var')
+        for i in range(x_fake.shape[2]):
+            for t in range(x_fake.shape[1]):
+                abs_metric = torch.abs(var_fake[i][t] - self.var[i][t].to(x_fake.device))
+                loss.append(abs_metric)
+        loss_componentwise = torch.stack(loss)
+        return loss_componentwise
+
+class ESLoss(Loss):
+    def __init__(self, x_real, alpha=0.05, **kwargs):
+        name = kwargs.pop('name')
+        super(ESLoss, self).__init__(name=name)
+        self.alpha = alpha
+        self.var = tail_metric(x=x_real, alpha=self.alpha, statistic='es')
+
+    def compute(self, x_fake):
+        loss = list()
+        var_fake = tail_metric(x=x_fake, alpha=self.alpha, statistic='es')
+        for i in range(x_fake.shape[2]):
+            for t in range(x_fake.shape[1]):
+                abs_metric = torch.abs(var_fake[i][t] - self.var[i][t].to(x_fake.device))
+                loss.append(abs_metric)
+        loss_componentwise = torch.stack(loss)
+        return loss_componentwise
+
+def tail_metric(x, alpha, statistic):
+    res = list()
+    for i in range(x.shape[2]):
+        tmp_res = list()
+        # Exclude the initial point
+        for t in range(x.shape[1]):
+            x_ti = x[:, t, i].reshape(-1, 1)
+            sorted_arr, _ = torch.sort(x_ti)
+            var_alpha_index = int(alpha * len(sorted_arr))
+            var_alpha = sorted_arr[var_alpha_index]
+            if statistic == "es":
+                es_values = sorted_arr[:var_alpha_index + 1]
+                es_alpha = es_values.mean()
+                tmp_res.append(es_alpha)
+            else:
+                tmp_res.append(var_alpha)
+        res.append(tmp_res)
+    return res
 
 #################### Standard Metrics ####################
 
@@ -251,7 +302,8 @@ def get_standard_test_metrics(x: torch.Tensor, **kwargs):
     """ Initialise list of standard test metrics for evaluating the goodness of the generator. """
     if 'model' in kwargs:
         model = kwargs['model']
-    test_metrics_list = [test_metrics['Sig_mmd'](x),
+    test_metrics_list = [
+        # test_metrics['Sig_mmd'](x),
                          test_metrics['SigW1'](x),
                          test_metrics['marginal_distribution'](x),
                          test_metrics['cross_correl'](x),
