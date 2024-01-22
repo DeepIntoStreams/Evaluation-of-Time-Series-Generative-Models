@@ -36,6 +36,8 @@ class EvaluationSummary:
     predictive_score_std: Optional[float] = None
     permutation_test_power: Optional[float] = None
     permutation_test_type1_error: Optional[float] = None
+    var_loss_mean: Optional[float] = None
+    var_loss_std: Optional[float] = None
 
     def set_values(self, summary: dict):
         for k,v in summary.items():
@@ -76,7 +78,8 @@ class EvaluationComponent(object):
             'implicit_scores':['discriminative_score','predictive_score','predictive_FID'],
             'sig_scores':['sigw1','sig_mmd'],
             'permutation_test':['permutation_test'],
-            'distance_based_metrics':['onnd','innd','icd']
+            'distance_based_metrics':['onnd','innd','icd'],
+            'tail_scores':['var', 'es']
         }
 
     def get_data(self,n=1):
@@ -153,7 +156,7 @@ class EvaluationComponent(object):
                             fake_train_dl = self.data_set[i]['fake_train_dl']
                             fake_test_dl = self.data_set[i]['fake_test_dl']
 
-                            if grp in ['stylized_fact_scores','sig_scores','distance_based_metrics']:
+                            if grp in ['stylized_fact_scores','sig_scores','distance_based_metrics','tail_scores']:
                                 # TODO: should not include the training data
                                 real = combine_dls([real_train_dl,real_test_dl])
                                 fake = combine_dls([fake_train_dl,fake_test_dl]) 
@@ -165,7 +168,7 @@ class EvaluationComponent(object):
                             else:
                                 raise NotImplementedError(f"metric {metric} not specified in any group {self.metrics_group.keys()}")
 
-                            print(metric, score)
+                            # print(metric, score)
                             # update scores
                             ss = scores[metric]
                             ss.append(score)
@@ -272,4 +275,14 @@ class EvaluationComponent(object):
         # ecfg = self.config.Evaluation.TestMetrics.icd
         metric = ICDMetric()
         loss = to_numpy(metric.measure(fake))
+        return loss
+
+    def var(self, real, fake):
+        ecfg = self.config.Evaluation.TestMetrics.var
+        loss = to_numpy(VARLoss(real, name='var_loss', alpha = ecfg.alpha)(fake))
+        return loss
+
+    def es(self, real, fake):
+        ecfg = self.config.Evaluation.TestMetrics.es
+        loss = to_numpy(ESLoss(real, name='es_loss', alpha=ecfg.alpha)(fake))
         return loss

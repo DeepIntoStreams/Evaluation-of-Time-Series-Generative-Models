@@ -49,7 +49,7 @@ def plot_summary(fake_dl, real_dl, config, max_lag=None):
         fig = plot_hists_marginals(
             x_real=x_real[..., i:i+1], x_fake=x_fake[..., i:i+1])
         fig.savefig(
-            pt.join(config.exp_dir, 'hists_marginals_dim{}.pdf'.format(i)))
+            pt.join(config.exp_dir, 'hists_marginals_dim{}.png'.format(i)))
         plt.close()
     plot_samples(real_dl, fake_dl, config)
 
@@ -233,6 +233,8 @@ def plot_non_stationary_autocorrelation(x1, x2, config, ignore_diagonal=False, p
     else:
         plt.savefig(
             pt.join(config.exp_dir, 'non_stationary_autocorrelation.png'))
+
+    plt.close()
 
 
 def compare_acf_matrix(real_dl, fake_dl, config):

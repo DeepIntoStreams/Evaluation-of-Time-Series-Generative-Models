@@ -14,6 +14,10 @@ def rolling_window(x: torch.Tensor, n_lags):
 
 
 class Custom_Dataset(torch.utils.data.TensorDataset):
+    """
+    Custom dataset, the dataset can either be 2D or 3D tensor, if 2D tensor is provided, users must include an extra
+    parameter <n_lags> for rolling window.
+    """
     def __init__(
         self,
         partition: str,
@@ -34,7 +38,6 @@ class Custom_Dataset(torch.utils.data.TensorDataset):
         if os.path.exists(data_loc):
             pass
         else:
-            self.download()
             if not os.path.exists(data_loc.parent):
                 os.mkdir(data_loc.parent)
             if not os.path.exists(data_loc):
@@ -63,8 +66,13 @@ class Custom_Dataset(torch.utils.data.TensorDataset):
 
         return X
 
-    def _process_data(self, dataset, n_lags):
-        x = dataset.float().unsqueeze(0)
+    def _process_data(self, dataset, n_lags = 0):
+        if len(dataset.shape) == 2:
+            dataset = dataset.float().unsqueeze(0)
         pipeline = Pipeline(steps=[('standard_scale', StandardScalerTS(axis=(0, 1)))])
-        data_preprocessed = pipeline.transform(x)
+        data_preprocessed = pipeline.transform(dataset)
+        if len(dataset.shape) == 2:
+            assert n_lags > 0, "n_lags must be greater than 0."
+            return rolling_window(data_preprocessed[..., :], n_lags)
+
         return data_preprocessed

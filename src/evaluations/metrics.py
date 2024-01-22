@@ -14,7 +14,7 @@ import warnings
 from scipy import linalg
 from sklearn.metrics.pairwise import polynomial_kernel
 # import signatory
-import ksig
+# import ksig
 from src.utils import AddTime, set_seed
 import signatory
 from abc import ABC, abstractmethod
@@ -318,6 +318,41 @@ class ICDMetric(Metric):
         Returns
         -------
         ICD: float
+        """
+        x_fake = data
+        batch, _, _ = x_fake.shape
+
+        # Compute samplewise difference
+        x_fake_repeated_interleave = x_fake.repeat_interleave(batch, 0)
+        x_fake_repeated = x_fake.repeat([batch, 1, 1])
+        samplewise_diff = x_fake_repeated_interleave - x_fake_repeated
+        # Compute samplewise MSE
+        MSE_X_Y = torch.norm(samplewise_diff, dim=2).mean(dim=1).reshape([batch, -1])
+        # For every sample in x_real, compute the minimum MSE and calculate the average among all the minimums
+        ICD = 2 * (MSE_X_Y).sum()
+        return ICD / (batch ** 2)
+
+
+class VARMetric(Metric):
+    def __init__(self, alpha=0.05, transform=lambda x: x):
+        self.transform = transform
+        self.alpha = alpha
+
+    @property
+    def name(self):
+        return 'VARMetric'
+
+    def measure(self, data: Tuple[torch.Tensor, torch.Tensor]):
+        """
+        Calculates the alpha-value at risk to assess the tail distribution match of the generated data
+        Parameters
+        ----------
+        x_real: torch.tensor, [B, L, D]
+        x_fake: torch.tensor, [B, L', D']
+
+        Returns
+        -------
+        INND: float
         """
         x_fake = data
         batch, _, _ = x_fake.shape

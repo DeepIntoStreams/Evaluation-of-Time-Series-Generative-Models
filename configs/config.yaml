@@ -3,6 +3,7 @@ device: cuda
 seed: 0
 gpu_id : "0"
 train: True
+evaluate: False
 # n_lags, length of the time series, STOCKs:20
 n_lags: 20
 conditional: False
@@ -92,18 +93,20 @@ Evaluation:
   n_eval: 5
   batch_size: 256
   metrics_enabled: [
-    'discriminative_score',
-    'predictive_score',
+#    'discriminative_score',
+#    'predictive_score',
     # 'sig_mmd',
-     'sigw1',
-     'hist_loss',
-     'acf_loss',
-     'cov_loss',
-     'cross_corr',
+#     'sigw1',
+#     'hist_loss',
+#     'acf_loss',
+#     'cov_loss',
+#     'cross_corr',
     # 'permutation_test',
-     'onnd',
-     'innd',
-     'icd'
+#     'onnd',
+#     'innd',
+#     'icd',
+     'var',
+     'es'
     ]
 
   TestMetrics:
@@ -144,3 +147,9 @@ Evaluation:
       innd: None
 
       icd : None
+
+      var:
+        alpha: 0.05
+
+      es:
+        alpha: 0.05

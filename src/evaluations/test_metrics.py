@@ -14,7 +14,7 @@ import warnings
 from scipy import linalg
 from sklearn.metrics.pairwise import polynomial_kernel
 # import signatory
-import ksig
+# import ksig
 from src.utils import AddTime, set_seed
 import signatory
 from src.evaluations.metrics import *
