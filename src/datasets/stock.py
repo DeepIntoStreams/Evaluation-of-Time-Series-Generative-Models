@@ -3,6 +3,7 @@ import torch
 import pathlib
 import os
 from src.datasets.utils import load_data, save_data, train_test_split
+from src.datasets.Pipeline import Pipeline, StandardScalerTS
 import pandas as pd
 import urllib.request
 import zipfile
@@ -69,7 +70,7 @@ class Stock(torch.utils.data.TensorDataset):
         if not os.path.exists(base_loc):
             os.mkdir(base_loc)
         urllib.request.urlretrieve(
-            'https://realized.oxford-man.ox.ac.uk/images/oxfordmanrealizedvolatilityindices.zip',
+            'https://github.com/onnokleen/mfGARCH/raw/v0.1.9/data-raw/OxfordManRealizedVolatilityIndices.zip',
             str(loc),
         )
 
@@ -114,5 +115,7 @@ class Stock(torch.utils.data.TensorDataset):
 
         x = np.concatenate([logrtns, vols[1:]], axis=1)
         x = torch.from_numpy(x).float().unsqueeze(0)
+        pipeline = Pipeline(steps=[('standard_scale', StandardScalerTS(axis=(0, 1)))])
+        data_preprocessed = pipeline.transform(x)
         # we only learn the logreturn
-        return rolling_window(x[..., :1], n_lags)
+        return rolling_window(data_preprocessed[..., :], n_lags)

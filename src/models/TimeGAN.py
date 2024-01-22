@@ -1,7 +1,7 @@
 import torch
 import torch
 
-from src.baselines.base import BaseTrainer
+from src.models.base import BaseTrainer
 from tqdm import tqdm
 import wandb
 import torch.nn as nn

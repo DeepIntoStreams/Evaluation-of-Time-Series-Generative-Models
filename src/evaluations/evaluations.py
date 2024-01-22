@@ -618,7 +618,7 @@ def full_evaluation(generator, real_train_dl, real_test_dl, config, **kwargs):
                                        )
 
         d_score_mean, d_score_std = compute_discriminative_score(
-            real_train_dl, real_test_dl, fake_train_dl, fake_test_dl, config, int(dim/2), 1, epochs=10, batch_size=128)
+            real_train_dl, real_test_dl, fake_train_dl, fake_test_dl, config, 32, 1, epochs=10, batch_size=128)
         
         d_scores.append(d_score_mean)
         p_score_mean, p_score_std = compute_predictive_score(

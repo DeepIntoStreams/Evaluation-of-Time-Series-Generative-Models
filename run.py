@@ -11,6 +11,7 @@ import os
 from os import path as pt
 import numpy as np
 from src.evaluations.evaluations import fake_loader, full_evaluation
+from src.evaluations.summary import full_evaluation_latest
 from src.evaluations.plot import plot_summary, compare_acf_matrix
 import torch
 from src.utils import get_experiment_dir, set_seed, convert_config_to_dict
@@ -18,13 +19,14 @@ from torch import nn
 import argparse
 
 
-def main(config):
+def main(config, algo: str, dataset = None):
     """
     Main interface, provides model the model training with target datasets and final assessment of trained model
     Parameters
     ----------
     config: configuration file
     """
+    config.algo = algo
     os.environ["CUDA_VISIBLE_DEVICES"] = config.gpu_id
     print(os.environ["CUDA_VISIBLE_DEVICES"])
     # Set the seed
@@ -66,9 +68,10 @@ def main(config):
     else:
         config.update({"device": "cpu"}, allow_val_change=True)
     # torch.cuda.set_per_process_memory_fraction(0.5, 0)get_dataset
+
     from src.datasets.dataloader import get_dataset
-    train_dl, test_dl = get_dataset(config, num_workers=4)
-    from src.baselines.models import get_trainer
+    train_dl, test_dl = get_dataset(config, num_workers=4, custom_dataset = dataset)
+    from src.models.models import get_trainer
     trainer = get_trainer(config, train_dl, test_dl)
 
     # Create model directory and instantiate config.path
@@ -101,16 +104,13 @@ def main(config):
         #     save_obj(trainer.G.state_dict(), pt.join(
         #         config.exp_dir, 'generator_state_dict.pt'))
 
-    elif config.pretrained:
-        pass
-
     """
     Model Evaluation
     """
     # Convert back to ConfigDict for dot-based access
     config = ConfigDict(wandb.config)
     # Create the generative model, load the parameters and do evaluation
-    from src.baselines.models import GENERATORS, VAES
+    from src.models.models import GENERATORS, VAES
     if config.algo == 'TimeGAN':
         generator = GENERATORS[config.generator](
             input_dim=config.G_input_dim, hidden_dim=config.G_hidden_dim, output_dim=config.input_dim,
@@ -132,10 +132,11 @@ def main(config):
                                    n_lags=config.n_lags, batch_size=128, algo=config.algo, recovery=recovery
                                    )
 
-        full_evaluation(generator, train_dl, test_dl,
-                        config, recovery=recovery)
+        # full_evaluation(generator, train_dl, test_dl,
+        #                 config, recovery=recovery)
+        full_evaluation_latest(generator, train_dl, test_dl, config, recovery=recovery)
     elif config.algo == 'TimeVAE':
-        vae = VAES[config.model](hidden_layer_sizes=config.hidden_layer_sizes,
+        vae = VAES[config.algo](hidden_layer_sizes=config.hidden_layer_sizes,
                                  trend_poly=config.trend_poly,
                                  num_gen_seas=config.num_gen_seas,
                                  custom_seas=config.custom_seas,
@@ -154,7 +155,8 @@ def main(config):
 
         fake_test_dl = fake_loader(vae, num_samples=len(test_dl.dataset),
                                    n_lags=config.n_lags, batch_size=128, algo=config.algo)
-        full_evaluation(vae, train_dl, test_dl, config)
+        # full_evaluation(vae, train_dl, test_dl, config)
+        full_evaluation_latest(vae, train_dl, test_dl, config)
 
     else:
         generator = GENERATORS[config.generator](
@@ -165,7 +167,8 @@ def main(config):
         fake_test_dl = fake_loader(generator, num_samples=len(test_dl.dataset),
                                    n_lags=config.n_lags, batch_size=test_dl.batch_size, algo=config.algo
                                    )
-        full_evaluation(generator, train_dl, test_dl, config)
+        # full_evaluation(generator, train_dl, test_dl, config)
+        full_evaluation_latest(generator, train_dl, test_dl, config)
 
     # Plot the summary
     plot_summary(fake_test_dl, test_dl, config)
@@ -194,8 +197,7 @@ if __name__ == '__main__':
 
     with open(config_dir) as file:
         config = ml_collections.ConfigDict(yaml.safe_load(file))
-    config.algo = args.algo
 
     config.dataset = args.dataset
 
-    main(config)
+    main(config, args.algo)

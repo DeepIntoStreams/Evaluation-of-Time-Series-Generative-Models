@@ -1,7 +1,7 @@
 import torch
 from torch import autograd
 
-from src.baselines.base import BaseTrainer
+from src.models.base import BaseTrainer
 from tqdm import tqdm
 from torch.nn.functional import one_hot
 import wandb
