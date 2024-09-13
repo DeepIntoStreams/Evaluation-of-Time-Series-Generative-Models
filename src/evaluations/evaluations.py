@@ -4,16 +4,13 @@ import wandb
 from tqdm import tqdm
 from torch.utils.data import DataLoader, TensorDataset
 import copy
-from src.utils import loader_to_tensor, to_numpy, save_obj, combine_dls
-import matplotlib.pyplot as plt
+from src.utils import loader_to_tensor, to_numpy, save_obj
 from os import path as pt
 import seaborn as sns
-from src.evaluations.loss import Sig_mmd, SigMMDLoss, SigW1Loss, CrossCorrelLoss, HistoLoss, CovLoss, ACFLoss
-from src.evaluations.loss import sig_mmd_permutation_test #TODO: move to another file
+from src.evaluations.loss import SigW1Loss, CrossCorrelLoss, HistoLoss, CovLoss, ACFLoss
 import numpy as np
 import os
 import signatory
-from src.utils import set_seed
 
 def _train_classifier(model, train_loader, test_loader, config, epochs=100):
     """
