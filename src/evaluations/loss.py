@@ -174,19 +174,19 @@ class CovLoss(Loss):
         return loss
 
 
-class SigMMDLoss(Loss):
-    """
-    Signature MMD Loss
-    """
-    def __init__(self, x_real, depth, **kwargs):
-        super(SigMMDLoss, self).__init__(**kwargs)
-        self.x_real = x_real
-        self.depth = depth
-        self.seed = kwargs.get('seed',None)
-
-    def compute(self, x_fake):
-        m = SigMMDMetric(self.transform)
-        return m.measure((self.x_real, x_fake), self.depth, seed=self.seed)
+# class SigMMDLoss(Loss):
+#     """
+#     Signature MMD Loss
+#     """
+#     def __init__(self, x_real, depth, **kwargs):
+#         super(SigMMDLoss, self).__init__(**kwargs)
+#         self.x_real = x_real
+#         self.depth = depth
+#         self.seed = kwargs.get('seed',None)
+#
+#     def compute(self, x_fake):
+#         m = SigMMDMetric(self.transform)
+#         return m.measure((self.x_real, x_fake), self.depth, seed=self.seed)
     
 class SigW1Loss(Loss):
     def __init__(self, x_real, depth, normalise, **kwargs):
@@ -289,7 +289,7 @@ def tail_metric(x, alpha, statistic):
 #################### Standard Metrics ####################
 
 test_metrics = {
-    'Sig_mmd': partial(SigMMDLoss, name='Sig_mmd', depth=4),
+    # 'Sig_mmd': partial(SigMMDLoss, name='Sig_mmd', depth=4),
     'SigW1': partial(SigW1Loss, name='SigW1', augmentations=[], normalise=False, depth=4),
     'marginal_distribution': partial(HistoLoss, n_bins=50, name='marginal_distribution'),
     'cross_correl': partial(CrossCorrelLoss, name='cross_correl'),
@@ -342,8 +342,8 @@ def permutation_test(test_func_arg_tuple, X, Y, n_permutation) -> float:
 
     return power, type1_error
 
-def sig_mmd_permutation_test(X, Y, n_permutation) -> float:
-    test_func_arg_tuple = (Sig_mmd,{'depth':5})
-    return permutation_test(
-        test_func_arg_tuple, X, Y, n_permutation)
+# def sig_mmd_permutation_test(X, Y, n_permutation) -> float:
+#     test_func_arg_tuple = (Sig_mmd,{'depth':5})
+#     return permutation_test(
+#         test_func_arg_tuple, X, Y, n_permutation)
 
