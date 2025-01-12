@@ -16,7 +16,6 @@ from sklearn.metrics.pairwise import polynomial_kernel
 # import signatory
 # import ksig
 from src.utils import AddTime, set_seed
-import signatory
 from abc import ABC, abstractmethod
 from src.evaluations import eval_helper as eval
 
@@ -198,29 +197,29 @@ class ExpSigMetric(Metric):
 #         res = eval.rmse(exp_sig_fake.to(exp_sig_real.device), exp_sig_real)
 #         return res
   
-class SigW1Metric:
-    def __init__(self, depth: int, x_real: torch.Tensor, augmentations: Optional[Tuple] = (Scale(),), normalise: bool = True):
-        assert len(x_real.shape) == 3, \
-            'Path needs to be 3-dimensional. Received %s dimension(s).' % (
-                len(x_real.shape),)
-
-        self.augmentations = augmentations
-        self.depth = depth
-        self.n_lags = x_real.shape[1]
-
-        self.normalise = normalise
-        self.expected_signature_mu = eval.compute_expected_signature(
-            x_real, depth, augmentations, normalise)
-
-    def __call__(self, x_path_nu: torch.Tensor):
-        """ Computes the SigW1 metric."""
-        device = x_path_nu.device
-        batch_size = x_path_nu.shape[0]
-        expected_signature_nu = eval.compute_expected_signature(
-            x_path_nu, self.depth, self.augmentations, self.normalise)
-        loss = eval.rmse(self.expected_signature_mu.to(
-            device), expected_signature_nu)
-        return loss
+# class SigW1Metric:
+#     def __init__(self, depth: int, x_real: torch.Tensor, augmentations: Optional[Tuple] = (Scale(),), normalise: bool = True):
+#         assert len(x_real.shape) == 3, \
+#             'Path needs to be 3-dimensional. Received %s dimension(s).' % (
+#                 len(x_real.shape),)
+#
+#         self.augmentations = augmentations
+#         self.depth = depth
+#         self.n_lags = x_real.shape[1]
+#
+#         self.normalise = normalise
+#         self.expected_signature_mu = eval.compute_expected_signature(
+#             x_real, depth, augmentations, normalise)
+#
+#     def __call__(self, x_path_nu: torch.Tensor):
+#         """ Computes the SigW1 metric."""
+#         device = x_path_nu.device
+#         batch_size = x_path_nu.shape[0]
+#         expected_signature_nu = eval.compute_expected_signature(
+#             x_path_nu, self.depth, self.augmentations, self.normalise)
+#         loss = eval.rmse(self.expected_signature_mu.to(
+#             device), expected_signature_nu)
+#         return loss
 
 
 class ONNDMetric(Metric):

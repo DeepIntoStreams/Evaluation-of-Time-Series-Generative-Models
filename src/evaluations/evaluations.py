@@ -10,7 +10,6 @@ import seaborn as sns
 from src.evaluations.loss import SigW1Loss, CrossCorrelLoss, HistoLoss, CovLoss, ACFLoss
 import numpy as np
 import os
-import signatory
 
 def _train_classifier(model, train_loader, test_loader, config, epochs=100):
     """
@@ -628,17 +627,17 @@ def full_evaluation(generator, real_train_dl, real_test_dl, config, **kwargs):
         # predictive_fid = FID_score(fid_model, real, fake)
         # predictive_kid = KID_score(fid_model, real, fake)
 
-        sigw1_losses.append(
-            to_numpy(SigW1Loss(x_real=real, depth=2, name='sigw1')(fake)))
         if False:
+            sigw1_losses.append(
+                to_numpy(SigW1Loss(x_real=real, depth=2, name='sigw1')(fake)))
             sig_mmd = Sig_mmd(real, fake, depth=5,seed=cupy_seed)
             while sig_mmd > 1e3:
                 sig_mmd = Sig_mmd(real, fake, depth=5,seed=cupy_seed)
-        sig_mmd = to_numpy(SigMMDLoss(x_real=real, depth=5, seed=cupy_seed, name='sigmmd')(fake))
-        while sig_mmd > 1e3:
             sig_mmd = to_numpy(SigMMDLoss(x_real=real, depth=5, seed=cupy_seed, name='sigmmd')(fake))
+            while sig_mmd > 1e3:
+                sig_mmd = to_numpy(SigMMDLoss(x_real=real, depth=5, seed=cupy_seed, name='sigmmd')(fake))
 
-        Sig_MMDs.append(sig_mmd)
+            Sig_MMDs.append(sig_mmd)
         cross_corrs.append(to_numpy(CrossCorrelLoss(
             real, name='cross_correlation')(fake)))
         if config.dataset == 'GBM' or config.dataset == 'ROUGH':
@@ -683,7 +682,7 @@ def full_evaluation(generator, real_train_dl, real_test_dl, config, **kwargs):
     else:
         fake_data = loader_to_tensor(fake_loader(generator, num_samples=int(
             real_data.shape[0]//2), n_lags=config.n_lags, batch_size=128, algo=algo))
-    power, type1_error = sig_mmd_permutation_test(real_data, fake_data, 5)
+    # power, type1_error = sig_mmd_permutation_test(real_data, fake_data, 5)
 
     print('discriminative score with mean:', d_mean, 'std:', d_std)
     print('predictive score with mean:', p_mean, 'std:', p_std)
@@ -711,5 +710,5 @@ def full_evaluation(generator, real_train_dl, real_test_dl, config, **kwargs):
     wandb.run.summary['cov_loss_std'] = cov_std
     wandb.run.summary['acf_loss_mean'] = acf_mean
     wandb.run.summary['acf_loss_std'] = acf_std
-    wandb.run.summary['permutation_test_power'] = power
-    wandb.run.summary['permutation_test_type1_error'] = type1_error
+    # wandb.run.summary['permutation_test_power'] = power
+    # wandb.run.summary['permutation_test_type1_error'] = type1_error

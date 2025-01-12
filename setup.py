@@ -14,7 +14,6 @@ setup(
                       'PyYAML == 6.0',
                       'sklearn',
                       'torch == 1.11.0',
-                      'signatory == 1.2.6.1.9.0',
                       'torchvision == 0.12.0',
                       'seaborn',
                       'tqdm==4.64.0',

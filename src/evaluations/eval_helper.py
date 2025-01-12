@@ -4,7 +4,6 @@ import numpy as np
 from src.utils import to_numpy
 from typing import Tuple
 from src.evaluations.augmentations import apply_augmentations, parse_augmentations, Basepoint, Scale
-import signatory
 import math
 from torch.utils.data import DataLoader, TensorDataset
 import copy
@@ -118,18 +117,18 @@ def cacf_torch(x, lags: list, dim=(0, 1)):
     return cacf.reshape(cacf.shape[0], -1, len(ind[0]))
 
 
-def compute_expected_signature(x_path, depth: int, augmentations: Tuple, normalise: bool = True):
-    x_path_augmented = apply_augmentations(x_path, augmentations)
-    expected_signature = signatory.signature(
-        x_path_augmented, depth=depth).mean(0)
-    dim = x_path_augmented.shape[2]
-    count = 0
-    if normalise:
-        for i in range(depth):
-            expected_signature[count:count + dim**(
-                i+1)] = expected_signature[count:count + dim**(i+1)] * math.factorial(i+1)
-            count = count + dim**(i+1)
-    return expected_signature
+# def compute_expected_signature(x_path, depth: int, augmentations: Tuple, normalise: bool = True):
+#     x_path_augmented = apply_augmentations(x_path, augmentations)
+#     expected_signature = signatory.signature(
+#         x_path_augmented, depth=depth).mean(0)
+#     dim = x_path_augmented.shape[2]
+#     count = 0
+#     if normalise:
+#         for i in range(depth):
+#             expected_signature[count:count + dim**(
+#                 i+1)] = expected_signature[count:count + dim**(i+1)] * math.factorial(i+1)
+#             count = count + dim**(i+1)
+#     return expected_signature
 
 
 def rmse(x, y):
