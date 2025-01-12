@@ -7,7 +7,6 @@ from sklearn.metrics.pairwise import polynomial_kernel
 # import signatory
 # import ksig
 from src.utils import AddTime
-import signatory
 from src.evaluations.metrics import *
 from src.evaluations.eval_helper import *
 from src.evaluations.test_metrics import * #TODO: remove as all metrics will be included in metrics.py
@@ -188,15 +187,15 @@ class CovLoss(Loss):
 #         m = SigMMDMetric(self.transform)
 #         return m.measure((self.x_real, x_fake), self.depth, seed=self.seed)
     
-class SigW1Loss(Loss):
-    def __init__(self, x_real, depth, normalise, **kwargs):
-        name = kwargs.pop('name')
-        super(SigW1Loss, self).__init__(name=name)
-        self.sig_w1_metric = SigW1Metric(x_real=x_real, depth=depth, normalise=normalise, **kwargs)
-
-    def compute(self, x_fake):
-        loss = self.sig_w1_metric(x_fake)
-        return loss
+# class SigW1Loss(Loss):
+#     def __init__(self, x_real, depth, normalise, **kwargs):
+#         name = kwargs.pop('name')
+#         super(SigW1Loss, self).__init__(name=name)
+#         self.sig_w1_metric = SigW1Metric(x_real=x_real, depth=depth, normalise=normalise, **kwargs)
+#
+#     def compute(self, x_fake):
+#         loss = self.sig_w1_metric(x_fake)
+#         return loss
 
 
 class Predictive_FID(Loss):
@@ -290,7 +289,7 @@ def tail_metric(x, alpha, statistic):
 
 test_metrics = {
     # 'Sig_mmd': partial(SigMMDLoss, name='Sig_mmd', depth=4),
-    'SigW1': partial(SigW1Loss, name='SigW1', augmentations=[], normalise=False, depth=4),
+    # 'SigW1': partial(SigW1Loss, name='SigW1', augmentations=[], normalise=False, depth=4),
     'marginal_distribution': partial(HistoLoss, n_bins=50, name='marginal_distribution'),
     'cross_correl': partial(CrossCorrelLoss, name='cross_correl'),
     'covariance': partial(CovLoss, name='covariance'),

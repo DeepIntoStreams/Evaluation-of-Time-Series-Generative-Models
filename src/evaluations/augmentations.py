@@ -8,7 +8,6 @@ Tensors are 3-D arrays corresponding to [batch size, time length, channel dimens
 from dataclasses import dataclass
 from typing import List, Tuple
 
-import signatory
 import torch
 
 
